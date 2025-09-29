@@ -26,8 +26,9 @@ public class UserModel {
     @Size(min = 6, message = "Пароль должен содержать минимум 6 символов")
     private String password;
 
-    @Enumerated(EnumType.STRING)
-    private Role role = Role.STUDENT;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "role_id", nullable = false)
+    private RoleModel role;
 
     public UserModel() {}
 
@@ -69,16 +70,12 @@ public class UserModel {
         this.password = password;
     }
 
-    public Role getRole() {
+    public RoleModel getRole() {
         return role;
     }
 
-    public void setRole(Role role) {
+    public void setRole(RoleModel role) {
         this.role = role;
-    }
-
-    public enum Role {
-        ADMIN, TEACHER, STUDENT
     }
 }
 

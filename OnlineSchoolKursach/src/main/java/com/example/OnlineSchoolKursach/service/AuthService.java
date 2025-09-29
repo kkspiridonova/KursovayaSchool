@@ -4,6 +4,8 @@ import com.example.OnlineSchoolKursach.dto.LoginRequest;
 import com.example.OnlineSchoolKursach.dto.LoginResponse;
 import com.example.OnlineSchoolKursach.model.UserModel;
 import com.example.OnlineSchoolKursach.repository.UserRepository;
+import com.example.OnlineSchoolKursach.repository.RoleRepository;
+import com.example.OnlineSchoolKursach.model.RoleModel;
 import com.example.OnlineSchoolKursach.util.JwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +37,9 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private RoleRepository roleRepository;
+
     public LoginResponse login(LoginRequest loginRequest) {
         logger.info("Attempting login for user: {}", loginRequest.getUsername());
         
@@ -54,7 +59,8 @@ public class AuthService {
                     .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
             logger.info("JWT token generated for user: {}", user.getUsername());
-            return new LoginResponse(token, user.getUsername(), user.getRole().name());
+            String roleName = user.getRole() != null ? user.getRole().getName() : "STUDENT";
+            return new LoginResponse(token, user.getUsername(), roleName);
         } catch (Exception e) {
             logger.error("Authentication failed for user: {}, error: {}", loginRequest.getUsername(), e.getMessage());
             throw e;
@@ -76,7 +82,9 @@ public class AuthService {
 
         String encodedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(encodedPassword);
-        user.setRole(UserModel.Role.STUDENT);
+        RoleModel defaultRole = roleRepository.findByName("STUDENT")
+                .orElseThrow(() -> new RuntimeException("Роль STUDENT не найдена. Проверьте инициализацию ролей."));
+        user.setRole(defaultRole);
         logger.info("Password encoded for user: {}", user.getUsername());
         
         UserModel savedUser = userRepository.save(user);

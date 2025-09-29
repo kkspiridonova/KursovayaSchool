@@ -28,12 +28,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return new User(
                 user.getUsername(),
                 user.getPassword(),
-                getAuthorities(user.getRole())
+                getAuthorities(user)
         );
     }
 
-    private Collection<? extends GrantedAuthority> getAuthorities(UserModel.Role role) {
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.name()));
+    private Collection<? extends GrantedAuthority> getAuthorities(UserModel user) {
+        String roleName = user.getRole() != null ? user.getRole().getName() : "STUDENT";
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + roleName));
     }
 }
 
