@@ -1,0 +1,31 @@
+spring:
+  config:
+    name: OnlineSchoolKursach
+  datasource:
+    url: jdbc:postgresql://localhost:5432/OnlineSchoolWeb
+    username: postgres
+    password: 1
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database: postgresql
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+server:
+  port: 8080
+
+jwt:
+  secret: myVerySecretKeyThatIsLongEnoughForJWTAlgorithmSecurityRequirements123456789
+  expiration: 86400
+
+logging:
+  level:
+    com.example.OnlineSchoolKursach: DEBUG
+    org.springframework.security: DEBUG
+
+
+
+
