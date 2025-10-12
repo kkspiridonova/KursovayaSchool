@@ -55,12 +55,12 @@ public class AuthService {
             UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getUsername());
             String token = jwtUtil.generateToken(userDetails);
 
-            UserModel user = userRepository.findByUsername(loginRequest.getUsername())
+            UserModel user = userRepository.findByEmail(loginRequest.getUsername())
                     .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
-            logger.info("JWT token generated for user: {}", user.getUsername());
-            String roleName = user.getRole() != null ? user.getRole().getName() : "STUDENT";
-            return new LoginResponse(token, user.getUsername(), roleName);
+            logger.info("JWT token generated for user: {}", user.getEmail());
+            String roleName = user.getRole() != null ? user.getRole().getRoleName() : "STUDENT";
+            return new LoginResponse(token, user.getEmail(), roleName);
         } catch (Exception e) {
             logger.error("Authentication failed for user: {}, error: {}", loginRequest.getUsername(), e.getMessage());
             throw e;
@@ -68,32 +68,27 @@ public class AuthService {
     }
 
     public UserModel register(UserModel user) {
-        logger.info("Attempting registration for user: {}", user.getUsername());
+        logger.info("Attempting registration for user: {}", user.getEmail());
         
-        if (userRepository.existsByUsername(user.getUsername())) {
-            logger.warn("Username already exists: {}", user.getUsername());
-            throw new RuntimeException("Пользователь с таким именем уже существует");
-        }
-
         if (userRepository.existsByEmail(user.getEmail())) {
             logger.warn("Email already exists: {}", user.getEmail());
             throw new RuntimeException("Пользователь с таким email уже существует");
         }
 
-        String encodedPassword = passwordEncoder.encode(user.getPassword());
-        user.setPassword(encodedPassword);
-        RoleModel defaultRole = roleRepository.findByName("STUDENT")
-                .orElseThrow(() -> new RuntimeException("Роль STUDENT не найдена. Проверьте инициализацию ролей."));
+        String encodedPassword = passwordEncoder.encode(user.getPasswordHash());
+        user.setPasswordHash(encodedPassword);
+        RoleModel defaultRole = roleRepository.findByRoleName("Студент")
+                .orElseThrow(() -> new RuntimeException("Роль Студент не найдена. Проверьте инициализацию ролей."));
         user.setRole(defaultRole);
-        logger.info("Password encoded for user: {}", user.getUsername());
+        logger.info("Password encoded for user: {}", user.getEmail());
         
         UserModel savedUser = userRepository.save(user);
-        logger.info("User registered successfully: {}", savedUser.getUsername());
+        logger.info("User registered successfully: {}", savedUser.getEmail());
         return savedUser;
     }
 
-    public UserModel getUserByUsername(String username) {
-        return userRepository.findByUsername(username)
+    public UserModel getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
     }
 }

@@ -22,18 +22,18 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserModel user = userRepository.findByUsername(username)
+        UserModel user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден: " + username));
 
         return new User(
-                user.getUsername(),
-                user.getPassword(),
+                user.getEmail(),
+                user.getPasswordHash(),
                 getAuthorities(user)
         );
     }
 
     private Collection<? extends GrantedAuthority> getAuthorities(UserModel user) {
-        String roleName = user.getRole() != null ? user.getRole().getName() : "STUDENT";
+        String roleName = user.getRole() != null ? user.getRole().getRoleName() : "Студент";
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + roleName));
     }
 }

@@ -52,8 +52,8 @@ public class AuthController {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        return authService.getUserByUsername(principal.getUsername()) != null
-                ? ResponseEntity.ok(authService.getUserByUsername(principal.getUsername()))
+        return authService.getUserByEmail(principal.getUsername()) != null
+                ? ResponseEntity.ok(authService.getUserByEmail(principal.getUsername()))
                 : ResponseEntity.notFound().build();
     }
 }

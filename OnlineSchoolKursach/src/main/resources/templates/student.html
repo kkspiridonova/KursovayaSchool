@@ -39,8 +39,85 @@
             </div>
         </div>
 
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Доступные файлы для скачивания</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="filesList">
+                            <p class="text-muted">Загрузка списка файлов...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAllFiles();
+        });
+
+        function loadAllFiles() {
+            fetch('/v1/api/files/list', {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => response.json())
+            .then(files => {
+                const filesList = document.getElementById('filesList');
+                if (files.length === 0) {
+                    filesList.innerHTML = '<p class="text-muted">Пока нет доступных файлов</p>';
+                } else {
+                    let html = '<div class="list-group">';
+                    files.forEach(file => {
+                        html += `
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">${file.originalName}</h6>
+                                    <small>Загружен: ${new Date(file.uploadDate).toLocaleString()}</small>
+                                </div>
+                                <p class="mb-1">${file.description || 'Без описания'}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small>Размер: ${formatFileSize(file.fileSize)} | Автор: ${file.uploaderUsername}</small>
+                                    <button class="btn btn-sm btn-primary" onclick="downloadFile(${file.id}, '${file.originalName}')">
+                                        <i class="bi bi-download"></i> Скачать
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    filesList.innerHTML = html;
+                }
+            })
+            .catch(error => {
+                document.getElementById('filesList').innerHTML = '<p class="text-danger">Ошибка загрузки списка файлов</p>';
+            });
+        }
+
+        function downloadFile(fileId, fileName) {
+            const link = document.createElement('a');
+            link.href = `/v1/api/files/download/${fileId}`;
+            link.download = fileName;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    </script>
 </body>
 </html>

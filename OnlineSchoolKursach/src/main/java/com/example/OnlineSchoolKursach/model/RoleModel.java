@@ -10,33 +10,34 @@ public class RoleModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "role_id")
+    private Long roleId;
 
     @NotBlank
-    @Size(min = 3, max = 50)
-    @Column(name = "name", unique = true, nullable = false)
-    private String name;
+    @Size(max = 30)
+    @Column(name = "role_name", unique = true, nullable = false)
+    private String roleName;
 
     public RoleModel() {}
 
-    public RoleModel(String name) {
-        this.name = name;
+    public RoleModel(String roleName) {
+        this.roleName = roleName;
     }
 
-    public Long getId() {
-        return id;
+    public Long getRoleId() {
+        return roleId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setRoleId(Long roleId) {
+        this.roleId = roleId;
     }
 
-    public String getName() {
-        return name;
+    public String getRoleName() {
+        return roleName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
     }
 }
 

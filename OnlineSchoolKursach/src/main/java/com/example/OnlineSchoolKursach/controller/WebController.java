@@ -29,7 +29,7 @@ public class WebController {
     public String loginPage(Model model, HttpServletRequest request) {
         String error = (String) request.getAttribute("error");
         if (error != null) {
-            model.addAttribute("error", "Неверное имя пользователя или пароль");
+            model.addAttribute("error", "Неверный email или пароль");
         }
         return "login";
     }
@@ -61,11 +61,11 @@ public class WebController {
     public String dashboard(Model model, Authentication authentication) {
         if (authentication != null && authentication.isAuthenticated()) {
             String role = authentication.getAuthorities().iterator().next().getAuthority();
-            if (role.equals("ROLE_ADMIN")) {
+            if (role.equals("ROLE_Администратор")) {
                 return "redirect:/admin";
-            } else if (role.equals("ROLE_TEACHER")) {
+            } else if (role.equals("ROLE_Преподаватель")) {
                 return "redirect:/teacher";
-            } else if (role.equals("ROLE_STUDENT")) {
+            } else if (role.equals("ROLE_Студент")) {
                 return "redirect:/student";
             }
         }

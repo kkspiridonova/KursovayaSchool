@@ -17,9 +17,9 @@ public class OnlineSchoolKursachApplication {
     @Bean
     public CommandLineRunner seedRoles(RoleRepository roleRepository) {
         return args -> {
-            String[] roles = {"ADMIN", "TEACHER", "STUDENT"};
+            String[] roles = {"Администратор", "Преподаватель", "Студент"};
             for (String r : roles) {
-                if (!roleRepository.existsByName(r)) {
+                if (!roleRepository.existsByRoleName(r)) {
                     roleRepository.save(new RoleModel(r));
                 }
             }

@@ -17,8 +17,9 @@
                     <div class="card-body">
                         <form th:action="@{/login}" method="post">
                             <div class="mb-3">
-                                <label for="username" class="form-label">Имя пользователя</label>
-                                <input type="text" class="form-control" id="username" name="username" required>
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="username" required>
+                                <div class="form-text">Введите ваш email для входа в систему</div>
                             </div>
                             <div class="mb-3">
                                 <label for="password" class="form-label">Пароль</label>
