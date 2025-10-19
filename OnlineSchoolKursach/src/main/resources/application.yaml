@@ -46,6 +46,10 @@ minio:
   bucket-name: school-files
   secure: false
 
-
-
-
+springdoc:
+  packages-to-scan: com.example.OnlineSchoolKursach
+  paths-to-match: /v1/api/**
+  show-actuator: true
+  swagger-ui:
+    operations-sorter: alpha
+    tags-sorter: alpha

@@ -23,7 +23,7 @@ public class AuthService {
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     @Autowired
-    private AuthenticationManager authenticationManager;
+ private AuthenticationManager authenticationManager;
 
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
@@ -39,6 +39,9 @@ public class AuthService {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private FileService fileService;
 
     public LoginResponse login(LoginRequest loginRequest) {
         logger.info("Attempting login for user: {}", loginRequest.getUsername());
@@ -57,6 +60,8 @@ public class AuthService {
 
             UserModel user = userRepository.findByEmail(loginRequest.getUsername())
                     .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
+            user = convertUserImageUrl(user);
 
             logger.info("JWT token generated for user: {}", user.getEmail());
             String roleName = user.getRole() != null ? user.getRole().getRoleName() : "STUDENT";
@@ -88,7 +93,36 @@ public class AuthService {
     }
 
     public UserModel getUserByEmail(String email) {
-        return userRepository.findByEmail(email)
+        UserModel user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+        return convertUserImageUrl(user);
+    }
+
+    public UserModel updateUserProfile(String email, UserModel updatedUser) {
+        UserModel existingUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+        
+        existingUser.setFirstName(updatedUser.getFirstName());
+        existingUser.setLastName(updatedUser.getLastName());
+        existingUser.setMiddleName(updatedUser.getMiddleName());
+        existingUser.setEmail(updatedUser.getEmail());
+        
+        if (updatedUser.getImageUrl() != null && !updatedUser.getImageUrl().isEmpty()) {
+            existingUser.setImageUrl(updatedUser.getImageUrl());
+        }
+        
+        UserModel savedUser = userRepository.save(existingUser);
+        return convertUserImageUrl(savedUser);
+    }
+
+    private UserModel convertUserImageUrl(UserModel user) {
+        if (user.getImageUrl() != null && !user.getImageUrl().startsWith("http")) {
+            try {
+                String fullUrl = fileService.getFileUrl(user.getImageUrl());
+                user.setImageUrl(fullUrl);
+            } catch (Exception e) {
+            }
+        }
+        return user;
     }
 }

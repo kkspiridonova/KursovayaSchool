@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${'Курс: ' + course.title + ' - Онлайн Школа'}">Детали курса - Онлайн Школа</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .course-header {
+            position: relative;
+            height: 400px;
+            overflow: hidden;
+        }
+        
+        .course-header img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+        }
+        
+        .course-title {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            margin: 0;
+            max-width: 80%;
+        }
+        
+        .teacher-info {
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+        
+        .course-meta {
+            background-color: #e9ecef;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+        
+        /* Style for disabled buttons */
+        .btn-disabled {
+            pointer-events: none;
+            opacity: 0.65;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-info">
+        <div class="container">
+            <a class="navbar-brand" href="/">Онлайн Школа</a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3" th:if="${#authentication != null}">
+                    Добро пожаловать, <span th:text="${#authentication.name}"></span>!
+                </span>
+                <a class="nav-link" href="/student">Назад к курсам</a>
+                <a class="nav-link" href="/logout">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ======= ГЛАВНЫЙ БЛОК С КАРТИНКОЙ ======= -->
+    <div class="course-header">
+        <img th:if="${course.imageUrl}" th:src="${course.imageUrl}" th:alt="${course.title}">
+        <div class="overlay">
+            <h1 class="course-title" th:text="${course.title}">Название курса</h1>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- Course Content -->
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>Описание курса</h3>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${course.description}" th:text="${course.description}">Описание курса</div>
+                        <div th:if="${course.description == null}" class="text-muted">Описание отсутствует</div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>Информация о преподавателе</h3>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${course.teacher != null}">
+                            <h5 th:text="${course.teacher.firstName + ' ' + course.teacher.lastName}">Имя преподавателя</h5>
+                            <p th:if="${course.teacher.email}" th:text="${'Email: ' + course.teacher.email}">Email преподавателя</p>
+                        </div>
+                        <div th:if="${course.teacher == null}" class="text-muted">Информация о преподавателе отсутствует</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-md-4">
+                <div class="card mb-4 course-meta">
+                    <div class="card-header">
+                        <h5>Информация о курсе</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <strong>ID курса:</strong>
+                                <span class="text-muted" th:text="${course.courseId}">1</span>
+                            </li>
+                            <li class="mb-2" th:if="${course.category != null}">
+                                <strong>Категория:</strong>
+                                <span class="text-muted" th:text="${course.category.categoryName}">Категория</span>
+                            </li>
+                            <li class="mb-2">
+                                <strong>Цена:</strong>
+                                <span class="text-muted" th:text="${course.price != null ? course.price + ' руб.' : 'Бесплатно'}">Бесплатно</span>
+                            </li>
+                            <li class="mb-2">
+                                <strong>Статус:</strong>
+                                <span class="text-muted" th:if="${course.courseStatus != null}" th:text="${course.courseStatus.statusName}">Активен</span>
+                                <span class="text-muted" th:if="${course.courseStatus == null}">Не указан</span>
+                            </li>
+                            <li class="mb-2" th:if="${course.teacher != null}">
+                                <strong>Преподаватель:</strong>
+                                <span class="text-muted" th:text="${course.teacher.firstName + ' ' + course.teacher.lastName}">Имя преподавателя</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Действия</h5>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-primary w-100 mb-2" onclick="showEnrollmentConfirmation()">
+                            <i class="fas fa-user-plus"></i> Записаться на курс
+                        </button>
+                        <a href="/student" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-arrow-left"></i> Назад к списку курсов
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enrollment Confirmation Modal -->
+    <div class="modal fade" id="enrollmentModal" tabindex="-1" aria-labelledby="enrollmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="enrollmentModalLabel">Подтверждение записи на курс</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Название курса:</strong></label>
+                        <p class="form-control-plaintext" th:text="${course.title}">Название курса</p>
+                    </div>
+                    <div class="mb-3" th:if="${course.category != null}">
+                        <label class="form-label"><strong>Категория:</strong></label>
+                        <p class="form-control-plaintext" th:text="${course.category.categoryName}">Категория</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Описание:</strong></label>
+                        <p class="form-control-plaintext" th:text="${course.description}">Описание курса</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Цена:</strong></label>
+                        <p class="form-control-plaintext" th:text="${course.price != null ? course.price + ' руб.' : 'Бесплатно'}">Цена</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Выберите способ оплаты:</strong></label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="bankCard" value="bankCard" checked>
+                            <label class="form-check-label" for="bankCard">
+                                Банковская карта
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="giftCard" value="giftCard">
+                            <label class="form-check-label" for="giftCard">
+                                Сертификат
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" onclick="processPayment()">Оплатить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bank Card Payment Modal -->
+    <div class="modal fade" id="bankCardModal" tabindex="-1" aria-labelledby="bankCardModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="bankCardModalLabel">Оплата банковской картой</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="bankCardForm">
+                        <div class="mb-3">
+                            <label for="cardNumber" class="form-label">Номер карты</label>
+                            <input type="text" class="form-control" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="expiryDate" class="form-label">Срок действия</label>
+                                <input type="text" class="form-control" id="expiryDate" placeholder="MM/YY" maxlength="5">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="cvv" class="form-label">CVV</label>
+                                <input type="password" class="form-control" id="cvv" placeholder="123" maxlength="3">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cardholderName" class="form-label">Имя владельца карты</label>
+                            <input type="text" class="form-control" id="cardholderName" placeholder="Иван Иванов">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" onclick="submitBankCardPayment()">Оплатить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Success Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="successModalLabel">Успешная оплата</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Вы успешно записались на курс! Ваша заявка находится на рассмотрении.</p>
+                    <p>После подтверждения оплаты администратором, курс станет доступен в разделе "Мои курсы".</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="redirectToStudentPage()">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script>
+        // Format card number input
+        document.getElementById('cardNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            let formattedValue = '';
+
+            for (let i = 0; i < value.length; i++) {
+                if (i > 0 && i % 4 === 0) {
+                    formattedValue += ' ';
+                }
+                formattedValue += value[i];
+            }
+
+            e.target.value = formattedValue;
+        });
+
+        // Format expiry date input
+        document.getElementById('expiryDate').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+
+        function showEnrollmentConfirmation() {
+            const enrollmentModal = new bootstrap.Modal(document.getElementById('enrollmentModal'));
+            enrollmentModal.show();
+        }
+
+        function processPayment() {
+            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+
+            if (paymentMethod === 'bankCard') {
+                // Hide enrollment modal and show bank card modal
+                const enrollmentModal = bootstrap.Modal.getInstance(document.getElementById('enrollmentModal'));
+                enrollmentModal.hide();
+
+                setTimeout(() => {
+                    const bankCardModal = new bootstrap.Modal(document.getElementById('bankCardModal'));
+                    bankCardModal.show();
+                }, 300);
+            } else {
+                // Handle gift card payment
+                enrollInCourse();
+            }
+        }
+
+        function submitBankCardPayment() {
+            // Validate form fields
+            const cardNumber = document.getElementById('cardNumber').value.trim();
+            const expiryDate = document.getElementById('expiryDate').value.trim();
+            const cvv = document.getElementById('cvv').value.trim();
+            const cardholderName = document.getElementById('cardholderName').value.trim();
+
+            if (!cardNumber || !expiryDate || !cvv || !cardholderName) {
+                alert('Пожалуйста, заполните все поля');
+                return;
+            }
+
+            // Simulate payment processing
+            const bankCardModal = bootstrap.Modal.getInstance(document.getElementById('bankCardModal'));
+            bankCardModal.hide();
+
+            setTimeout(() => {
+                enrollInCourse();
+            }, 300);
+        }
+
+        function enrollInCourse() {
+            const courseId = /*[[${course.courseId}]]*/ '1';
+
+            fetch(`/v1/api/courses/${courseId}/enroll`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Show success modal
+                    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                    successModal.show();
+                } else {
+                    alert('Ошибка при записи на курс');
+                }
+            })
+            .catch(error => {
+                alert('Ошибка при записи на курс: ' + error.message);
+            });
+        }
+
+        function redirectToStudentPage() {
+            window.location.href = '/student';
+        }
+    </script>
+</body>
+</html>

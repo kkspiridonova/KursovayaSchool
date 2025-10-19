@@ -55,6 +55,13 @@
                                     <small th:errors="*{passwordHash}"></small>
                                 </div>
                             </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="dataConsent" name="dataConsent" required>
+                                <label class="form-check-label" for="dataConsent">
+                                    Я даю согласие на обработку персональных данных в соответствии с 
+                                    <a href="https://www.consultant.ru/document/cons_doc_LAW_152748/" target="_blank">Федеральным законом №152-ФЗ</a> *
+                                </label>
+                            </div>
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
                             </div>

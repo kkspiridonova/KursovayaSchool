@@ -13,3 +13,4 @@ public interface CommentRepository extends JpaRepository<CommentModel, Long> {
     List<CommentModel> findByTaskTaskId(Long taskId);
     List<CommentModel> findByParentCommentCommentId(Long parentCommentId);
 }
+

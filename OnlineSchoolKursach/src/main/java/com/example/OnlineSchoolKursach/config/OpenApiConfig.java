@@ -17,12 +17,12 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("E-commerce API")
+                        .title("Online School API")
                         .version("1.0.0")
-                        .description("API для интернет-магазина с системой ролей")
+                        .description("API для онлайн школы с системой ролей")
                         .contact(new Contact()
                                 .name("API Support")
-                                .email("support@example.com"))
+                                .email("support@onlineschool.com"))
                         .license(new License()
                                 .name("MIT License")
                                 .url("https://opensource.org/licenses/MIT")))
@@ -38,4 +38,3 @@ public class OpenApiConfig {
                 .scheme("bearer");
     }
 }
-

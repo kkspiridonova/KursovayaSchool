@@ -1,8 +1,16 @@
 package com.example.OnlineSchoolKursach.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Ответ на аутентификацию")
 public class LoginResponse {
+    @Schema(description = "JWT токен для аутентификации", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
     private String token;
+    
+    @Schema(description = "Имя пользователя", example = "user@example.com")
     private String username;
+    
+    @Schema(description = "Роль пользователя", example = "Студент")
     private String role;
 
     public LoginResponse() {}
@@ -37,4 +45,3 @@ public class LoginResponse {
         this.role = role;
     }
 }
-

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,6 +25,9 @@
             font-size: 1.1rem;
             border-radius: 50px;
         }
+        .role-content {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -32,56 +35,236 @@
         <div class="container">
             <a class="navbar-brand fw-bold text-primary" href="/">Онлайн Школа</a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/login">Войти</a>
-                <a class="nav-link" href="/register">Регистрация</a>
+                <span class="navbar-text me-3" sec:authorize="isAuthenticated()">
+                    Добро пожаловать, <span sec:authentication="name"></span>!
+                </span>
+                <a class="nav-link" sec:authorize="!isAuthenticated()" href="/login">Войти</a>
+                <a class="nav-link" sec:authorize="!isAuthenticated()" href="/register">Регистрация</a>
+                <a class="nav-link" sec:authorize="isAuthenticated()" href="/logout">Выйти</a>
             </div>
         </div>
     </nav>
 
-    <section class="hero-section">
-        <div class="container text-center">
-            <h1 class="display-4 fw-bold mb-4">Добро пожаловать в Онлайн Школу!</h1>
-            <p class="lead mb-5">Современная платформа для дистанционного обучения с поддержкой курсов, заданий, платежей и сертификатов</p>
-            <div class="d-flex justify-content-center gap-3">
-                <a href="/login" class="btn btn-light btn-custom">Войти в систему</a>
-                <a href="/register" class="btn btn-outline-light btn-custom">Зарегистрироваться</a>
+    <!-- Guest Content -->
+    <div sec:authorize="!isAuthenticated()">
+        <section class="hero-section">
+            <div class="container text-center">
+                <h1 class="display-4 fw-bold mb-4">Добро пожаловать в Онлайн Школу!</h1>
+                <p class="lead mb-5">Современная платформа для дистанционного обучения с поддержкой курсов, заданий, платежей и сертификатов</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="/login" class="btn btn-light btn-custom">Войти в систему</a>
+                    <a href="/register" class="btn btn-outline-light btn-custom">Зарегистрироваться</a>
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="py-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-4 mb-4">
-                    <div class="card feature-card h-100">
-                        <div class="card-body text-center">
-                            <i class="fas fa-graduation-cap fa-3x text-primary mb-3"></i>
-                            <h5 class="card-title">Курсы и Уроки</h5>
-                            <p class="card-text">Создавайте и проходите интерактивные курсы с уроками, заданиями и материалами</p>
+        <section class="py-5">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-4 mb-4">
+                        <div class="card feature-card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-graduation-cap fa-3x text-primary mb-3"></i>
+                                <h5 class="card-title">Курсы и Уроки</h5>
+                                <p class="card-text">Создавайте и проходите интерактивные курсы с уроками, заданиями и материалами</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-lg-4 mb-4">
-                    <div class="card feature-card h-100">
-                        <div class="card-body text-center">
-                            <i class="fas fa-users fa-3x text-success mb-3"></i>
-                            <h5 class="card-title">Роли Пользователей</h5>
-                            <p class="card-text">Система поддерживает роли: Администратор, Преподаватель и Студент</p>
+                    <div class="col-lg-4 mb-4">
+                        <div class="card feature-card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-users fa-3x text-success mb-3"></i>
+                                <h5 class="card-title">Роли Пользователей</h5>
+                                <p class="card-text">Система поддерживает роли: Администратор, Преподаватель и Студент</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-lg-4 mb-4">
-                    <div class="card feature-card h-100">
-                        <div class="card-body text-center">
-                            <i class="fas fa-certificate fa-3x text-warning mb-3"></i>
-                            <h5 class="card-title">Сертификаты</h5>
-                            <p class="card-text">Получайте сертификаты о прохождении курсов и подарочные карты</p>
+                    <div class="col-lg-4 mb-4">
+                        <div class="card feature-card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-certificate fa-3x text-warning mb-3"></i>
+                                <h5 class="card-title">Сертификаты</h5>
+                                <p class="card-text">Получайте сертификаты о прохождении курсов и подарочные карты</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </div>
+
+    <!-- Student Content -->
+    <div sec:authorize="hasAuthority('ROLE_Студент')">
+        <section class="hero-section">
+            <div class="container text-center">
+                <h1 class="display-4 fw-bold mb-4">Добро пожаловать, студент!</h1>
+                <p class="lead mb-5">Вы вошли в систему как студент. Здесь вы можете просматривать курсы, выполнять задания и отслеживать свой прогресс.</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="#my-courses" class="btn btn-light btn-custom">Мои курсы</a>
+                    <a href="#my-files" class="btn btn-outline-light btn-custom">Мои файлы</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-5" id="my-courses">
+            <div class="container">
+                <h2 class="text-center mb-4">Мои курсы</h2>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-book-open fa-3x text-primary mb-3"></i>
+                                <h5>Список курсов будет здесь</h5>
+                                <p class="text-muted">Здесь будут отображаться курсы, в которых вы участвуете</p>
+                                <a href="#" class="btn btn-primary">Просмотреть курсы</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-5 bg-light" id="my-files">
+            <div class="container">
+                <h2 class="text-center mb-4">Доступные материалы</h2>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div id="studentFilesList">
+                                    <p class="text-muted text-center">Загрузка списка файлов...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Teacher Content -->
+    <div sec:authorize="hasAuthority('ROLE_Преподаватель')">
+        <section class="hero-section">
+            <div class="container text-center">
+                <h1 class="display-4 fw-bold mb-4">Добро пожаловать, преподаватель!</h1>
+                <p class="lead mb-5">Вы вошли в систему как преподаватель. Здесь вы можете управлять курсами, загружать материалы и отслеживать прогресс студентов.</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="#my-courses-teacher" class="btn btn-light btn-custom">Мои курсы</a>
+                    <a href="#upload-files" class="btn btn-outline-light btn-custom">Загрузить файлы</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-5" id="my-courses-teacher">
+            <div class="container">
+                <h2 class="text-center mb-4">Мои курсы</h2>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-chalkboard-teacher fa-3x text-success mb-3"></i>
+                                <h5>Управление курсами</h5>
+                                <p class="text-muted">Здесь будут отображаться курсы, которые вы ведете</p>
+                                <a href="#" class="btn btn-success">Управление курсами</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-5 bg-light" id="upload-files">
+            <div class="container">
+                <h2 class="text-center mb-4">Загрузка материалов</h2>
+                <div class="row">
+                    <div class="col-md-6 mx-auto">
+                        <div class="card">
+                            <div class="card-body">
+                                <form id="uploadForm" enctype="multipart/form-data">
+                                    <div class="mb-3">
+                                        <label for="fileInput" class="form-label">Выберите файл</label>
+                                        <input type="file" class="form-control" id="fileInput" name="file" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="description" class="form-label">Описание (необязательно)</label>
+                                        <textarea class="form-control" id="description" name="description" rows="3" placeholder="Описание файла..."></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-success">Загрузить файл</button>
+                                </form>
+                                <div id="uploadResult" class="mt-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Мои загруженные файлы</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="teacherFilesList">
+                                    <p class="text-muted text-center">Загрузка списка файлов...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Admin Content -->
+    <div sec:authorize="hasAuthority('ROLE_Администратор')">
+        <section class="hero-section">
+            <div class="container text-center">
+                <h1 class="display-4 fw-bold mb-4">Добро пожаловать, администратор!</h1>
+                <p class="lead mb-5">Вы вошли в систему как администратор. Здесь вы можете управлять пользователями, курсами и системными настройками.</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="#admin-panel" class="btn btn-light btn-custom">Панель управления</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-5" id="admin-panel">
+            <div class="container">
+                <h2 class="text-center mb-4">Административная панель</h2>
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <div class="card feature-card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-users-cog fa-3x text-danger mb-3"></i>
+                                <h5 class="card-title">Управление пользователями</h5>
+                                <p class="card-text">Создание, редактирование и удаление пользователей системы</p>
+                                <a href="#" class="btn btn-danger">Перейти</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card feature-card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-graduation-cap fa-3x text-warning mb-3"></i>
+                                <h5 class="card-title">Управление курсами</h5>
+                                <p class="card-text">Создание, редактирование и удаление курсов</p>
+                                <a href="#" class="btn btn-warning">Перейти</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card feature-card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-cogs fa-3x text-info mb-3"></i>
+                                <h5 class="card-title">Системные настройки</h5>
+                                <p class="card-text">Настройка параметров системы и ролей</p>
+                                <a href="#" class="btn btn-info">Перейти</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
 
     <footer class="bg-dark text-white py-4">
         <div class="container text-center">
@@ -90,6 +273,174 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Student file loading
+        if (document.getElementById('studentFilesList')) {
+            document.addEventListener('DOMContentLoaded', function() {
+                loadStudentFiles();
+            });
+        }
+
+        // Teacher file handling
+        if (document.getElementById('uploadForm')) {
+            document.addEventListener('DOMContentLoaded', function() {
+                loadTeacherFiles();
+
+                document.getElementById('uploadForm').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    uploadFile();
+                });
+            });
+        }
+
+        function loadStudentFiles() {
+            const filesList = document.getElementById('studentFilesList');
+            if (!filesList) return;
+
+            fetch('/v1/api/files/list', {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => response.json())
+            .then(files => {
+                if (files.length === 0) {
+                    filesList.innerHTML = '<p class="text-muted text-center">Пока нет доступных файлов</p>';
+                } else {
+                    let html = '<div class="list-group">';
+                    files.forEach(file => {
+                        html += `
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">${file.originalName}</h6>
+                                    <small>Загружен: ${new Date(file.uploadDate).toLocaleString()}</small>
+                                </div>
+                                <p class="mb-1">${file.description || 'Без описания'}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small>Размер: ${formatFileSize(file.fileSize)} | Автор: ${file.uploaderUsername}</small>
+                                    <button class="btn btn-sm btn-primary" onclick="downloadFile(${file.id}, '${file.originalName}')">
+                                        <i class="fas fa-download"></i> Скачать
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    filesList.innerHTML = html;
+                }
+            })
+            .catch(error => {
+                filesList.innerHTML = '<p class="text-danger text-center">Ошибка загрузки списка файлов</p>';
+            });
+        }
+
+        function loadTeacherFiles() {
+            const filesList = document.getElementById('teacherFilesList');
+            if (!filesList) return;
+
+            fetch('/v1/api/files/my', {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => response.json())
+            .then(files => {
+                if (files.length === 0) {
+                    filesList.innerHTML = '<p class="text-muted text-center">У вас пока нет загруженных файлов</p>';
+                } else {
+                    let html = '<div class="list-group">';
+                    files.forEach(file => {
+                        html += `
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">${file.originalName}</h6>
+                                    <small>${new Date(file.uploadDate).toLocaleString()}</small>
+                                </div>
+                                <p class="mb-1">${file.description || 'Без описания'}</p>
+                                <small>Размер: ${formatFileSize(file.fileSize)}</small>
+                                <div class="mt-2">
+                                    <button class="btn btn-sm btn-danger" onclick="deleteFile(${file.id})">
+                                        <i class="fas fa-trash"></i> Удалить
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    filesList.innerHTML = html;
+                }
+            })
+            .catch(error => {
+                filesList.innerHTML = '<p class="text-danger text-center">Ошибка загрузки списка файлов</p>';
+            });
+        }
+
+        function uploadFile() {
+            const form = document.getElementById('uploadForm');
+            const formData = new FormData(form);
+            const resultDiv = document.getElementById('uploadResult');
+
+            resultDiv.innerHTML = '<div class="alert alert-info">Загрузка файла...</div>';
+
+            fetch('/v1/api/files/upload', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Ошибка загрузки файла');
+                }
+            })
+            .then(data => {
+                resultDiv.innerHTML = '<div class="alert alert-success">Файл успешно загружен!</div>';
+                form.reset();
+                loadTeacherFiles();
+            })
+            .catch(error => {
+                resultDiv.innerHTML = '<div class="alert alert-danger">Ошибка: ' + error.message + '</div>';
+            });
+        }
+
+        function downloadFile(fileId, fileName) {
+            const link = document.createElement('a');
+            link.href = `/v1/api/files/download/${fileId}`;
+            link.download = fileName;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function deleteFile(fileId) {
+            if (confirm('Вы уверены, что хотите удалить этот файл?')) {
+                fetch(`/v1/api/files/${fileId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        loadTeacherFiles();
+                    } else {
+                        alert('Ошибка при удалении файла');
+                    }
+                });
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    </script>
 </body>
 </html>
-

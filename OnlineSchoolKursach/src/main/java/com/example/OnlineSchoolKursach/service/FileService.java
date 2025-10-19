@@ -29,7 +29,8 @@ public class FileService {
             throw new IllegalArgumentException("Файл не может быть пустым");
         }
 
-        String objectName = minioFileService.uploadFile(file);
+        boolean isImage = isImageFile(file);
+        String objectName = minioFileService.uploadFile(file, isImage);
 
         FileModel fileModel = new FileModel(
                 file.getOriginalFilename(),
@@ -53,6 +54,10 @@ public class FileService {
         } catch (Exception ex) {
             throw new RuntimeException("Ошибка при загрузке файла", ex);
         }
+    }
+
+    public String getFileUrl(String objectName) {
+        return minioFileService.getFileUrl(objectName);
     }
 
     public FileModel getFileInfo(Long fileId) {
@@ -96,5 +101,16 @@ public class FileService {
 
         minioFileService.deleteFile(fileModel.getFilePath());
         fileRepository.delete(fileModel);
+    }
+
+    private boolean isImageFile(MultipartFile file) {
+        String contentType = file.getContentType();
+        return contentType != null && (
+            contentType.startsWith("image/") ||
+            contentType.equals("image/jpeg") ||
+            contentType.equals("image/png") ||
+            contentType.equals("image/gif") ||
+            contentType.equals("image/webp")
+        );
     }
 }

@@ -1,5 +1,6 @@
 package com.example.OnlineSchoolKursach.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -11,47 +12,51 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "gift_cards")
+@Schema(description = "Модель подарочной карты")
 public class GiftCardModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "gift_card_id")
+    @Schema(description = "Идентификатор подарочной карты", example = "1")
     private Long giftCardId;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserModel user;
+    @NotBlank
+    @Size(max = 50)
+    @Column(name = "card_number", unique = true, nullable = false)
+    @Schema(description = "Номер подарочной карты", example = "GC-1234567890")
+    private String cardNumber;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "course_id", nullable = false)
-    private CourseModel course;
+    @DecimalMin(value = "0.0", inclusive = false)
+    @Column(name = "balance", precision = 10, scale = 2, nullable = false)
+    @Schema(description = "Баланс карты", example = "100.00")
+    private BigDecimal balance;
 
     @NotNull
     @Column(name = "issue_date", nullable = false)
+    @Schema(description = "Дата выпуска карты", example = "2023-01-01")
     private LocalDate issueDate;
 
-    @NotBlank
-    @Size(max = 40)
-    @Column(name = "code", unique = true, nullable = false)
-    private String code;
+    @Column(name = "expiry_date")
+    @Schema(description = "Дата истечения срока действия", example = "2024-01-01")
+    private LocalDate expiryDate;
 
-    @NotNull
-    @DecimalMin(value = "0.0", inclusive = false)
-    @Column(name = "amount", precision = 10, scale = 2, nullable = false)
-    private BigDecimal amount;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id")
+    @Schema(description = "Пользователь, которому принадлежит карта")
+    private UserModel user;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "gift_card_status_id", nullable = false)
+    @Schema(description = "Статус подарочной карты")
     private GiftCardStatusModel giftCardStatus;
 
     public GiftCardModel() {}
 
-    public GiftCardModel(UserModel user, CourseModel course, LocalDate issueDate, String code, BigDecimal amount, GiftCardStatusModel giftCardStatus) {
-        this.user = user;
-        this.course = course;
+    public GiftCardModel(String cardNumber, BigDecimal balance, LocalDate issueDate, GiftCardStatusModel giftCardStatus) {
+        this.cardNumber = cardNumber;
+        this.balance = balance;
         this.issueDate = issueDate;
-        this.code = code;
-        this.amount = amount;
         this.giftCardStatus = giftCardStatus;
     }
 
@@ -63,20 +68,20 @@ public class GiftCardModel {
         this.giftCardId = giftCardId;
     }
 
-    public UserModel getUser() {
-        return user;
+    public String getCardNumber() {
+        return cardNumber;
     }
 
-    public void setUser(UserModel user) {
-        this.user = user;
+    public void setCardNumber(String cardNumber) {
+        this.cardNumber = cardNumber;
     }
 
-    public CourseModel getCourse() {
-        return course;
+    public BigDecimal getBalance() {
+        return balance;
     }
 
-    public void setCourse(CourseModel course) {
-        this.course = course;
+    public void setBalance(BigDecimal balance) {
+        this.balance = balance;
     }
 
     public LocalDate getIssueDate() {
@@ -87,20 +92,20 @@ public class GiftCardModel {
         this.issueDate = issueDate;
     }
 
-    public String getCode() {
-        return code;
+    public LocalDate getExpiryDate() {
+        return expiryDate;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setExpiryDate(LocalDate expiryDate) {
+        this.expiryDate = expiryDate;
     }
 
-    public BigDecimal getAmount() {
-        return amount;
+    public UserModel getUser() {
+        return user;
     }
 
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
+    public void setUser(UserModel user) {
+        this.user = user;
     }
 
     public GiftCardStatusModel getGiftCardStatus() {

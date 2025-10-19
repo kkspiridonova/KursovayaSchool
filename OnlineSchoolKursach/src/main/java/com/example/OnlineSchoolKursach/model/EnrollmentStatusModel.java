@@ -40,3 +40,4 @@ public class EnrollmentStatusModel {
         this.statusName = statusName;
     }
 }
+

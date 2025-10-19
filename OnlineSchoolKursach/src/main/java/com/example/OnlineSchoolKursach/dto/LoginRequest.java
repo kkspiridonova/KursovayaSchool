@@ -1,12 +1,16 @@
 package com.example.OnlineSchoolKursach.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
+@Schema(description = "Запрос на аутентификацию")
 public class LoginRequest {
     @NotBlank(message = "Email не должен быть пустым")
+    @Schema(description = "Email пользователя", example = "user@example.com")
     private String email;
 
     @NotBlank(message = "Пароль не должен быть пустым")
+    @Schema(description = "Пароль пользователя", example = "password123")
     private String password;
 
     public LoginRequest() {}
@@ -40,4 +44,3 @@ public class LoginRequest {
         this.password = password;
     }
 }
-

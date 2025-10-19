@@ -5,12 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Панель администратора - Онлайн Школа</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .admin-card {
             transition: transform 0.2s;
         }
         .admin-card:hover {
             transform: translateY(-5px);
+        }
+        .tab-content {
+            min-height: 400px;
+        }
+        .table-card {
+            transition: transform 0.2s;
+            border: 1px solid #dee2e6;
+        }
+        .table-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
     </style>
 </head>
@@ -28,20 +40,627 @@
     </nav>
 
     <div class="container mt-4">
-        <div class="row">
-            <div class="col-12">
-                <div class="alert alert-danger" role="alert">
-                    <h4 class="alert-heading">Страница администратора</h4>
-                    <p>Вы находитесь в панели администратора системы онлайн школы.</p>
-                    <hr>
-                    <p class="mb-0">Здесь будут доступны все административные функции.</p>
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs" id="adminTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button" role="tab" aria-controls="courses" aria-selected="true">Курсы</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="false">Пользователи</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories" type="button" role="tab" aria-controls="categories" aria-selected="false">Категории</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="enrollments-tab" data-bs-toggle="tab" data-bs-target="#enrollments" type="button" role="tab" aria-controls="enrollments" aria-selected="false">Записи на курсы</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="files-tab" data-bs-toggle="tab" data-bs-target="#files" type="button" role="tab" aria-controls="files" aria-selected="false">Файлы</button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="adminTabsContent">
+            <!-- Courses Tab -->
+            <div class="tab-pane fade show active" id="courses" role="tabpanel" aria-labelledby="courses-tab">
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h3>Управление курсами</h3>
+                        <p class="text-muted">Просмотр и удаление курсов. Администратор может только удалять курсы.</p>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Список курсов</h5>
+                                <button class="btn btn-outline-danger btn-sm" onclick="loadCourses()">
+                                    <i class="fas fa-sync-alt"></i> Обновить
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="coursesList">
+                                    <p class="text-muted text-center">Загрузка списка курсов...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h3>Пользователи</h3>
+                        <p class="text-muted">Просмотр информации о пользователях системы.</p>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Список пользователей</h5>
+                                <button class="btn btn-outline-primary btn-sm" onclick="loadUsers()">
+                                    <i class="fas fa-sync-alt"></i> Обновить
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="usersList">
+                                    <p class="text-muted text-center">Загрузка списка пользователей...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories Tab -->
+            <div class="tab-pane fade" id="categories" role="tabpanel" aria-labelledby="categories-tab">
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h3>Категории курсов</h3>
+                        <p class="text-muted">Просмотр категорий курсов.</p>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Список категорий</h5>
+                                <button class="btn btn-outline-primary btn-sm" onclick="loadCategories()">
+                                    <i class="fas fa-sync-alt"></i> Обновить
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="categoriesList">
+                                    <p class="text-muted text-center">Загрузка списка категорий...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enrollments Tab -->
+            <div class="tab-pane fade" id="enrollments" role="tabpanel" aria-labelledby="enrollments-tab">
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h3>Записи на курсы</h3>
+                        <p class="text-muted">Просмотр всех записей пользователей на курсы.</p>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Список записей</h5>
+                                <button class="btn btn-outline-primary btn-sm" onclick="loadEnrollments()">
+                                    <i class="fas fa-sync-alt"></i> Обновить
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="enrollmentsList">
+                                    <p class="text-muted text-center">Загрузка списка записей...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Files Tab -->
+            <div class="tab-pane fade" id="files" role="tabpanel" aria-labelledby="files-tab">
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h3>Файлы</h3>
+                        <p class="text-muted">Просмотр всех файлов в системе.</p>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Список файлов</h5>
+                                <button class="btn btn-outline-primary btn-sm" onclick="loadFiles()">
+                                    <i class="fas fa-sync-alt"></i> Обновить
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="filesList">
+                                    <p class="text-muted text-center">Загрузка списка файлов...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Подтверждение удаления</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Вы уверены, что хотите удалить этот элемент? Это действие нельзя отменить.</p>
+                    <input type="hidden" id="deleteItemType">
+                    <input type="hidden" id="deleteItemId">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDelete()">Удалить</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Edit Enrollment Status Modal -->
+    <div class="modal fade" id="editStatusModal" tabindex="-1" aria-labelledby="editStatusModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editStatusModalLabel">Изменить статус записи</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editEnrollmentId">
+                    <div class="mb-3">
+                        <label for="statusSelect" class="form-label">Выберите новый статус:</label>
+                        <select class="form-select" id="statusSelect">
+                            <!-- Status options will be populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" onclick="updateEnrollmentStatus()">Сохранить</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script>
+        // Global variable to store enrollment statuses
+        let enrollmentStatuses = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load data for the active tab (courses by default)
+            loadCourses();
+            // Load enrollment statuses for use in the modal
+            loadEnrollmentStatuses();
+        });
+
+        function loadCourses() {
+            fetch('/v1/api/courses', {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => response.json())
+            .then(courses => {
+                const coursesList = document.getElementById('coursesList');
+                if (courses.length === 0) {
+                    coursesList.innerHTML = '<p class="text-muted text-center">Пока нет курсов в системе</p>';
+                } else {
+                    let html = `
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Название</th>
+                                        <th>Преподаватель</th>
+                                        <th>Цена</th>
+                                        <th>Статус</th>
+                                        <th>Категория</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    courses.forEach(course => {
+                        html += `
+                            <tr>
+                                <td>${course.courseId || 'Не указан'}</td>
+                                <td>${course.title || 'Без названия'}</td>
+                                <td>${course.teacher ? course.teacher.firstName + ' ' + course.teacher.lastName : 'Не указан'}</td>
+                                <td>${course.price ? course.price + ' руб.' : 'Бесплатно'}</td>
+                                <td>${course.courseStatus ? course.courseStatus.statusName : 'Не указан'}</td>
+                                <td>${course.category ? course.category.categoryName : 'Не указана'}</td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm" onclick="showDeleteConfirmation('course', ${course.courseId})">
+                                        <i class="fas fa-trash"></i> Удалить
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    coursesList.innerHTML = html;
+                }
+            })
+            .catch(error => {
+                document.getElementById('coursesList').innerHTML = '<p class="text-danger text-center">Ошибка загрузки списка курсов</p>';
+            });
+        }
+
+        function loadUsers() {
+            fetch('/v1/api/admin/users', {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => response.json())
+            .then(users => {
+                const usersList = document.getElementById('usersList');
+                if (users.length === 0) {
+                    usersList.innerHTML = '<p class="text-muted text-center">Пока нет пользователей в системе</p>';
+                } else {
+                    let html = `
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Имя</th>
+                                        <th>Фамилия</th>
+                                        <th>Email</th>
+                                        <th>Роль</th>
+                                        <th>Дата регистрации</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    users.forEach(user => {
+                        html += `
+                            <tr>
+                                <td>${user.userId || 'Не указан'}</td>
+                                <td>${user.firstName || 'Не указано'}</td>
+                                <td>${user.lastName || 'Не указано'}</td>
+                                <td>${user.email || 'Не указан'}</td>
+                                <td>${user.role ? user.role.roleName : 'Не указана'}</td>
+                                <td>${user.registrationDate ? new Date(user.registrationDate).toLocaleDateString('ru-RU') : 'Не указана'}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    usersList.innerHTML = html;
+                }
+            })
+            .catch(error => {
+                document.getElementById('usersList').innerHTML = '<p class="text-danger text-center">Ошибка загрузки списка пользователей</p>';
+            });
+        }
+
+        function loadCategories() {
+            fetch('/v1/api/categories', {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => response.json())
+            .then(categories => {
+                const categoriesList = document.getElementById('categoriesList');
+                if (categories.length === 0) {
+                    categoriesList.innerHTML = '<p class="text-muted text-center">Пока нет категорий в системе</p>';
+                } else {
+                    let html = `
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Название</th>
+                                        <th>Описание</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    categories.forEach(category => {
+                        html += `
+                            <tr>
+                                <td>${category.categoryId || 'Не указан'}</td>
+                                <td>${category.categoryName || 'Без названия'}</td>
+                                <td>${category.description || 'Без описания'}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    categoriesList.innerHTML = html;
+                }
+            })
+            .catch(error => {
+                document.getElementById('categoriesList').innerHTML = '<p class="text-danger text-center">Ошибка загрузки списка категорий</p>';
+            });
+        }
+
+        function loadEnrollments() {
+            fetch('/v1/api/admin/enrollments', {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => response.json())
+            .then(enrollments => {
+                const enrollmentsList = document.getElementById('enrollmentsList');
+                if (enrollments.length === 0) {
+                    enrollmentsList.innerHTML = '<p class="text-muted text-center">Пока нет записей на курсы</p>';
+                } else {
+                    let html = `
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Пользователь</th>
+                                        <th>Курс</th>
+                                        <th>Дата записи</th>
+                                        <th>Статус</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    enrollments.forEach(enrollment => {
+                        html += `
+                            <tr>
+                                <td>${enrollment.enrollmentId || 'Не указан'}</td>
+                                <td>${enrollment.user ? enrollment.user.firstName + ' ' + enrollment.user.lastName : 'Не указан'}</td>
+                                <td>${enrollment.course ? enrollment.course.title : 'Не указан'}</td>
+                                <td>${enrollment.enrollmentDate ? new Date(enrollment.enrollmentDate).toLocaleDateString('ru-RU') : 'Не указана'}</td>
+                                <td>${enrollment.enrollmentStatus ? enrollment.enrollmentStatus.statusName : 'Не указан'}</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm" onclick="showEditStatusModal(${enrollment.enrollmentId}, ${enrollment.enrollmentStatus ? enrollment.enrollmentStatus.enrollmentStatusId : ''})">
+                                        <i class="fas fa-edit"></i> Изменить статус
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    enrollmentsList.innerHTML = html;
+                }
+            })
+            .catch(error => {
+                document.getElementById('enrollmentsList').innerHTML = '<p class="text-danger text-center">Ошибка загрузки списка записей</p>';
+            });
+        }
+
+        function loadFiles() {
+            fetch('/v1/api/files/list', {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => response.json())
+            .then(files => {
+                const filesList = document.getElementById('filesList');
+                if (files.length === 0) {
+                    filesList.innerHTML = '<p class="text-muted text-center">Пока нет файлов в системе</p>';
+                } else {
+                    let html = `
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Имя файла</th>
+                                        <th>Размер</th>
+                                        <th>Тип</th>
+                                        <th>Загружен</th>
+                                        <th>Пользователь</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    files.forEach(file => {
+                        html += `
+                            <tr>
+                                <td>${file.id || 'Не указан'}</td>
+                                <td>${file.originalName || 'Без названия'}</td>
+                                <td>${formatFileSize(file.fileSize) || 'Не указан'}</td>
+                                <td>${file.contentType || 'Не указан'}</td>
+                                <td>${file.uploadDate ? new Date(file.uploadDate).toLocaleDateString('ru-RU') : 'Не указана'}</td>
+                                <td>${file.uploaderUsername || 'Не указан'}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    filesList.innerHTML = html;
+                }
+            })
+            .catch(error => {
+                document.getElementById('filesList').innerHTML = '<p class="text-danger text-center">Ошибка загрузки списка файлов</p>';
+            });
+        }
+
+        function loadEnrollmentStatuses() {
+            fetch('/v1/api/admin/enrollment-statuses', {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => response.json())
+            .then(statuses => {
+                enrollmentStatuses = statuses;
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки статусов записей:', error);
+            });
+        }
+
+        function showDeleteConfirmation(itemType, itemId) {
+            document.getElementById('deleteItemType').value = itemType;
+            document.getElementById('deleteItemId').value = itemId;
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        }
+
+        function confirmDelete() {
+            const itemType = document.getElementById('deleteItemType').value;
+            const itemId = document.getElementById('deleteItemId').value;
+            
+            if (itemType === 'course') {
+                fetch(`/v1/api/courses/${itemId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+                        deleteModal.hide();
+                        loadCourses();
+                        alert('Курс успешно удален!');
+                    } else {
+                        alert('Ошибка при удалении курса');
+                    }
+                })
+                .catch(error => {
+                    alert('Ошибка при удалении курса: ' + error.message);
+                });
+            }
+        }
+
+        function showEditStatusModal(enrollmentId, currentStatusId) {
+            document.getElementById('editEnrollmentId').value = enrollmentId;
+            
+            // Populate status select dropdown
+            const statusSelect = document.getElementById('statusSelect');
+            statusSelect.innerHTML = '';
+            
+            enrollmentStatuses.forEach(status => {
+                const option = document.createElement('option');
+                option.value = status.enrollmentStatusId;
+                option.textContent = status.statusName;
+                if (status.enrollmentStatusId == currentStatusId) {
+                    option.selected = true;
+                }
+                statusSelect.appendChild(option);
+            });
+            
+            const editModal = new bootstrap.Modal(document.getElementById('editStatusModal'));
+            editModal.show();
+        }
+
+        function updateEnrollmentStatus() {
+            const enrollmentId = document.getElementById('editEnrollmentId').value;
+            const newStatusId = document.getElementById('statusSelect').value;
+            
+            fetch(`/v1/api/admin/enrollments/${enrollmentId}/status?statusId=${newStatusId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    const editModal = bootstrap.Modal.getInstance(document.getElementById('editStatusModal'));
+                    editModal.hide();
+                    loadEnrollments();
+                    alert('Статус записи успешно обновлен!');
+                } else {
+                    alert('Ошибка при обновлении статуса записи');
+                }
+            })
+            .catch(error => {
+                alert('Ошибка при обновлении статуса записи: ' + error.message);
+            });
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Load respective data when tabs are shown
+        document.getElementById('users-tab').addEventListener('shown.bs.tab', function (e) {
+            loadUsers();
+        });
+
+        document.getElementById('categories-tab').addEventListener('shown.bs.tab', function (e) {
+            loadCategories();
+        });
+
+        document.getElementById('enrollments-tab').addEventListener('shown.bs.tab', function (e) {
+            loadEnrollments();
+        });
+
+        document.getElementById('files-tab').addEventListener('shown.bs.tab', function (e) {
+            loadFiles();
+        });
+
+        document.getElementById('courses-tab').addEventListener('shown.bs.tab', function (e) {
+            loadCourses();
+        });
+    </script>
 </body>
 </html>

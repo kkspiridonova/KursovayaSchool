@@ -46,7 +46,7 @@ public class MinioFileService {
         }
     }
 
-    public String uploadFile(MultipartFile file) throws IOException {
+    public String uploadFile(MultipartFile file, boolean isImage) throws IOException {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("Файл не может быть пустым");
         }
@@ -59,7 +59,8 @@ public class MinioFileService {
             fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
         }
 
-        String objectName = UUID.randomUUID().toString() + fileExtension;
+        String folder = isImage ? "images/" : "documents/";
+        String objectName = folder + UUID.randomUUID().toString() + fileExtension;
 
         try (InputStream inputStream = file.getInputStream()) {
             minioClient.putObject(PutObjectArgs.builder()
@@ -71,11 +72,14 @@ public class MinioFileService {
 
             logger.info("File uploaded successfully: {}", objectName);
             return objectName;
-
         } catch (Exception e) {
             logger.error("Error uploading file: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to upload file to MinIO", e);
         }
+    }
+
+    public String uploadFile(MultipartFile file) throws IOException {
+        return uploadFile(file, false);
     }
 
     public InputStream downloadFile(String objectName) {
@@ -129,5 +133,3 @@ public class MinioFileService {
         }
     }
 }
-
-

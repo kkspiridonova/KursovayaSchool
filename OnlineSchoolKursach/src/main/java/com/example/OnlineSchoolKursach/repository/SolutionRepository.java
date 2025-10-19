@@ -12,3 +12,4 @@ public interface SolutionRepository extends JpaRepository<SolutionModel, Long> {
     List<SolutionModel> findByUserUserId(Long userId);
     List<SolutionModel> findBySolutionStatusSolutionStatusId(Long statusId);
 }
+

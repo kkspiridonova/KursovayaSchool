@@ -13,3 +13,4 @@ public interface TaskRepository extends JpaRepository<TaskModel, Long> {
     List<TaskModel> findByTaskStatusTaskStatusId(Long statusId);
     List<TaskModel> findByDeadlineBefore(LocalDate date);
 }
+

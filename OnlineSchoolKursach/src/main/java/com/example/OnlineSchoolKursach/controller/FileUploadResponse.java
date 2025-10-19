@@ -1,44 +1,29 @@
-package com.example.OnlineSchoolKursach.dto;
+package com.example.OnlineSchoolKursach.controller;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 
-@Schema(description = "Информация о файле")
-public class FileDto {
+public class FileUploadResponse {
     @Schema(description = "Идентификатор файла", example = "1")
     private Long id;
-    
+
     @Schema(description = "Оригинальное имя файла", example = "document.pdf")
     private String originalName;
-    
+
     @Schema(description = "Размер файла в байтах", example = "1024")
     private Long fileSize;
-    
+
     @Schema(description = "Тип контента файла", example = "application/pdf")
     private String contentType;
-    
+
     @Schema(description = "Описание файла", example = "Учебный документ")
     private String description;
-    
+
     @Schema(description = "Дата загрузки файла", example = "2023-01-01T10:00:00")
     private LocalDateTime uploadDate;
-    
-    @Schema(description = "Email пользователя, загрузившего файл", example = "teacher@example.com")
-    private String uploaderEmail;
 
-    public FileDto() {}
-
-    public FileDto(Long id, String originalName, Long fileSize, String contentType, 
-                   String description, LocalDateTime uploadDate, String uploaderEmail) {
-        this.id = id;
-        this.originalName = originalName;
-        this.fileSize = fileSize;
-        this.contentType = contentType;
-        this.description = description;
-        this.uploadDate = uploadDate;
-        this.uploaderEmail = uploaderEmail;
-    }
-
+    @Schema(description = "URL для доступа к файлу", example = "http://localhost:9000/school-files/uuid-filename.jpg")
+    private String url;
     public Long getId() {
         return id;
     }
@@ -87,19 +72,11 @@ public class FileDto {
         this.uploadDate = uploadDate;
     }
 
-    public String getUploaderEmail() {
-        return uploaderEmail;
+    public String getUrl() {
+        return url;
     }
 
-    public void setUploaderEmail(String uploaderEmail) {
-        this.uploaderEmail = uploaderEmail;
-    }
-
-    public String getUploaderUsername() {
-        return uploaderEmail;
-    }
-
-    public void setUploaderUsername(String uploaderUsername) {
-        this.uploaderEmail = uploaderUsername;
+    public void setUrl(String url) {
+        this.url = url;
     }
 }

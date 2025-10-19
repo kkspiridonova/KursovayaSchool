@@ -95,3 +95,4 @@ public class CheckModel {
         this.paymentStatus = paymentStatus;
     }
 }
+

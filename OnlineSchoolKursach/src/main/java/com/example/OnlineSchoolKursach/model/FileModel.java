@@ -1,5 +1,6 @@
 package com.example.OnlineSchoolKursach.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -9,39 +10,48 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "files")
+@Schema(description = "Модель файла")
 public class FileModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Schema(description = "Идентификатор файла", example = "1")
     private Long id;
 
     @NotBlank
     @Size(max = 255)
     @Column(name = "original_name", nullable = false)
+    @Schema(description = "Оригинальное имя файла", example = "document.pdf")
     private String originalName;
 
     @NotBlank
     @Size(max = 255)
     @Column(name = "file_path", nullable = false)
+    @Schema(description = "Путь к файлу в хранилище", example = "/path/to/file/document.pdf")
     private String filePath;
 
     @Column(name = "file_size")
+    @Schema(description = "Размер файла в байтах", example = "1024")
     private Long fileSize;
 
     @Size(max = 100)
     @Column(name = "content_type")
+    @Schema(description = "Тип контента файла", example = "application/pdf")
     private String contentType;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "uploaded_by", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "password"})
+    @Schema(description = "Пользователь, загрузивший файл")
     private UserModel uploadedBy;
 
     @Column(name = "upload_date", nullable = false)
+    @Schema(description = "Дата загрузки файла", example = "2023-01-01T10:00:00")
     private LocalDateTime uploadDate;
 
     @Size(max = 500)
     @Column(name = "description")
+    @Schema(description = "Описание файла", example = "Учебный документ")
     private String description;
 
     public FileModel() {

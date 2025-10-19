@@ -12,3 +12,4 @@ public interface CheckRepository extends JpaRepository<CheckModel, Long> {
     List<CheckModel> findByCourseCourseId(Long courseId);
     List<CheckModel> findByPaymentStatusPaymentStatusId(Long statusId);
 }
+

@@ -40,3 +40,4 @@ public class CourseStatusModel {
         this.statusName = statusName;
     }
 }
+

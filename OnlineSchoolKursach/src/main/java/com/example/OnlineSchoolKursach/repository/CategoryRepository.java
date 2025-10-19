@@ -1,10 +1,9 @@
 package com.example.OnlineSchoolKursach.repository;
 
-import com.example.OnlineSchoolKursach.model.LessonStatusModel;
+import com.example.OnlineSchoolKursach.model.CategoryModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface LessonStatusRepository extends JpaRepository<LessonStatusModel, Long> {
+public interface CategoryRepository extends JpaRepository<CategoryModel, Long> {
 }
-

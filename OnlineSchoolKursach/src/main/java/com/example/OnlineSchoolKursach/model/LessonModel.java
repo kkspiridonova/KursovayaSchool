@@ -1,33 +1,40 @@
 package com.example.OnlineSchoolKursach.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "lessons")
+@Schema(description = "Модель урока")
 public class LessonModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "lesson_id")
+    @Schema(description = "Идентификатор урока", example = "1")
     private Long lessonId;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "course_id", nullable = false)
+    @Schema(description = "Курс, к которому относится урок")
     private CourseModel course;
 
     @NotBlank
     @Size(max = 100)
     @Column(name = "title", nullable = false)
+    @Schema(description = "Название урока", example = "Введение в математику")
     private String title;
 
     @NotBlank
     @Column(name = "content", columnDefinition = "TEXT", nullable = false)
+    @Schema(description = "Содержание урока", example = "Этот урок охватывает основы математики...")
     private String content;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "lesson_status_id", nullable = false)
+    @Schema(description = "Статус урока")
     private LessonStatusModel lessonStatus;
 
     public LessonModel() {}

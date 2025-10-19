@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${'Курс: ' + course.title + ' - Онлайн Школа'}">Детали курса - Онлайн Школа</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .course-header {
+            position: relative;
+            height: 400px;
+            overflow: hidden;
+        }
+        
+        .course-header img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+        }
+        
+        .course-title {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            margin: 0;
+            max-width: 80%;
+        }
+        
+        .teacher-info {
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+        
+        .course-meta {
+            background-color: #e9ecef;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-info">
+        <div class="container">
+            <a class="navbar-brand" href="/">Онлайн Школа</a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3" th:if="${#authentication != null}">
+                    Добро пожаловать, <span th:text="${#authentication.name}"></span>!
+                </span>
+                <a class="nav-link" href="/teacher">Назад к курсам</a>
+                <a class="nav-link" href="/logout">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ======= ГЛАВНЫЙ БЛОК С КАРТИНКОЙ ======= -->
+    <div class="course-header">
+        <img th:if="${course.imageUrl}" th:src="${course.imageUrl}" th:alt="${course.title}">
+        <div class="overlay">
+            <h1 class="course-title" th:text="${course.title}">Название курса</h1>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- Course Content -->
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>Описание курса</h3>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${course.description}" th:text="${course.description}">Описание курса</div>
+                        <div th:if="${course.description == null}" class="text-muted">Описание отсутствует</div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>Информация о преподавателе</h3>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${course.teacher != null}">
+                            <h5 th:text="${course.teacher.firstName + ' ' + course.teacher.lastName}">Имя преподавателя</h5>
+                            <p th:if="${course.teacher.email}" th:text="${'Email: ' + course.teacher.email}">Email преподавателя</p>
+                        </div>
+                        <div th:if="${course.teacher == null}" class="text-muted">Информация о преподавателе отсутствует</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-md-4">
+                <div class="card mb-4 course-meta">
+                    <div class="card-header">
+                        <h5>Информация о курсе</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <strong>ID курса:</strong> 
+                                <span class="text-muted" th:text="${course.courseId}">1</span>
+                            </li>
+                            <li class="mb-2" th:if="${course.category != null}">
+                                <strong>Категория:</strong> 
+                                <span class="text-muted" th:text="${course.category.categoryName}">Категория</span>
+                            </li>
+                            <li class="mb-2">
+                                <strong>Цена:</strong> 
+                                <span class="text-muted" th:text="${course.price != null ? course.price + ' руб.' : 'Бесплатно'}">Бесплатно</span>
+                            </li>
+                            <li class="mb-2">
+                                <strong>Статус:</strong> 
+                                <span class="text-muted" th:if="${course.courseStatus != null}" th:text="${course.courseStatus.statusName}">Активен</span>
+                                <span class="text-muted" th:if="${course.courseStatus == null}">Не указан</span>
+                            </li>
+                            <li class="mb-2" th:if="${course.teacher != null}">
+                                <strong>Преподаватель:</strong> 
+                                <span class="text-muted" th:text="${course.teacher.firstName + ' ' + course.teacher.lastName}">Имя преподавателя</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Действия</h5>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-warning w-100 mb-2" onclick="editCourse()">
+                            <i class="fas fa-edit"></i> Редактировать курс
+                        </button>
+                        <a href="/teacher" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-arrow-left"></i> Назад к списку курсов
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script>
+        function editCourse() {
+            const courseId = /*[[${course.courseId}]]*/ '1';
+            // Redirect to edit course page or open edit modal
+            window.location.href = `/teacher/edit-course/${courseId}`;
+        }
+    </script>
+</body>
+</html>

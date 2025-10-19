@@ -40,3 +40,4 @@ public class SolutionStatusModel {
         this.statusName = statusName;
     }
 }
+
