@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "grades")
@@ -23,6 +24,15 @@ public class GradeModel {
     @Column(name = "grade_value", nullable = false)
     @Schema(description = "Значение оценки", example = "85")
     private Integer gradeValue;
+
+    @Size(max = 255)
+    @Column(name = "feedback")
+    @Schema(description = "Комментарий к оценке", example = "Хорошая работа!")
+    private String feedback;
+
+    @OneToOne(mappedBy = "grade", fetch = FetchType.EAGER)
+    @Schema(description = "Решение, которое получило эту оценку")
+    private SolutionModel solution;
 
     public GradeModel() {}
 
@@ -44,5 +54,21 @@ public class GradeModel {
 
     public void setGradeValue(Integer gradeValue) {
         this.gradeValue = gradeValue;
+    }
+
+    public String getFeedback() {
+        return feedback;
+    }
+
+    public void setFeedback(String feedback) {
+        this.feedback = feedback;
+    }
+
+    public SolutionModel getSolution() {
+        return solution;
+    }
+
+    public void setSolution(SolutionModel solution) {
+        this.solution = solution;
     }
 }

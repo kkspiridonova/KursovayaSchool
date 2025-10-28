@@ -124,18 +124,79 @@
                     </div>
                 </div>
 
-                <div class="row mt-3">
-                    <div class="col-md-8 mx-auto">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5>Информация о профиле</h5>
-                            </div>
-                            <div class="card-body">
-                                <div id="profileInfo">
-                                    <p class="text-muted text-center">Загрузка информации о профиле...</p>
+                <!-- Profile Sub-tabs -->
+                <ul class="nav nav-tabs mt-3" id="profileSubTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="personal-info-tab" data-bs-toggle="tab" data-bs-target="#personal-info" type="button" role="tab" aria-controls="personal-info" aria-selected="true">Личная информация</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="enrollments-tab" data-bs-toggle="tab" data-bs-target="#enrollments" type="button" role="tab" aria-controls="enrollments" aria-selected="false">Записи</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="receipts-sub-tab" data-bs-toggle="tab" data-bs-target="#receipts-sub" type="button" role="tab" aria-controls="receipts-sub" aria-selected="false">Чеки</button>
+                    </li>
+                </ul>
+
+                <!-- Profile Sub-tab Content -->
+                <div class="tab-content" id="profileSubTabsContent">
+                    <!-- Personal Info Sub-tab -->
+                    <div class="tab-pane fade show active" id="personal-info" role="tabpanel" aria-labelledby="personal-info-tab">
+                        <div class="row mt-3">
+                            <div class="col-md-8 mx-auto">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Личная информация</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="profileInfo">
+                                            <p class="text-muted text-center">Загрузка информации о профиле...</p>
+                                        </div>
+                                        <div class="mt-3 text-center">
+                                            <a href="/profile/edit" class="btn btn-primary">Редактировать профиль</a>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="mt-3 text-center">
-                                    <a href="/profile/edit" class="btn btn-primary">Редактировать профиль</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Enrollments Sub-tab -->
+                    <div class="tab-pane fade" id="enrollments" role="tabpanel" aria-labelledby="enrollments-tab">
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5>Мои записи</h5>
+                                        <button class="btn btn-outline-primary btn-sm" onclick="loadMyEnrollments()">
+                                            <i class="fas fa-sync-alt"></i> Обновить
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="enrollmentsList">
+                                            <p class="text-muted text-center">Загрузка списка записей...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Receipts Sub-tab -->
+                    <div class="tab-pane fade" id="receipts-sub" role="tabpanel" aria-labelledby="receipts-sub-tab">
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5>Мои чеки</h5>
+                                        <button class="btn btn-outline-primary btn-sm" onclick="loadMyReceipts()">
+                                            <i class="fas fa-sync-alt"></i> Обновить
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="receiptsList">
+                                            <p class="text-muted text-center">Загрузка списка чеков...</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -205,12 +266,12 @@
                         html += `
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card course-card h-100">
+                                    ${course.imageUrl ? 
+                                        `<img src="${course.imageUrl}" class="card-img-top" style="width: 100%; height: 150px; object-fit: cover;" alt="${course.title}">` : 
+                                        `<div class="bg-light" style="width: 100%; height: 150px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-image fa-3x text-muted"></i>
+                                        </div>`}
                                     <div class="card-body d-flex flex-column">
-                                        ${course.imageUrl ? 
-                                            `<img src="${course.imageUrl}" class="card-img-top mb-2" style="width: 100%; height: 150px; object-fit: cover;" alt="${course.title}">` : 
-                                            `<div class="bg-light mb-2" style="width: 100%; height: 150px; display: flex; align-items: center; justify-content: center;">
-                                                <i class="fas fa-image fa-3x text-muted"></i>
-                                            </div>`}
                                         <h5 class="card-title">
                                             ${categoryBadge}
                                             ${course.title}
@@ -265,12 +326,12 @@
                         html += `
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card course-card h-100">
+                                    ${course.imageUrl ? 
+                                        `<img src="${course.imageUrl}" class="card-img-top" style="width: 100%; height: 150px; object-fit: cover;" alt="${course.title}">` : 
+                                        `<div class="bg-light" style="width: 100%; height: 150px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-image fa-3x text-muted"></i>
+                                        </div>`}
                                     <div class="card-body d-flex flex-column">
-                                        ${course.imageUrl ? 
-                                            `<img src="${course.imageUrl}" class="card-img-top mb-2" style="width: 100%; height: 150px; object-fit: cover;" alt="${course.title}">` : 
-                                            `<div class="bg-light mb-2" style="width: 100%; height: 150px; display: flex; align-items: center; justify-content: center;">
-                                                <i class="fas fa-image fa-3x text-muted"></i>
-                                            </div>`}
                                         <h5 class="card-title">
                                             ${categoryBadge}
                                             ${course.title}
@@ -346,12 +407,12 @@
                         html += `
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card course-card h-100">
+                                    ${course.imageUrl ? 
+                                        `<img src="${course.imageUrl}" class="card-img-top" style="width: 100%; height: 150px; object-fit: cover;" alt="${course.title}">` : 
+                                        `<div class="bg-light" style="width: 100%; height: 150px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-image fa-3x text-muted"></i>
+                                        </div>`}
                                     <div class="card-body d-flex flex-column">
-                                        ${course.imageUrl ? 
-                                            `<img src="${course.imageUrl}" class="card-img-top mb-2" style="width: 100%; height: 150px; object-fit: cover;" alt="${course.title}">` : 
-                                            `<div class="bg-light mb-2" style="width: 100%; height: 150px; display: flex; align-items: center; justify-content: center;">
-                                                <i class="fas fa-image fa-3x text-muted"></i>
-                                            </div>`}
                                         <h5 class="card-title">
                                             ${categoryBadge}
                                             ${course.title}
@@ -385,6 +446,134 @@
             })
             .catch(error => {
                 document.getElementById('myCoursesList').innerHTML = '<p class="text-danger text-center">Ошибка загрузки списка ваших курсов</p>';
+            });
+        }
+
+        function loadMyEnrollments() {
+            // Load all my enrollments to check statuses
+            fetch('/v1/api/courses/my/enrollments', {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => response.json())
+            .then(enrollments => {
+                const enrollmentsList = document.getElementById('enrollmentsList');
+                if (enrollments.length === 0) {
+                    enrollmentsList.innerHTML = '<p class="text-muted text-center">Вы пока не записались ни на один курс</p>';
+                } else {
+                    let html = `
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Курс</th>
+                                        <th>Дата записи</th>
+                                        <th>Статус</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    enrollments.forEach(enrollment => {
+                        const course = enrollment.course;
+                        if (!course) return; // Skip if no course data
+
+                        // Check if the enrollment status is active
+                        const isEnrollmentActive = enrollment.enrollmentStatus && 
+                            (enrollment.enrollmentStatus.statusName === "Активен" || 
+                             enrollment.enrollmentStatus.statusName === "Активный" || 
+                             enrollment.enrollmentStatus.statusName === "Активна" || 
+                             enrollment.enrollmentStatus.statusName === "Active");
+                        
+                        const buttonText = isEnrollmentActive ? 'Перейти к курсу' : 'Ожидает подтверждения';
+                        const buttonAction = isEnrollmentActive ? `href="/student/course/${course.courseId}"` : 'href="javascript:void(0)"';
+                        const buttonOnclick = isEnrollmentActive ? '' : 'onclick="showPendingMessage(); return false;"';
+                        const buttonClass = isEnrollmentActive ? 'btn-primary' : 'btn-secondary disabled';
+                        
+                        // Display enrollment status
+                        const statusText = enrollment.enrollmentStatus ? enrollment.enrollmentStatus.statusName : 'Неизвестно';
+                        const statusClass = isEnrollmentActive ? 'text-success' : 'text-warning';
+
+                        html += `
+                            <tr>
+                                <td>${course.title || 'Не указан'}</td>
+                                <td>${enrollment.enrollmentDate ? new Date(enrollment.enrollmentDate).toLocaleDateString('ru-RU') : 'Не указана'}</td>
+                                <td><span class="${statusClass}">${statusText}</span></td>
+                                <td>
+                                    <a ${buttonAction} class="btn btn-sm ${buttonClass}" ${buttonOnclick}>
+                                        ${buttonText}
+                                    </a>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    
+                    enrollmentsList.innerHTML = html;
+                }
+            })
+            .catch(error => {
+                document.getElementById('enrollmentsList').innerHTML = '<p class="text-danger text-center">Ошибка загрузки списка записей</p>';
+            });
+        }
+
+        function loadMyReceipts() {
+            fetch('/v1/api/courses/my/checks', {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => response.json())
+            .then(checks => {
+                const receiptsList = document.getElementById('receiptsList');
+                if (checks.length === 0) {
+                    receiptsList.innerHTML = '<p class="text-muted text-center">У вас пока нет чеков</p>';
+                } else {
+                    let html = `
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Номер чека</th>
+                                        <th>Курс</th>
+                                        <th>Сумма</th>
+                                        <th>Дата оплаты</th>
+                                        <th>Статус</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    checks.forEach(check => {
+                        html += `
+                            <tr>
+                                <td>${check.checkId || 'Не указан'}</td>
+                                <td>${check.course ? check.course.title : 'Не указан'}</td>
+                                <td>${check.amount ? check.amount + ' руб.' : 'Не указана'}</td>
+                                <td>${check.paymentDate ? new Date(check.paymentDate).toLocaleDateString('ru-RU') : 'Не указана'}</td>
+                                <td>${check.paymentStatus ? check.paymentStatus.statusName : 'Не указан'}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    
+                    receiptsList.innerHTML = html;
+                }
+            })
+            .catch(error => {
+                document.getElementById('receiptsList').innerHTML = '<p class="text-danger text-center">Ошибка загрузки списка чеков</p>';
             });
         }
 
@@ -451,6 +640,16 @@
         // Load my courses when my courses tab is shown
         document.getElementById('my-courses-tab').addEventListener('shown.bs.tab', function (e) {
             loadMyCourses();
+        });
+        
+        // Load enrollments when enrollments sub-tab is shown
+        document.getElementById('enrollments-tab').addEventListener('shown.bs.tab', function (e) {
+            loadMyEnrollments();
+        });
+        
+        // Load receipts when receipts sub-tab is shown
+        document.getElementById('receipts-sub-tab').addEventListener('shown.bs.tab', function (e) {
+            loadMyReceipts();
         });
 
         function enrollInCourse(courseId) {

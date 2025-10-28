@@ -78,6 +78,56 @@ public class MinioFileService {
         }
     }
 
+    public String uploadFile(MultipartFile file, String folderType) throws IOException {
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("Файл не может быть пустым");
+        }
+
+        initializeBucket();
+
+        String originalFilename = file.getOriginalFilename();
+        String fileExtension = "";
+        if (originalFilename != null && originalFilename.contains(".")) {
+            fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+
+        // Use specific folder based on type
+        String folder;
+        switch (folderType) {
+            case "lesson":
+                folder = "lessons/";
+                break;
+            case "task":
+                folder = "tasks/";
+                break;
+            case "solution":
+                folder = "solutions/";
+                break;
+            case "image":
+                folder = "images/";
+                break;
+            default:
+                folder = "documents/";
+        }
+
+        String objectName = folder + UUID.randomUUID().toString() + fileExtension;
+
+        try (InputStream inputStream = file.getInputStream()) {
+            minioClient.putObject(PutObjectArgs.builder()
+                    .bucket(bucketName)
+                    .object(objectName)
+                    .stream(inputStream, file.getSize(), -1)
+                    .contentType(file.getContentType())
+                    .build());
+
+            logger.info("File uploaded successfully to {}: {}", folder, objectName);
+            return objectName;
+        } catch (Exception e) {
+            logger.error("Error uploading file: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to upload file to MinIO", e);
+        }
+    }
+
     public String uploadFile(MultipartFile file) throws IOException {
         return uploadFile(file, false);
     }
@@ -133,3 +183,5 @@ public class MinioFileService {
         }
     }
 }
+
+

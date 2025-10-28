@@ -46,7 +46,7 @@ public class SecurityConfig {
                         
                         .requestMatchers("/v1/api/auth/**").permitAll()
                         .requestMatchers("/v1/api/test").permitAll()
-                        .requestMatchers("/v1/api/files/upload").hasAnyAuthority("ROLE_Преподаватель", "ROLE_Администратор")
+                        .requestMatchers("/v1/api/files/upload").hasAnyAuthority("ROLE_Студент", "ROLE_Преподаватель", "ROLE_Администратор")
                         .requestMatchers("/v1/api/files/**").authenticated()
                         .requestMatchers("/v1/api/admin/**").hasAuthority("ROLE_Администратор")
                         .requestMatchers("/v1/api/teacher/**").hasAnyAuthority("ROLE_Преподаватель", "ROLE_Администратор")

@@ -79,6 +79,34 @@
                 </div>
             </div>
 
+            <!-- Receipts Tab -->
+            <div class="tab-pane fade" id="receipts" role="tabpanel" aria-labelledby="receipts-tab">
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h3>Чеки за мои курсы</h3>
+                        <p class="text-muted">Здесь представлены чеки за оплаченные курсы, которые вы ведете.</p>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Список чеков</h5>
+                                <button class="btn btn-outline-primary btn-sm" onclick="loadMyReceipts()">
+                                    <i class="fas fa-sync-alt"></i> Обновить
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="receiptsList">
+                                    <p class="text-muted text-center">Загрузка списка чеков...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Profile Tab -->
             <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
                 <div class="row mt-4">
@@ -88,18 +116,55 @@
                     </div>
                 </div>
 
-                <div class="row mt-3">
-                    <div class="col-md-8 mx-auto">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5>Информация о профиле</h5>
-                            </div>
-                            <div class="card-body">
-                                <div id="profileInfo">
-                                    <p class="text-muted text-center">Загрузка информации о профиле...</p>
+                <!-- Profile Sub-tabs -->
+                <ul class="nav nav-tabs mt-3" id="teacherProfileSubTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="teacher-personal-info-tab" data-bs-toggle="tab" data-bs-target="#teacher-personal-info" type="button" role="tab" aria-controls="teacher-personal-info" aria-selected="true">Личная информация</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="teacher-receipts-tab" data-bs-toggle="tab" data-bs-target="#teacher-receipts" type="button" role="tab" aria-controls="teacher-receipts" aria-selected="false">Чеки</button>
+                    </li>
+                </ul>
+
+                <!-- Profile Sub-tab Content -->
+                <div class="tab-content" id="teacherProfileSubTabsContent">
+                    <!-- Personal Info Sub-tab -->
+                    <div class="tab-pane fade show active" id="teacher-personal-info" role="tabpanel" aria-labelledby="teacher-personal-info-tab">
+                        <div class="row mt-3">
+                            <div class="col-md-8 mx-auto">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Личная информация</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="profileInfo">
+                                            <p class="text-muted text-center">Загрузка информации о профиле...</p>
+                                        </div>
+                                        <div class="mt-3 text-center">
+                                            <a href="/profile/edit" class="btn btn-primary">Редактировать профиль</a>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="mt-3 text-center">
-                                    <a href="/profile/edit" class="btn btn-primary">Редактировать профиль</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Receipts Sub-tab -->
+                    <div class="tab-pane fade" id="teacher-receipts" role="tabpanel" aria-labelledby="teacher-receipts-tab">
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5>Чеки за мои курсы</h5>
+                                        <button class="btn btn-outline-primary btn-sm" onclick="loadMyReceipts()">
+                                            <i class="fas fa-sync-alt"></i> Обновить
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="receiptsList">
+                                            <p class="text-muted text-center">Загрузка списка чеков...</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -287,6 +352,163 @@
             });
         }
 
+        function loadMyReceipts() {
+            // First get all courses taught by the teacher
+            fetch('/v1/api/courses', {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => response.json())
+            .then(allCourses => {
+                // Filter courses by current teacher
+                return fetch('/v1/api/auth/me', {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    }
+                })
+                .then(response => response.json())
+                .then(user => {
+                    const teacherCourses = allCourses.filter(course => 
+                        course.teacher && course.teacher.userId === user.userId
+                    );
+                    
+                    // Get check IDs for these courses
+                    const courseIds = teacherCourses.map(course => course.courseId);
+                    
+                    // For simplicity, we'll just show all checks for now
+                    // In a real implementation, you might want to filter by course IDs
+                    return fetch('/v1/api/courses/my/checks', {
+                        headers: {
+                            'Authorization': 'Bearer ' + localStorage.getItem('token')
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(checks => {
+                        // Filter checks to only show those for courses taught by this teacher
+                        const teacherChecks = checks.filter(check => 
+                            check.course && courseIds.includes(check.course.courseId)
+                        );
+                        
+                        const receiptsList = document.getElementById('receiptsList');
+                        if (teacherChecks.length === 0) {
+                            receiptsList.innerHTML = '<p class="text-muted text-center">Пока нет чеков за ваши курсы</p>';
+                        } else {
+                            let html = `
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Номер чека</th>
+                                                <th>Курс</th>
+                                                <th>Студент</th>
+                                                <th>Сумма</th>
+                                                <th>Дата оплаты</th>
+                                                <th>Статус</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                            `;
+                            
+                            teacherChecks.forEach(check => {
+                                html += `
+                                    <tr>
+                                        <td>${check.checkId || 'Не указан'}</td>
+                                        <td>${check.course ? check.course.title : 'Не указан'}</td>
+                                        <td>${check.user ? (check.user.firstName + ' ' + check.user.lastName) : 'Не указан'}</td>
+                                        <td>${check.amount ? check.amount + ' руб.' : 'Не указана'}</td>
+                                        <td>${check.paymentDate ? new Date(check.paymentDate).toLocaleDateString('ru-RU') : 'Не указана'}</td>
+                                        <td>${check.paymentStatus ? check.paymentStatus.statusName : 'Не указан'}</td>
+                                    </tr>
+                                `;
+                            });
+                            
+                            html += `
+                                        </tbody>
+                                    </table>
+                                </div>
+                            `;
+                            
+                            receiptsList.innerHTML = html;
+                        }
+                    });
+                });
+            })
+            .catch(error => {
+                document.getElementById('receiptsList').innerHTML = '<p class="text-danger text-center">Ошибка загрузки списка чеков</p>';
+            });
+        }
+
+        function loadProfile() {
+            fetch('/v1/api/auth/me', {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => response.json())
+            .then(user => {
+                const profileInfo = document.getElementById('profileInfo');
+                profileInfo.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center mb-3">
+                                ${user.imageUrl ? 
+                                    `<img src="${user.imageUrl}" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;" alt="Profile image">` : 
+                                    `<div class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 100px; height: 100px;">
+                                        <i class="fas fa-user fa-3x text-secondary"></i>
+                                    </div>`}
+                                <h5 class="mt-2">${user.firstName} ${user.lastName}</h5>
+                                <p class="text-muted">${user.role ? user.role.roleName : 'Преподаватель'}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <h5>Личная информация</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Имя:</strong></td>
+                                    <td>${user.firstName || 'Не указано'}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Фамилия:</strong></td>
+                                    <td>${user.lastName || 'Не указано'}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Отчество:</strong></td>
+                                    <td>${user.middleName || 'Не указано'}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Email:</strong></td>
+                                    <td>${user.email || 'Не указано'}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Дата регистрации:</strong></td>
+                                    <td>${user.registrationDate ? new Date(user.registrationDate).toLocaleDateString('ru-RU') : 'Не указана'}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                document.getElementById('profileInfo').innerHTML = '<p class="text-danger text-center">Ошибка загрузки информации о профиле</p>';
+            });
+        }
+
+        // Load profile when profile tab is shown
+        document.getElementById('profile-tab').addEventListener('shown.bs.tab', function (e) {
+            loadProfile();
+        });
+
+        // Load my courses when my courses tab is shown
+        document.getElementById('my-courses-tab').addEventListener('shown.bs.tab', function (e) {
+            loadMyCourses();
+        });
+        
+        // Load receipts when receipts sub-tab is shown
+        document.getElementById('teacher-receipts-tab').addEventListener('shown.bs.tab', function (e) {
+            loadMyReceipts();
+        });
+
         function showAddCourseModal() {
             // Reset form
             document.getElementById('courseForm').reset();
@@ -343,7 +565,7 @@
             return fetch('/v1/api/files/upload', {
                 method: 'POST',
                 headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    'Authorization': 'Bearer ' + + localStorage.getItem('token')
                 },
                 body: formData
             })
@@ -441,71 +663,6 @@
                 alert('Ошибка обновления курса: ' + error.message);
             });
         }
-
-        function loadProfile() {
-            fetch('/v1/api/auth/me', {
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('token')
-                }
-            })
-            .then(response => response.json())
-            .then(user => {
-                const profileInfo = document.getElementById('profileInfo');
-                profileInfo.innerHTML = `
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="text-center mb-3">
-                                ${user.imageUrl ? 
-                                    `<img src="${user.imageUrl}" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;" alt="Profile image">` : 
-                                    `<div class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 100px; height: 100px;">
-                                        <i class="fas fa-user fa-3x text-secondary"></i>
-                                    </div>`}
-                                <h5 class="mt-2">${user.firstName} ${user.lastName}</h5>
-                                <p class="text-muted">${user.role ? user.role.roleName : 'Преподаватель'}</p>
-                            </div>
-                        </div>
-                        <div class="col-md-8">
-                            <h5>Личная информация</h5>
-                            <table class="table table-borderless">
-                                <tr>
-                                    <td><strong>Имя:</strong></td>
-                                    <td>${user.firstName || 'Не указано'}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Фамилия:</strong></td>
-                                    <td>${user.lastName || 'Не указано'}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Отчество:</strong></td>
-                                    <td>${user.middleName || 'Не указано'}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Email:</strong></td>
-                                    <td>${user.email || 'Не указано'}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Дата регистрации:</strong></td>
-                                    <td>${user.registrationDate ? new Date(user.registrationDate).toLocaleDateString('ru-RU') : 'Не указана'}</td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                `;
-            })
-            .catch(error => {
-                document.getElementById('profileInfo').innerHTML = '<p class="text-danger text-center">Ошибка загрузки информации о профиле</p>';
-            });
-        }
-
-        // Load profile when profile tab is shown
-        document.getElementById('profile-tab').addEventListener('shown.bs.tab', function (e) {
-            loadProfile();
-        });
-
-        // Load my courses when my courses tab is shown
-        document.getElementById('my-courses-tab').addEventListener('shown.bs.tab', function (e) {
-            loadMyCourses();
-        });
     </script>
 </body>
 </html>

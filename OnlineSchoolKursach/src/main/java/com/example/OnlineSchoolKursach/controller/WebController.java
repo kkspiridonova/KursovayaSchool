@@ -1,9 +1,20 @@
 package com.example.OnlineSchoolKursach.controller;
 
 import com.example.OnlineSchoolKursach.model.CourseModel;
+import com.example.OnlineSchoolKursach.model.LessonModel;
+import com.example.OnlineSchoolKursach.model.TaskModel;
+import com.example.OnlineSchoolKursach.model.SolutionModel;
+import com.example.OnlineSchoolKursach.model.EnrollmentModel;
 import com.example.OnlineSchoolKursach.model.UserModel;
+import com.example.OnlineSchoolKursach.dto.TaskDto;
 import com.example.OnlineSchoolKursach.service.AuthService;
 import com.example.OnlineSchoolKursach.service.CourseService;
+import com.example.OnlineSchoolKursach.service.LessonService;
+import com.example.OnlineSchoolKursach.service.TaskService;
+import com.example.OnlineSchoolKursach.service.SolutionService;
+import com.example.OnlineSchoolKursach.service.MinioFileService;
+import com.example.OnlineSchoolKursach.model.TaskStatusModel;
+import org.springframework.web.multipart.MultipartFile;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -16,6 +27,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Controller
 public class WebController {
 
@@ -24,6 +38,18 @@ public class WebController {
     
     @Autowired
     private CourseService courseService;
+    
+    @Autowired
+    private LessonService lessonService;
+    
+    @Autowired
+    private TaskService taskService;
+    
+    @Autowired
+    private SolutionService solutionService;
+    
+    @Autowired
+    private MinioFileService minioFileService;
 
     @GetMapping("/")
     public String home() {
@@ -93,23 +119,6 @@ public class WebController {
         return "teacher";
     }
 
-    @GetMapping("/teacher/edit-course/{courseId}")
-    public String editCoursePage(@PathVariable Long courseId, Model model, Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return "redirect:/login";
-        }
-        
-        try {
-            CourseModel course = courseService.getCourseById(courseId);
-            model.addAttribute("course", course);
-            model.addAttribute("courseId", courseId);
-        } catch (Exception e) {
-            return "redirect:/teacher";
-        }
-        
-        return "edit-course";
-    }
-
     @GetMapping("/teacher/course/{courseId}")
     public String teacherCoursePage(@PathVariable Long courseId, Model model, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -126,7 +135,309 @@ public class WebController {
         
         return "teacher-course";
     }
+    
+    @GetMapping("/teacher/course/{courseId}/lesson/{lessonId}")
+    public String teacherLessonPage(@PathVariable Long courseId, @PathVariable Long lessonId, 
+                                   Model model, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        
+        try {
+            CourseModel course = courseService.getCourseById(courseId);
+            LessonModel lesson = lessonService.getLessonById(lessonId);
+            
+            if (lesson == null || !lesson.getCourse().getCourseId().equals(courseId)) {
+                return "redirect:/teacher/course/" + courseId;
+            }
+            
+            // Get tasks for this lesson
+            List<TaskModel> tasks = taskService.getTasksByLessonId(lessonId);
+            
+            model.addAttribute("course", course);
+            model.addAttribute("lesson", lesson);
+            model.addAttribute("tasks", tasks);
+        } catch (Exception e) {
+            return "redirect:/teacher/course/" + courseId;
+        }
+        
+        return "teacher-lesson";
+    }
+    
+    @GetMapping("/teacher/course/{courseId}/lesson/{lessonId}/task/{taskId}")
+    public String teacherTaskPage(@PathVariable Long courseId, @PathVariable Long lessonId, 
+                                 @PathVariable Long taskId, Model model, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        
+        try {
+            CourseModel course = courseService.getCourseById(courseId);
+            LessonModel lesson = lessonService.getLessonById(lessonId);
+            TaskModel task = taskService.getTaskById(taskId);
+            
+            if (task == null || !task.getLesson().getLessonId().equals(lessonId)) {
+                return "redirect:/teacher/course/" + courseId + "/lesson/" + lessonId;
+            }
+            
+            // Get solutions for this task
+            List<SolutionModel> solutions = solutionService.getSolutionsByTaskId(taskId);
+            
+            model.addAttribute("course", course);
+            model.addAttribute("lesson", lesson);
+            model.addAttribute("task", task);
+            model.addAttribute("solutions", solutions);
+        } catch (Exception e) {
+            return "redirect:/teacher/course/" + courseId + "/lesson/" + lessonId;
+        }
+        
+        return "teacher-task";
+    }
+    
+    @PostMapping("/teacher/course/{courseId}/lesson/{lessonId}/task/{taskId}/delete")
+    public String deleteTask(@PathVariable Long courseId,
+                             @PathVariable Long lessonId,
+                             @PathVariable Long taskId,
+                             RedirectAttributes redirectAttributes,
+                             Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        
+        try {
+            CourseModel course = courseService.getCourseById(courseId);
+            LessonModel lesson = lessonService.getLessonById(lessonId);
+            TaskModel task = taskService.getTaskById(taskId);
+            
+            // Validate ownership and associations
+            UserModel user = authService.getUserByEmail(authentication.getName());
+            if (!course.getTeacher().getUserId().equals(user.getUserId())) {
+                return "redirect:/teacher";
+            }
+            if (lesson == null || !lesson.getCourse().getCourseId().equals(courseId)) {
+                return "redirect:/teacher/course/" + courseId;
+            }
+            if (task == null || !task.getLesson().getLessonId().equals(lessonId)) {
+                return "redirect:/teacher/course/" + courseId + "/lesson/" + lessonId;
+            }
+            
+            // Delete task (service also handles attached files cleanup)
+            taskService.deleteTask(taskId);
+            redirectAttributes.addFlashAttribute("success", "Задание удалено");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Ошибка при удалении задания: " + e.getMessage());
+        }
+        
+        return "redirect:/teacher/course/" + courseId + "/lesson/" + lessonId;
+    }
+    
+    @GetMapping("/teacher/course/{courseId}/create-lesson")
+    public String createLessonPage(@PathVariable Long courseId, Model model, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        
+        try {
+            CourseModel course = courseService.getCourseById(courseId);
+            
+            // Check if user is the teacher of this course
+            UserModel user = authService.getUserByEmail(authentication.getName());
+            if (!course.getTeacher().getUserId().equals(user.getUserId())) {
+                return "redirect:/teacher";
+            }
+            
+            model.addAttribute("course", course);
+            model.addAttribute("lesson", new LessonModel());
+        } catch (Exception e) {
+            return "redirect:/teacher";
+        }
+        
+        return "create-lesson";
+    }
+    
+    @PostMapping("/teacher/course/{courseId}/create-lesson")
+    public String createLesson(@PathVariable Long courseId, 
+                              @Valid @ModelAttribute("lesson") LessonModel lesson,
+                              @RequestParam(value = "attachedFile", required = false) MultipartFile attachedFile,
+                              BindingResult bindingResult,
+                              RedirectAttributes redirectAttributes,
+                              Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        
+        try {
+            CourseModel course = courseService.getCourseById(courseId);
+            
+            // Check if user is the teacher of this course
+            UserModel user = authService.getUserByEmail(authentication.getName());
+            if (!course.getTeacher().getUserId().equals(user.getUserId())) {
+                return "redirect:/teacher";
+            }
+            
+            if (bindingResult.hasErrors()) {
+                redirectAttributes.addFlashAttribute("error", "Ошибка в данных урока");
+                return "redirect:/teacher/course/" + courseId + "/create-lesson";
+            }
+            
+            // Set the course for this lesson
+            lesson.setCourse(course);
+            
+            // Upload attached file if provided
+            if (attachedFile != null && !attachedFile.isEmpty()) {
+                String filePath = minioFileService.uploadFile(attachedFile, "lesson");
+                lesson.setAttachedFile(filePath);
+            }
+            
+            // Create the lesson
+            LessonModel createdLesson = lessonService.createLesson(lesson);
+            
+            redirectAttributes.addFlashAttribute("success", "Урок успешно создан!");
+            return "redirect:/teacher/course/" + courseId;
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Ошибка при создании урока: " + e.getMessage());
+            return "redirect:/teacher/course/" + courseId + "/create-lesson";
+        }
+    }
+    
+    @GetMapping("/teacher/course/{courseId}/lesson/{lessonId}/create-task")
+    public String createTaskPage(@PathVariable Long courseId, @PathVariable Long lessonId, 
+                                Model model, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        
+        try {
+            CourseModel course = courseService.getCourseById(courseId);
+            LessonModel lesson = lessonService.getLessonById(lessonId);
+            
+            // Check if user is the teacher of this course
+            UserModel user = authService.getUserByEmail(authentication.getName());
+            if (!course.getTeacher().getUserId().equals(user.getUserId())) {
+                return "redirect:/teacher";
+            }
+            
+            if (lesson == null || !lesson.getCourse().getCourseId().equals(courseId)) {
+                return "redirect:/teacher/course/" + courseId;
+            }
+            
+            model.addAttribute("course", course);
+            model.addAttribute("lesson", lesson);
+            model.addAttribute("taskDto", new TaskDto());
+        } catch (Exception e) {
+            return "redirect:/teacher/course/" + courseId;
+        }
+        
+        return "create-task";
+    }
+    
+    @PostMapping("/teacher/course/{courseId}/lesson/{lessonId}/create-task")
+    public String createTask(@PathVariable Long courseId, @PathVariable Long lessonId,
+                            @Valid @ModelAttribute("taskDto") TaskDto taskDto,
+                            BindingResult bindingResult,
+                            RedirectAttributes redirectAttributes,
+                            Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        
+        try {
+            CourseModel course = courseService.getCourseById(courseId);
+            LessonModel lesson = lessonService.getLessonById(lessonId);
+            
+            // Check if user is the teacher of this course
+            UserModel user = authService.getUserByEmail(authentication.getName());
+            if (!course.getTeacher().getUserId().equals(user.getUserId())) {
+                return "redirect:/teacher";
+            }
+            
+            if (lesson == null || !lesson.getCourse().getCourseId().equals(courseId)) {
+                redirectAttributes.addFlashAttribute("error", "Ошибка: Неверный урок или курс");
+                return "redirect:/teacher/course/" + courseId;
+            }
+            
+            if (bindingResult.hasErrors()) {
+                redirectAttributes.addFlashAttribute("error", "Ошибка в данных задания");
+                return "redirect:/teacher/course/" + courseId + "/lesson/" + lessonId + "/create-task";
+            }
+            
+            // Verify lesson belongs to the correct course
+            if (!lesson.getCourse().getCourseId().equals(courseId)) {
+                redirectAttributes.addFlashAttribute("error", "Ошибка: Урок не принадлежит указанному курсу");
+                return "redirect:/teacher/course/" + courseId;
+            }
+            
+            // Force-link lesson to the exact course from path to avoid any mismatch
+            lesson.setCourse(course);
 
+            // Convert DTO to TaskModel
+            TaskModel task = new TaskModel();
+            task.setLesson(lesson);
+            task.setTitle(taskDto.getTitle());
+            task.setDescription(taskDto.getDescription());
+            task.setDeadline(taskDto.getDeadline());
+            
+            // Upload attached file if provided
+            if (taskDto.getAttachedFile() != null && !taskDto.getAttachedFile().isEmpty()) {
+                String filePath = minioFileService.uploadFile(taskDto.getAttachedFile(), "task");
+                task.setAttachedFile(filePath);
+            } else if (taskDto.getAttachedFilePath() != null && !taskDto.getAttachedFilePath().isEmpty()) {
+                // Fallback to path if file not uploaded
+                task.setAttachedFile(taskDto.getAttachedFilePath());
+            }
+            
+            System.out.println("Creating task for lesson: " + lesson.getLessonId() + 
+                             ", course: " + lesson.getCourse().getCourseId() + 
+                             ", title: " + taskDto.getTitle());
+            
+            // Set default status
+            List<TaskStatusModel> statuses = taskService.getAllTaskStatuses();
+            if (!statuses.isEmpty()) {
+                task.setTaskStatus(statuses.get(0)); // Default to first status
+            }
+            
+            // Create the task
+            TaskModel createdTask = taskService.createTask(task);
+            
+            // Use IDs from persisted entities to avoid any mismatch
+            Long redirectCourseId = createdTask.getLesson().getCourse().getCourseId();
+            Long redirectLessonId = createdTask.getLesson().getLessonId();
+            
+            redirectAttributes.addFlashAttribute("success", "Задание успешно создано!");
+            return "redirect:/teacher/course/" + redirectCourseId + "/lesson/" + redirectLessonId;
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Ошибка при создании задания: " + e.getMessage());
+            return "redirect:/teacher/course/" + courseId + "/lesson/" + lessonId + "/create-task";
+        }
+    }
+    
+    @GetMapping("/teacher/solution/{solutionId}")
+    public String teacherSolutionPage(@PathVariable Long solutionId, Model model, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        
+        try {
+            SolutionModel solution = solutionService.getSolutionById(solutionId);
+            
+            // Check if user is the teacher of this course
+            UserModel user = authService.getUserByEmail(authentication.getName());
+            if (!solution.getTask().getLesson().getCourse().getTeacher().getUserId().equals(user.getUserId())) {
+                return "redirect:/teacher";
+            }
+            
+            model.addAttribute("solution", solution);
+            model.addAttribute("course", solution.getTask().getLesson().getCourse());
+            model.addAttribute("lesson", solution.getTask().getLesson());
+            model.addAttribute("task", solution.getTask());
+            model.addAttribute("student", solution.getUser());
+        } catch (Exception e) {
+            return "redirect:/teacher";
+        }
+        
+        return "teacher-solution";
+    }
+    
     @GetMapping("/student")
     public String studentPage(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -143,13 +454,95 @@ public class WebController {
         
         try {
             CourseModel course = courseService.getCourseById(courseId);
+            UserModel user = authService.getUserByEmail(authentication.getName());
+            
+            // Check if user is enrolled in this course
+            List<EnrollmentModel> userEnrollments = courseService.getUserEnrollments(user);
+            boolean isEnrolled = userEnrollments.stream()
+                    .anyMatch(enrollment -> enrollment.getCourse().getCourseId().equals(courseId));
+            
+            System.out.println("User: " + user.getEmail() + " enrolled in course " + courseId + ": " + isEnrolled);
+            System.out.println("User enrollments: " + userEnrollments.size());
+            
             model.addAttribute("course", course);
             model.addAttribute("courseId", courseId);
+            model.addAttribute("isEnrolled", isEnrolled);
         } catch (Exception e) {
+            e.printStackTrace();
             return "redirect:/student";
         }
         
         return "student-course";
+    }
+    
+    @GetMapping("/student/course/{courseId}/lesson/{lessonId}")
+    public String studentLessonPage(@PathVariable Long courseId, @PathVariable Long lessonId, 
+                                   Model model, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        
+        try {
+            CourseModel course = courseService.getCourseById(courseId);
+            LessonModel lesson = lessonService.getLessonById(lessonId);
+            
+            if (lesson == null || !lesson.getCourse().getCourseId().equals(courseId)) {
+                return "redirect:/student/course/" + courseId;
+            }
+            
+            // Get tasks for this lesson
+            List<TaskModel> tasks = taskService.getTasksByLessonId(lessonId);
+            
+            // Get user solutions for these tasks
+            UserModel user = authService.getUserByEmail(authentication.getName());
+            List<SolutionModel> solutions = new ArrayList<>();
+            for (TaskModel task : tasks) {
+                SolutionModel solution = solutionService.getSolutionByTaskAndUser(task.getTaskId(), user.getUserId());
+                if (solution != null) {
+                    solutions.add(solution);
+                }
+            }
+            
+            model.addAttribute("course", course);
+            model.addAttribute("lesson", lesson);
+            model.addAttribute("tasks", tasks);
+            model.addAttribute("solutions", solutions);
+        } catch (Exception e) {
+            return "redirect:/student/course/" + courseId;
+        }
+        
+        return "student-lesson";
+    }
+    
+    @GetMapping("/student/course/{courseId}/lesson/{lessonId}/task/{taskId}")
+    public String studentTaskPage(@PathVariable Long courseId, @PathVariable Long lessonId, 
+                                 @PathVariable Long taskId, Model model, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        
+        try {
+            CourseModel course = courseService.getCourseById(courseId);
+            LessonModel lesson = lessonService.getLessonById(lessonId);
+            TaskModel task = taskService.getTaskById(taskId);
+            
+            if (task == null || !task.getLesson().getLessonId().equals(lessonId)) {
+                return "redirect:/student/course/" + courseId + "/lesson/" + lessonId;
+            }
+            
+            // Get user solution for this task
+            UserModel user = authService.getUserByEmail(authentication.getName());
+            SolutionModel solution = solutionService.getSolutionByTaskAndUser(taskId, user.getUserId());
+            
+            model.addAttribute("course", course);
+            model.addAttribute("lesson", lesson);
+            model.addAttribute("task", task);
+            model.addAttribute("solution", solution);
+        } catch (Exception e) {
+            return "redirect:/student/course/" + courseId + "/lesson/" + lessonId;
+        }
+        
+        return "student-task";
     }
 
     @GetMapping("/profile/edit")
@@ -166,6 +559,30 @@ public class WebController {
         }
         
         return "profile-edit";
+    }
+
+    @GetMapping("/teacher/edit-course/{courseId}")
+    public String editCoursePage(@PathVariable Long courseId, Model model, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        
+        try {
+            CourseModel course = courseService.getCourseById(courseId);
+            
+            // Check if user is the teacher of this course
+            UserModel user = authService.getUserByEmail(authentication.getName());
+            if (!course.getTeacher().getUserId().equals(user.getUserId())) {
+                return "redirect:/teacher";
+            }
+            
+            model.addAttribute("course", course);
+            model.addAttribute("courseId", courseId);
+        } catch (Exception e) {
+            return "redirect:/teacher";
+        }
+        
+        return "edit-course";
     }
 
     @GetMapping("/logout")

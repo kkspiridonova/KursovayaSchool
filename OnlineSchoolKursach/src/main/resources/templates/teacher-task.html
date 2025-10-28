@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${task.title + ' - ' + lesson.title + ' - Онлайн Школа'}">Задание - Онлайн Школа</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .task-header {
+            position: relative;
+            height: 300px;
+            overflow: hidden;
+            background-color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .task-title {
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            margin: 0;
+            text-align: center;
+        }
+        
+        .solution-card {
+            transition: transform 0.2s;
+            border: 1px solid #dee2e6;
+        }
+        
+        .solution-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-info">
+        <div class="container">
+            <a class="navbar-brand" href="/">Онлайн Школа</a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3" th:if="${#authentication != null}">
+                    Добро пожаловать, <span th:text="${#authentication.name}"></span>!
+                </span>
+                <a class="nav-link" th:href="@{/teacher/course/{courseId}/lesson/{lessonId}(courseId=${course.courseId}, lessonId=${lesson.lessonId})}">Назад к уроку</a>
+                <a class="nav-link" th:href="@{/teacher/course/{courseId}(courseId=${course.courseId})}">Назад к курсу</a>
+                <a class="nav-link" href="/teacher">Мои курсы</a>
+                <a class="nav-link" href="/logout">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ======= ГЛАВНЫЙ БЛОК С НАЗВАНИЕМ ЗАДАНИЯ ======= -->
+    <div class="task-header">
+        <h1 class="task-title" th:text="${task.title}">Название задания</h1>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- Task Details -->
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>Описание задания</h3>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${task.description}" th:utext="${task.description}">Описание задания</div>
+                        <div th:if="${task.description == null}" class="text-muted">Описание отсутствует</div>
+                    </div>
+                </div>
+                
+                <!-- Attached Materials -->
+                <div class="card mb-4" th:if="${task.attachedFile}">
+                    <div class="card-header">
+                        <h3>Материалы задания</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-file-pdf fa-2x me-3 text-danger"></i>
+                            <div>
+                                <h5>Файл задания</h5>
+                                <a th:href="@{/files/{fileId}(fileId=${task.attachedFile})}" class="btn btn-outline-primary" target="_blank">
+                                    <i class="fas fa-download"></i> Скачать файл задания
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Информация о задании</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <strong>Курс:</strong>
+                                <span class="text-muted" th:text="${course.title}">Название курса</span>
+                            </li>
+                            <li class="mb-2">
+                                <strong>Урок:</strong>
+                                <span class="text-muted" th:text="${lesson.title}">Название урока</span>
+                            </li>
+                            <li class="mb-2">
+                                <strong>Задание:</strong>
+                                <span class="text-muted" th:text="${task.title}">Название задания</span>
+                            </li>
+                            <li class="mb-2">
+                                <strong>Крайний срок:</strong>
+                                <span class="text-muted" th:text="${#temporals.format(task.deadline, 'dd.MM.yyyy')}">дд.мм.гггг</span>
+                            </li>
+                            <li class="mb-2" th:if="${task.taskStatus != null}">
+                                <strong>Статус:</strong>
+                                <span class="text-muted" th:text="${task.taskStatus.statusName}">Статус задания</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Действия</h5>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-warning w-100 mb-2" onclick="editTask()">
+                            <i class="fas fa-edit"></i> Редактировать задание
+                        </button>
+                        <button class="btn btn-danger w-100" onclick="deleteTask()">
+                            <i class="fas fa-trash"></i> Удалить задание
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Solutions Section -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3>Решения студентов</h3>
+                        <span class="badge bg-primary" th:text="${#lists.size(solutions)}">0</span>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${#lists.isEmpty(solutions)}">
+                            <p class="text-muted text-center">Пока нет решений от студентов</p>
+                        </div>
+                        
+                        <div th:if="${not #lists.isEmpty(solutions)}" class="row">
+                            <div class="col-md-6 col-lg-4 mb-4" th:each="solution : ${solutions}">
+                                <div class="card solution-card h-100">
+                                    <div class="card-body d-flex flex-column">
+                                        <h5 class="card-title" th:text="${solution.user.firstName + ' ' + solution.user.lastName}">Имя студента</h5>
+                                        <p class="card-text flex-grow-1">
+                                            <small class="text-muted">Отправлено: <span th:text="${#temporals.format(solution.submitDate, 'dd.MM.yyyy')}">дд.мм.гггг</span></small>
+                                        </p>
+                                        
+                                        <div th:if="${solution.solutionStatus != null}">
+                                            <span th:if="${solution.solutionStatus.statusName == 'Отправлено'}" class="badge bg-warning">Отправлено</span>
+                                            <span th:if="${solution.solutionStatus.statusName == 'На проверке'}" class="badge bg-info">На проверке</span>
+                                            <span th:if="${solution.solutionStatus.statusName == 'Проверено'}" class="badge bg-success">Проверено</span>
+                                        </div>
+                                        
+                                        <!-- Grade Display -->
+                                        <div th:if="${solution.grade != null}" class="mt-2">
+                                            <span class="badge bg-success">Оценка: <span th:text="${solution.grade.gradeValue}">5</span></span>
+                                            <div th:if="${solution.grade.feedback}" class="small text-muted mt-1" th:text="${solution.grade.feedback}">Feedback</div>
+                                        </div>
+                                        
+                                        <div class="mt-2">
+                                            <div th:if="${solution.answerText}">
+                                                <h6>Текст ответа:</h6>
+                                                <p th:text="${#strings.abbreviate(solution.answerText, 100)}">Текст ответа</p>
+                                            </div>
+                                            
+                                            <div th:if="${solution.answerFile}">
+                                                <h6>Файл ответа:</h6>
+                                                <a th:href="@{/files/{fileId}(fileId=${solution.answerFile})}" class="btn btn-outline-primary btn-sm" target="_blank">
+                                                    <i class="fas fa-download"></i> Скачать
+                                                </a>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-auto pt-2">
+                                            <a th:href="@{/teacher/solution/{solutionId}(solutionId=${solution.solutionId})}" class="btn btn-primary w-100 mb-2">
+                                                <i class="fas fa-eye"></i> Просмотреть решение
+                                            </a>
+                                            <button class="btn btn-success w-100" onclick="gradeSolution(/*[[${solution.solutionId}]]*/)">
+                                                <i class="fas fa-star"></i> Быстрая оценка
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script>
+        function editTask() {
+            const courseId = /*[[${course.courseId}]]*/ '1';
+            const lessonId = /*[[${lesson.lessonId}]]*/ '1';
+            const taskId = /*[[${task.taskId}]]*/ '1';
+            // Redirect to edit task page or open edit modal
+            alert('Функция редактирования задания будет реализована в следующем обновлении');
+            // window.location.href = `/teacher/course/${courseId}/lesson/${lessonId}/edit-task/${taskId}`;
+        }
+        
+        function deleteTask() {
+            const courseId = /*[[${course.courseId}]]*/ '1';
+            const lessonId = /*[[${lesson.lessonId}]]*/ '1';
+            const taskId = /*[[${task.taskId}]]*/ '1';
+            
+            if (confirm('Вы уверены, что хотите удалить это задание? Это действие нельзя отменить.')) {
+                // In a real implementation, you would send a DELETE request to the server
+                alert('Задание будет удалено в следующем обновлении');
+                // window.location.href = `/teacher/course/${courseId}/lesson/${lessonId}`;
+            }
+        }
+        
+        function gradeSolution(solutionId) {
+            // For quick grading, we'll prompt for grade and feedback
+            const gradeValue = prompt('Введите оценку (1-5):');
+            if (!gradeValue || gradeValue < 1 || gradeValue > 5) {
+                alert('Пожалуйста, введите оценку от 1 до 5');
+                return;
+            }
+            
+            const feedback = prompt('Введите комментарий (необязательно):') || '';
+            
+            // Create grade object
+            const grade = {
+                gradeValue: parseInt(gradeValue),
+                feedback: feedback,
+                solution: { solutionId: parseInt(solutionId) }
+            };
+            
+            // Send data to server
+            fetch('/v1/api/grades', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(grade)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Failed to submit grade');
+                }
+            })
+            .then(data => {
+                // Show success message
+                alert('Оценка успешно сохранена!');
+                
+                // Update UI to show the new grade without reloading the page
+                // Find the solution card and update its status and grade display
+                const solutionCards = document.querySelectorAll('.solution-card');
+                solutionCards.forEach(card => {
+                    const button = card.querySelector('button');
+                    if (button && button.getAttribute('onclick').includes(solutionId)) {
+                        // Update status badge
+                        const statusContainer = card.querySelector('div.mt-2');
+                        if (statusContainer) {
+                            // Remove existing "Проверено" badge if it exists
+                            const existingBadge = statusContainer.querySelector('.badge.bg-success');
+                            if (existingBadge) {
+                                existingBadge.remove();
+                            }
+                            
+                            // Add new "Проверено" badge
+                            const newBadge = document.createElement('span');
+                            newBadge.className = 'badge bg-success';
+                            newBadge.textContent = 'Проверено';
+                            statusContainer.appendChild(newBadge);
+                        }
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка при сохранении оценки: ' + error.message);
+            });
+        }
+    </script>
+</body>
+</html>

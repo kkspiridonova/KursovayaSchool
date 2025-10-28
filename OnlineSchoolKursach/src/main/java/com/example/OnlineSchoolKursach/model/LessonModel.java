@@ -32,6 +32,11 @@ public class LessonModel {
     @Schema(description = "Содержание урока", example = "Этот урок охватывает основы математики...")
     private String content;
 
+    @Size(max = 255)
+    @Column(name = "attached_file")
+    @Schema(description = "Прикрепленный файл", example = "/path/to/material.pdf")
+    private String attachedFile;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "lesson_status_id", nullable = false)
     @Schema(description = "Статус урока")
@@ -76,6 +81,14 @@ public class LessonModel {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getAttachedFile() {
+        return attachedFile;
+    }
+
+    public void setAttachedFile(String attachedFile) {
+        this.attachedFile = attachedFile;
     }
 
     public LessonStatusModel getLessonStatus() {

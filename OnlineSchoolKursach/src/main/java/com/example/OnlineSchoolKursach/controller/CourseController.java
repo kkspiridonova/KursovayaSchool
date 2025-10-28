@@ -3,7 +3,10 @@ package com.example.OnlineSchoolKursach.controller;
 import com.example.OnlineSchoolKursach.model.CourseModel;
 import com.example.OnlineSchoolKursach.model.EnrollmentModel;
 import com.example.OnlineSchoolKursach.model.UserModel;
+import com.example.OnlineSchoolKursach.model.CheckModel;
+
 import com.example.OnlineSchoolKursach.service.AuthService;
+import com.example.OnlineSchoolKursach.service.CheckService;
 import com.example.OnlineSchoolKursach.service.CourseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,6 +32,9 @@ public class CourseController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private CheckService checkService;
 
     @GetMapping
     @Operation(summary = "Получить все курсы", description = "Получение списка всех доступных курсов")
@@ -117,6 +123,26 @@ public class CourseController {
             return ResponseEntity.ok(course);
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/my/checks")
+    @Operation(summary = "Получить все чеки пользователя", description = "Получение списка всех чеков текущего пользователя")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Список чеков успешно получен", 
+                content = @Content(mediaType = "application/json", 
+                    schema = @Schema(implementation = CheckModel.class))),
+            @ApiResponse(responseCode = "400", description = "Ошибка в запросе")
+    })
+    public ResponseEntity<List<CheckModel>> getMyChecks(
+            @Parameter(description = "Данные аутентификации") 
+            Authentication authentication) {
+        try {
+            UserModel user = authService.getUserByEmail(authentication.getName());
+            List<CheckModel> checks = checkService.getChecksByUser(user);
+            return ResponseEntity.ok(checks);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 

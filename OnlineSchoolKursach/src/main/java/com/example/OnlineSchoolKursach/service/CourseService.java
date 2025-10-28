@@ -34,6 +34,9 @@ public class CourseService {
 
     @Autowired
     private FileService fileService;
+    
+    @Autowired
+    private CheckService checkService;
 
     public List<CourseModel> getAllCourses() {
         List<CourseModel> courses = courseRepository.findAll();
@@ -60,12 +63,13 @@ public class CourseService {
 
     public List<EnrollmentModel> getUserEnrollments(UserModel user) {
         List<EnrollmentModel> enrollments = enrollmentRepository.findByUserUserId(user.getUserId());
+        System.out.println("Found " + enrollments.size() + " enrollments for user " + user.getEmail());
         enrollments.forEach(enrollment -> {
+            System.out.println("Enrollment: Course ID=" + enrollment.getCourse().getCourseId() + 
+                             ", Status=" + (enrollment.getEnrollmentStatus() != null ? enrollment.getEnrollmentStatus().getStatusName() : "null"));
             if (enrollment.getCourse() != null) {
                 CourseModel course = enrollment.getCourse();
-                if (course.getImageUrl() != null && !course.getImageUrl().startsWith("http")) {
-                    course.setImageUrl(fileService.getFileUrl(course.getImageUrl()));
-                }
+                convertFilePathToUrl(course);
             }
         });
         return enrollments;
@@ -141,6 +145,9 @@ public class CourseService {
         enrollment.setDate(LocalDate.now());
         enrollment.setEnrollmentDate(LocalDate.now());
         enrollment.setEnrollmentStatus(status);
+
+        // Create a receipt for the enrollment
+        checkService.createCheck(user, course, course.getPrice());
 
         return enrollmentRepository.save(enrollment);
     }

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создание урока - Онлайн Школа</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .course-header {
+            position: relative;
+            height: 300px;
+            overflow: hidden;
+            background-color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .course-title {
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            margin: 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-info">
+        <div class="container">
+            <a class="navbar-brand" href="/">Онлайн Школа</a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3" th:if="${#authentication != null}">
+                    Добро пожаловать, <span th:text="${#authentication.name}"></span>!
+                </span>
+                <a class="nav-link" th:href="@{/teacher/course/{courseId}(courseId=${course.courseId})}">Назад к курсу</a>
+                <a class="nav-link" href="/teacher">Мои курсы</a>
+                <a class="nav-link" href="/logout">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ======= ГЛАВНЫЙ БЛОК С НАЗВАНИЕМ КУРСА ======= -->
+    <div class="course-header">
+        <h1 class="course-title" th:text="${course.title}">Название курса</h1>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>Создание нового урока</h3>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${error}" class="alert alert-danger">
+                            <span th:text="${error}">Ошибка</span>
+                        </div>
+                        
+                        <form th:action="@{/teacher/course/{courseId}/create-lesson(courseId=${course.courseId})}" 
+                              th:object="${lesson}" method="post" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Название урока *</label>
+                                <input type="text" class="form-control" id="title" th:field="*{title}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="content" class="form-label">Содержание урока *</label>
+                                <textarea class="form-control" id="content" th:field="*{content}" rows="10" required></textarea>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="attachedFile" class="form-label">Прикрепленный файл</label>
+                                <input type="file" class="form-control" id="attachedFile" name="attachedFile" accept="*/*">
+                                <div class="form-text">Выберите файл с компьютера (необязательно)</div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a th:href="@{/teacher/course/{courseId}(courseId=${course.courseId})}" class="btn btn-secondary me-md-2">
+                                    Отмена
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    Создать урок
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

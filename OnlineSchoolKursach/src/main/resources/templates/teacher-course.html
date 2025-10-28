@@ -49,6 +49,11 @@
             border-radius: 0.5rem;
             padding: 1rem;
         }
+        
+        /* Tab content styling */
+        .tab-content {
+            min-height: 300px;
+        }
     </style>
 </head>
 <body>
@@ -68,83 +73,145 @@
     <!-- ======= ГЛАВНЫЙ БЛОК С КАРТИНКОЙ ======= -->
     <div class="course-header">
         <img th:if="${course.imageUrl}" th:src="${course.imageUrl}" th:alt="${course.title}">
+        <div th:unless="${course.imageUrl}" style="width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-graduation-cap fa-5x text-white"></i>
+        </div>
         <div class="overlay">
             <h1 class="course-title" th:text="${course.title}">Название курса</h1>
         </div>
     </div>
 
     <div class="container">
-        <div class="row">
-            <!-- Course Content -->
-            <div class="col-md-8">
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h3>Описание курса</h3>
-                    </div>
-                    <div class="card-body">
-                        <div th:if="${course.description}" th:text="${course.description}">Описание курса</div>
-                        <div th:if="${course.description == null}" class="text-muted">Описание отсутствует</div>
-                    </div>
-                </div>
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs" id="courseTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab" aria-controls="description" aria-selected="true">Описание</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="lessons-tab" data-bs-toggle="tab" data-bs-target="#lessons" type="button" role="tab" aria-controls="lessons" aria-selected="false">Уроки</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="calendar-tab" data-bs-toggle="tab" data-bs-target="#calendar" type="button" role="tab" aria-controls="calendar" aria-selected="false">Календарь</button>
+            </li>
+        </ul>
 
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h3>Информация о преподавателе</h3>
-                    </div>
-                    <div class="card-body">
-                        <div th:if="${course.teacher != null}">
-                            <h5 th:text="${course.teacher.firstName + ' ' + course.teacher.lastName}">Имя преподавателя</h5>
-                            <p th:if="${course.teacher.email}" th:text="${'Email: ' + course.teacher.email}">Email преподавателя</p>
+        <!-- Tab Content -->
+        <div class="tab-content" id="courseTabsContent">
+            <!-- Description Tab -->
+            <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
+                <div class="row mt-4">
+                    <!-- Course Content -->
+                    <div class="col-md-8">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h3>Описание курса</h3>
+                            </div>
+                            <div class="card-body">
+                                <div th:if="${course.description}" th:text="${course.description}">Описание курса</div>
+                                <div th:if="${course.description == null}" class="text-muted">Описание отсутствует</div>
+                            </div>
                         </div>
-                        <div th:if="${course.teacher == null}" class="text-muted">Информация о преподавателе отсутствует</div>
+
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h3>Информация о преподавателе</h3>
+                            </div>
+                            <div class="card-body">
+                                <div th:if="${course.teacher != null}">
+                                    <h5 th:text="${course.teacher.firstName + ' ' + course.teacher.lastName}">Имя преподавателя</h5>
+                                    <p th:if="${course.teacher.email}" th:text="${'Email: ' + course.teacher.email}">Email преподавателя</p>
+                                </div>
+                                <div th:if="${course.teacher == null}" class="text-muted">Информация о преподавателе отсутствует</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="col-md-4">
+                        <div class="card mb-4 course-meta">
+                            <div class="card-header">
+                                <h5>Информация о курсе</h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">
+                                        <strong>ID курса:</strong> 
+                                        <span class="text-muted" th:text="${course.courseId}">1</span>
+                                    </li>
+                                    <li class="mb-2" th:if="${course.category != null}">
+                                        <strong>Категория:</strong> 
+                                        <span class="text-muted" th:text="${course.category.categoryName}">Категория</span>
+                                    </li>
+                                    <li class="mb-2">
+                                        <strong>Цена:</strong> 
+                                        <span class="text-muted" th:text="${course.price != null ? course.price + ' руб.' : 'Бесплатно'}">Бесплатно</span>
+                                    </li>
+                                    <li class="mb-2">
+                                        <strong>Статус:</strong> 
+                                        <span class="text-muted" th:if="${course.courseStatus != null}" th:text="${course.courseStatus.statusName}">Активен</span>
+                                        <span class="text-muted" th:if="${course.courseStatus == null}">Не указан</span>
+                                    </li>
+                                    <li class="mb-2" th:if="${course.teacher != null}">
+                                        <strong>Преподаватель:</strong> 
+                                        <span class="text-muted" th:text="${course.teacher.firstName + ' ' + course.teacher.lastName}">Имя преподавателя</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5>Управление курсом</h5>
+                            </div>
+                            <div class="card-body">
+                                <button class="btn btn-warning w-100 mb-2" onclick="editCourse()">
+                                    <i class="fas fa-edit"></i> Редактировать курс
+                                </button>
+                                <a href="/teacher" class="btn btn-outline-secondary w-100">
+                                    <i class="fas fa-arrow-left"></i> Назад к списку курсов
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Sidebar -->
-            <div class="col-md-4">
-                <div class="card mb-4 course-meta">
-                    <div class="card-header">
-                        <h5>Информация о курсе</h5>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-unstyled">
-                            <li class="mb-2">
-                                <strong>ID курса:</strong> 
-                                <span class="text-muted" th:text="${course.courseId}">1</span>
-                            </li>
-                            <li class="mb-2" th:if="${course.category != null}">
-                                <strong>Категория:</strong> 
-                                <span class="text-muted" th:text="${course.category.categoryName}">Категория</span>
-                            </li>
-                            <li class="mb-2">
-                                <strong>Цена:</strong> 
-                                <span class="text-muted" th:text="${course.price != null ? course.price + ' руб.' : 'Бесплатно'}">Бесплатно</span>
-                            </li>
-                            <li class="mb-2">
-                                <strong>Статус:</strong> 
-                                <span class="text-muted" th:if="${course.courseStatus != null}" th:text="${course.courseStatus.statusName}">Активен</span>
-                                <span class="text-muted" th:if="${course.courseStatus == null}">Не указан</span>
-                            </li>
-                            <li class="mb-2" th:if="${course.teacher != null}">
-                                <strong>Преподаватель:</strong> 
-                                <span class="text-muted" th:text="${course.teacher.firstName + ' ' + course.teacher.lastName}">Имя преподавателя</span>
-                            </li>
-                        </ul>
+            <!-- Lessons Tab -->
+            <div class="tab-pane fade" id="lessons" role="tabpanel" aria-labelledby="lessons-tab">
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h3>Уроки курса</h3>
+                                <button class="btn btn-success" onclick="createLesson()">
+                                    <i class="fas fa-plus"></i> Добавить урок
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="lessonsList">
+                                    <p class="text-muted text-center">Загрузка списка уроков...</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="card">
-                    <div class="card-header">
-                        <h5>Действия</h5>
-                    </div>
-                    <div class="card-body">
-                        <button class="btn btn-warning w-100 mb-2" onclick="editCourse()">
-                            <i class="fas fa-edit"></i> Редактировать курс
-                        </button>
-                        <a href="/teacher" class="btn btn-outline-secondary w-100">
-                            <i class="fas fa-arrow-left"></i> Назад к списку курсов
-                        </a>
+            <!-- Calendar Tab -->
+            <div class="tab-pane fade" id="calendar" role="tabpanel" aria-labelledby="calendar-tab">
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h3>Календарь курса</h3>
+                                <button class="btn btn-success" onclick="createTask()">
+                                    <i class="fas fa-plus"></i> Добавить задание
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted text-center">Календарь пока не заполнен</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -153,11 +220,71 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
-    <script>
+    <script th:inline="javascript">
+        // Load lessons when lessons tab is shown
+        document.getElementById('lessons-tab').addEventListener('shown.bs.tab', function (e) {
+            loadLessons();
+        });
+
         function editCourse() {
             const courseId = /*[[${course.courseId}]]*/ '1';
             // Redirect to edit course page or open edit modal
             window.location.href = `/teacher/edit-course/${courseId}`;
+        }
+        
+        function createLesson() {
+            const courseId = /*[[${course.courseId}]]*/ '1';
+            // Redirect to create lesson page
+            window.location.href = `/teacher/course/${courseId}/create-lesson`;
+        }
+        
+        function createTask() {
+            // For now, we'll redirect to the first lesson if it exists, or show an alert
+            alert('Пожалуйста, перейдите к уроку, чтобы добавить задание');
+        }
+        
+        function loadLessons() {
+            const courseId = /*[[${course.courseId}]]*/ '1';
+            
+            fetch(`/v1/api/lessons/course/${courseId}`, {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(lessons => {
+                const lessonsList = document.getElementById('lessonsList');
+                if (lessons.length === 0) {
+                    lessonsList.innerHTML = '<p class="text-muted text-center">Пока нет уроков в этом курсе</p>';
+                } else {
+                    let html = '<div class="row">';
+                    lessons.forEach(lesson => {
+                        html += `
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${lesson.title}</h5>
+                                        <p class="card-text">${lesson.content ? lesson.content.substring(0, 100) + '...' : 'Без описания'}</p>
+                                        <a href="/teacher/course/${courseId}/lesson/${lesson.lessonId}" class="btn btn-primary">
+                                            <i class="fas fa-book-open"></i> Перейти к уроку
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    lessonsList.innerHTML = html;
+                }
+            })
+            .catch(error => {
+                document.getElementById('lessonsList').innerHTML = '<p class="text-danger text-center">Ошибка загрузки списка уроков</p>';
+            });
         }
     </script>
 </body>

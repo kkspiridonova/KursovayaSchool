@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${task.title + ' - ' + lesson.title + ' - Онлайн Школа'}">Задание - Онлайн Школа</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .task-header {
+            position: relative;
+            height: 300px;
+            overflow: hidden;
+            background-color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .task-title {
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            margin: 0;
+            text-align: center;
+        }
+        
+        .solution-form {
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-info">
+        <div class="container">
+            <a class="navbar-brand" href="/">Онлайн Школа</a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3" th:if="${#authentication != null}">
+                    Добро пожаловать, <span th:text="${#authentication.name}"></span>!
+                </span>
+                <a class="nav-link" th:href="@{/student/course/{courseId}/lesson/{lessonId}(courseId=${course.courseId}, lessonId=${lesson.lessonId})}">Назад к уроку</a>
+                <a class="nav-link" th:href="@{/student/course/{courseId}(courseId=${course.courseId})}">Назад к курсу</a>
+                <a class="nav-link" href="/student">Мои курсы</a>
+                <a class="nav-link" href="/logout">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ======= ГЛАВНЫЙ БЛОК С НАЗВАНИЕМ ЗАДАНИЯ ======= -->
+    <div class="task-header">
+        <h1 class="task-title" th:text="${task.title}">Название задания</h1>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- Task Details -->
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>Описание задания</h3>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${task.description}" th:utext="${task.description}">Описание задания</div>
+                        <div th:if="${task.description == null}" class="text-muted">Описание отсутствует</div>
+                    </div>
+                </div>
+                
+                <!-- Attached Materials -->
+                <div class="card mb-4" th:if="${task.attachedFile}">
+                    <div class="card-header">
+                        <h3>Материалы задания</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-file-pdf fa-2x me-3 text-danger"></i>
+                            <div>
+                                <h5>Файл задания</h5>
+                                <a th:href="@{/files/{fileId}(fileId=${task.attachedFile})}" class="btn btn-outline-primary" target="_blank">
+                                    <i class="fas fa-download"></i> Скачать файл задания
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Solution Submission -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>Отправка решения</h3>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${solution != null}">
+                            <div class="alert alert-info">
+                                <h5>Ваше решение уже отправлено</h5>
+                                <p>Статус: <span th:text="${solution.solutionStatus.statusName}">Статус решения</span></p>
+                                <div th:if="${solution.answerText}">
+                                    <h6>Текст ответа:</h6>
+                                    <p th:text="${solution.answerText}">Текст ответа</p>
+                                </div>
+                                <div th:if="${solution.answerFile}">
+                                    <h6>Файл ответа:</h6>
+                                    <a th:href="@{/files/{fileId}(fileId=${solution.answerFile})}" class="btn btn-outline-primary" target="_blank">
+                                        <i class="fas fa-download"></i> Скачать файл ответа
+                                    </a>
+                                </div>
+                                <div th:if="${solution.grade != null}">
+                                    <h6>Оценка:</h6>
+                                    <p th:text="${solution.grade.gradeValue}" class="fw-bold text-success">Оценка</p>
+                                    <div th:if="${solution.grade.feedback}">
+                                        <h6>Комментарий преподавателя:</h6>
+                                        <p th:text="${solution.grade.feedback}" class="text-muted">Комментарий</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div th:if="${solution == null}">
+                            <form id="solutionForm" enctype="multipart/form-data">
+                                <div class="mb-3">
+                                    <label for="answerText" class="form-label">Текст ответа</label>
+                                    <textarea class="form-control" id="answerText" rows="5" placeholder="Введите ваш ответ здесь..."></textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="answerFile" class="form-label">Файл с решением</label>
+                                    <input class="form-control" type="file" id="answerFile">
+                                    <div class="form-text">Вы можете прикрепить файл с решением (необязательно)</div>
+                                </div>
+                                
+                                <button type="button" class="btn btn-primary" onclick="submitSolution()">
+                                    <i class="fas fa-paper-plane"></i> Отправить решение
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Информация о задании</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <strong>Курс:</strong>
+                                <span class="text-muted" th:text="${course.title}">Название курса</span>
+                            </li>
+                            <li class="mb-2">
+                                <strong>Урок:</strong>
+                                <span class="text-muted" th:text="${lesson.title}">Название урока</span>
+                            </li>
+                            <li class="mb-2">
+                                <strong>Задание:</strong>
+                                <span class="text-muted" th:text="${task.title}">Название задания</span>
+                            </li>
+                            <li class="mb-2">
+                                <strong>Крайний срок:</strong>
+                                <span class="text-muted" th:text="${#temporals.format(task.deadline, 'dd.MM.yyyy')}">дд.мм.гггг</span>
+                            </li>
+                            <li class="mb-2" th:if="${task.taskStatus != null}">
+                                <strong>Статус:</strong>
+                                <span class="text-muted" th:text="${task.taskStatus.statusName}">Статус задания</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="card" th:if="${solution != null}">
+                    <div class="card-header">
+                        <h5>Статус решения</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center">
+                            <div th:if="${solution.solutionStatus.statusName == 'Отправлено'}">
+                                <i class="fas fa-clock fa-3x text-warning mb-2"></i>
+                                <h5 class="text-warning">Отправлено</h5>
+                                <p class="text-muted">Ваше решение отправлено и ожидает проверки</p>
+                            </div>
+                            <div th:if="${solution.solutionStatus.statusName == 'На проверке'}">
+                                <i class="fas fa-user-check fa-3x text-info mb-2"></i>
+                                <h5 class="text-info">На проверке</h5>
+                                <p class="text-muted">Преподаватель проверяет ваше решение</p>
+                            </div>
+                            <div th:if="${solution.solutionStatus.statusName == 'Проверено'}">
+                                <i class="fas fa-check-circle fa-3x text-success mb-2"></i>
+                                <h5 class="text-success">Проверено</h5>
+                                <p class="text-muted">Ваше решение проверено</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script>
+        function submitSolution() {
+            const answerText = document.getElementById('answerText').value;
+            const answerFileInput = document.getElementById('answerFile');
+            const answerFile = answerFileInput.files[0];
+            
+            // Add task and user information (these would come from server-side variables)
+            const taskId = /*[[${task.taskId}]]*/ '1';
+            
+            // First, upload the file if it exists
+            if (answerFile) {
+                const fileFormData = new FormData();
+                fileFormData.append('file', answerFile);
+                
+                fetch('/v1/api/files/upload', {
+                    method: 'POST',
+                    body: fileFormData
+                    // Note: Don't set Content-Type header when using FormData
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Failed to upload file');
+                    }
+                })
+                .then(fileData => {
+                    // Create solution object with file ID
+                    const solution = {
+                        answerText: answerText,
+                        answerFile: fileData.id.toString(),
+                        task: { taskId: taskId }
+                    };
+                    
+                    // Submit solution data
+                    return submitSolutionData(solution);
+                })
+                .catch(error => {
+                    console.error('File upload error:', error);
+                    alert('Ошибка при загрузке файла: ' + error.message);
+                });
+            } else {
+                // No file to upload, create solution object without file
+                const solution = {
+                    answerText: answerText,
+                    task: { taskId: taskId }
+                };
+                
+                // Submit solution data directly
+                submitSolutionData(solution);
+            }
+        }
+        
+        function submitSolutionData(solution) {
+            // Send solution data to server
+            fetch('/v1/api/solutions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(solution)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Failed to submit solution');
+                }
+            })
+            .then(data => {
+                // Show success message
+                alert('Решение отправлено на проверку!');
+                
+                // Update UI to show submitted solution without clearing form
+                const solutionCard = document.createElement('div');
+                solutionCard.className = 'alert alert-info mt-3';
+                solutionCard.innerHTML = `
+                    <h5>Ваше решение отправлено</h5>
+                    <p>Статус: Отправлено</p>
+                    <div>
+                        <h6>Текст ответа:</h6>
+                        <p>${solution.answerText || 'Без текста'}</p>
+                    </div>
+                `;
+                
+                // Add file info if file was attached
+                const answerFileInput = document.getElementById('answerFile');
+                const answerFile = answerFileInput.files[0];
+                if (answerFile) {
+                    const fileInfo = document.createElement('div');
+                    fileInfo.innerHTML = `
+                        <h6>Файл ответа:</h6>
+                        <p>${answerFile.name}</p>
+                    `;
+                    solutionCard.appendChild(fileInfo);
+                }
+                
+                // Insert the solution card before the form
+                const formElement = document.getElementById('solutionForm');
+                formElement.parentNode.insertBefore(solutionCard, formElement);
+                
+                // Hide the form instead of clearing it
+                formElement.style.display = 'none';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка при отправке решения: ' + error.message);
+            });
+        }
+    </script>
+</body>
+</html>

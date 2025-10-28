@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${'Решение студента - ' + task.title + ' - Онлайн Школа'}">Решение студента - Онлайн Школа</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .solution-header {
+            position: relative;
+            height: 300px;
+            overflow: hidden;
+            background-color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .solution-title {
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            margin: 0;
+            text-align: center;
+        }
+        
+        .grade-form {
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-info">
+        <div class="container">
+            <a class="navbar-brand" href="/">Онлайн Школа</a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3" th:if="${#authentication != null}">
+                    Добро пожаловать, <span th:text="${#authentication.name}"></span>!
+                </span>
+                <a class="nav-link" th:href="@{/teacher/course/{courseId}/lesson/{lessonId}/task/{taskId}(courseId=${course.courseId}, lessonId=${lesson.lessonId}, taskId=${task.taskId})}">Назад к заданию</a>
+                <a class="nav-link" th:href="@{/teacher/course/{courseId}/lesson/{lessonId}(courseId=${course.courseId}, lessonId=${lesson.lessonId})}">Назад к уроку</a>
+                <a class="nav-link" th:href="@{/teacher/course/{courseId}(courseId=${course.courseId})}">Назад к курсу</a>
+                <a class="nav-link" href="/teacher">Мои курсы</a>
+                <a class="nav-link" href="/logout">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ======= ГЛАВНЫЙ БЛОК С НАЗВАНИЕМ РЕШЕНИЯ ======= -->
+    <div class="solution-header">
+        <h1 class="solution-title">Решение студента</h1>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- Solution Details -->
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>Информация о решении</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Студент</h5>
+                                <p th:text="${student.firstName + ' ' + student.lastName}">Имя студента</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Дата отправки</h5>
+                                <p th:text="${#temporals.format(solution.submitDate, 'dd.MM.yyyy HH:mm')}">дд.мм.гггг чч:мм</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <h5>Статус решения</h5>
+                                <p>
+                                    <span th:if="${solution.solutionStatus.statusName == 'Отправлено'}" class="badge bg-warning">Отправлено</span>
+                                    <span th:if="${solution.solutionStatus.statusName == 'На проверке'}" class="badge bg-info">На проверке</span>
+                                    <span th:if="${solution.solutionStatus.statusName == 'Проверено'}" class="badge bg-success">Проверено</span>
+                                </p>
+                            </div>
+                            <div class="col-md-6" th:if="${solution.grade != null}">
+                                <h5>Текущая оценка</h5>
+                                <p th:text="${solution.grade.gradeValue}">Оценка</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>Ответ студента</h3>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${solution.answerText}">
+                            <h5>Текст ответа:</h5>
+                            <p th:text="${solution.answerText}">Текст ответа</p>
+                        </div>
+                        <div th:if="${solution.answerText == null}" class="text-muted">
+                            Текст ответа отсутствует
+                        </div>
+                        
+                        <div th:if="${solution.answerFile}" class="mt-3">
+                            <h5>Файл ответа:</h5>
+                            <a th:href="@{/files/{fileId}(fileId=${solution.answerFile})}" class="btn btn-outline-primary" target="_blank">
+                                <i class="fas fa-download"></i> Скачать файл ответа
+                            </a>
+                        </div>
+                        <div th:if="${solution.answerFile == null}" class="mt-3 text-muted">
+                            Файл ответа отсутствует
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Информация о задании</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <strong>Курс:</strong>
+                                <span class="text-muted" th:text="${course.title}">Название курса</span>
+                            </li>
+                            <li class="mb-2">
+                                <strong>Урок:</strong>
+                                <span class="text-muted" th:text="${lesson.title}">Название урока</span>
+                            </li>
+                            <li class="mb-2">
+                                <strong>Задание:</strong>
+                                <span class="text-muted" th:text="${task.title}">Название задания</span>
+                            </li>
+                            <li class="mb-2">
+                                <strong>Крайний срок:</strong>
+                                <span class="text-muted" th:text="${#temporals.format(task.deadline, 'dd.MM.yyyy')}">дд.мм.гггг</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Grade Form -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Оценка решения</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="gradeForm" class="grade-form">
+                            <div class="mb-3">
+                                <label for="gradeValue" class="form-label">Оценка</label>
+                                <input type="number" class="form-control" id="gradeValue" min="1" max="5" 
+                                       th:value="${solution.grade != null ? solution.grade.gradeValue : ''}" 
+                                       placeholder="Введите оценку от 1 до 5">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="feedback" class="form-label">Комментарий</label>
+                                <textarea class="form-control" id="feedback" rows="4" 
+                                          th:text="${solution.grade != null ? solution.grade.feedback : ''}" 
+                                          placeholder="Оставьте комментарий к оценке"></textarea>
+                            </div>
+                            
+                            <button type="button" class="btn btn-primary w-100" onclick="submitGrade()">
+                                <i class="fas fa-save"></i> Сохранить оценку
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script>
+        function submitGrade() {
+            const gradeValue = document.getElementById('gradeValue').value;
+            const feedback = document.getElementById('feedback').value;
+            const solutionId = /*[[${solution.solutionId}]]*/ '1';
+            
+            if (!gradeValue || gradeValue < 1 || gradeValue > 5) {
+                alert('Пожалуйста, введите оценку от 1 до 5');
+                return;
+            }
+            
+            // Create grade object
+            const grade = {
+                gradeValue: parseInt(gradeValue),
+                feedback: feedback,
+                solution: { solutionId: parseInt(solutionId) }
+            };
+            
+            // Send data to server
+            fetch('/v1/api/grades', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(grade)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Failed to submit grade');
+                }
+            })
+            .then(data => {
+                // Show success message
+                alert('Оценка успешно сохранена!');
+                
+                // Update UI to show the new grade without reloading the page
+                if (data.gradeValue) {
+                    document.getElementById('gradeValue').value = data.gradeValue;
+                }
+                
+                // Update the current grade display in the solution info section
+                const currentGradeElement = document.querySelector('.card-body .row .col-md-6:nth-child(2) h5 + p');
+                if (currentGradeElement) {
+                    currentGradeElement.textContent = data.gradeValue;
+                }
+                
+                // Update the current grade display in the solution info section
+                const solutionInfoRow = document.querySelector('.card-body .row');
+                if (solutionInfoRow && data.gradeValue) {
+                    // Check if grade element already exists
+                    let gradeElement = solutionInfoRow.querySelector('.grade-display');
+                    if (!gradeElement) {
+                        // Create grade display element if it doesn't exist
+                        const colDiv = document.createElement('div');
+                        colDiv.className = 'col-md-6';
+                        colDiv.innerHTML = `
+                            <h5>Текущая оценка</h5>
+                            <p class="grade-display">${data.gradeValue}</p>
+                        `;
+                        solutionInfoRow.appendChild(colDiv);
+                    } else {
+                        // Update existing grade display
+                        gradeElement.textContent = data.gradeValue;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка при сохранении оценки: ' + error.message);
+            });
+        }
+    </script>
+</body>
+</html>
