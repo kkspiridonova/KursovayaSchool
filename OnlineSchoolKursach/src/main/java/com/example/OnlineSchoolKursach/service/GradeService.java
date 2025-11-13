@@ -7,6 +7,9 @@ import com.example.OnlineSchoolKursach.repository.GradeRepository;
 import com.example.OnlineSchoolKursach.repository.SolutionStatusRepository;
 import com.example.OnlineSchoolKursach.repository.SolutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,6 +17,8 @@ import java.util.Optional;
 
 @Service
 public class GradeService {
+
+    private static final Logger logger = LoggerFactory.getLogger(GradeService.class);
 
     @Autowired
     private GradeRepository gradeRepository;
@@ -29,38 +34,62 @@ public class GradeService {
         return grade.orElse(null);
     }
 
+    @Transactional
     public GradeModel createGrade(GradeModel grade) {
+        // REUSE existing grade record by id or by value, do NOT create new rows
         SolutionModel solution = grade.getSolution();
         if (solution == null) {
-            throw new RuntimeException("Решение не может быть null при создании оценки");
+            throw new RuntimeException("Решение не может быть null при установке оценки");
         }
-        
-        // Save the grade first
-        GradeModel savedGrade = gradeRepository.save(grade);
-        
-        // Link the grade back to the solution and update solution status to "Проверено"
-        solution.setGrade(savedGrade);
-        List<SolutionStatusModel> statuses = solutionStatusRepository.findAll();
-        for (SolutionStatusModel status : statuses) {
-            if ("Проверено".equals(status.getStatusName()) || 
-                "Checked".equals(status.getStatusName()) ||
-                "Graded".equals(status.getStatusName())) {
-                solution.setSolutionStatus(status);
-                break;
+
+        GradeModel targetGrade = null;
+        if (grade.getGradeId() != null) {
+            targetGrade = gradeRepository.findById(grade.getGradeId())
+                    .orElseThrow(() -> new RuntimeException("Оценка с id=" + grade.getGradeId() + " не найдена"));
+        } else if (grade.getGradeValue() != null) {
+            // Используем findFirstByGradeValue для получения первой записи, если есть дубликаты
+            targetGrade = gradeRepository.findFirstByGradeValue(grade.getGradeValue());
+            if (targetGrade == null) {
+                // Fallback: иногда в БД могут использовать id=0..5 для значений 0..5
+                // Для пятибалльной системы: 0, 1, 2, 3, 4, 5
+                Long gradeId = Long.valueOf(grade.getGradeValue());
+                targetGrade = gradeRepository.findById(gradeId).orElse(null);
             }
+            if (targetGrade == null) {
+                throw new RuntimeException("Оценка со значением " + grade.getGradeValue() + " не найдена. Убедитесь, что в БД есть оценки от 0 до 5.");
+            }
+        } else {
+            throw new RuntimeException("Не указаны ни id оценки, ни значение оценки");
         }
+
+        logger.info("Linking solution {} to existing grade id={}, value={}",
+                solution.getSolutionId(), targetGrade.getGradeId(), targetGrade.getGradeValue());
+
+        // Link existing grade; do not change solution status here
+        solution.setGrade(targetGrade);
         solutionRepository.save(solution);
-        
-        return savedGrade;
+        logger.info("Solution {} updated with grade_id={}", solution.getSolutionId(), targetGrade.getGradeId());
+
+        return targetGrade;
     }
 
+    @Transactional
     public GradeModel updateGrade(Long gradeId, GradeModel updatedGrade) {
         Optional<GradeModel> existingGradeOpt = gradeRepository.findById(gradeId);
         if (existingGradeOpt.isPresent()) {
             GradeModel existingGrade = existingGradeOpt.get();
             existingGrade.setGradeValue(updatedGrade.getGradeValue());
             existingGrade.setFeedback(updatedGrade.getFeedback());
-            return gradeRepository.save(existingGrade);
+            GradeModel g = gradeRepository.save(existingGrade);
+            logger.info("Grade {} updated: value={}, feedback='{}'", g.getGradeId(), g.getGradeValue(), g.getFeedback());
+            // Ensure linkage remains intact if provided
+            if (updatedGrade.getSolution() != null && updatedGrade.getSolution().getSolutionId() != null) {
+                SolutionModel solution = updatedGrade.getSolution();
+                solution.setGrade(g);
+                solutionRepository.save(solution);
+                logger.info("Solution {} ensured linked to grade {}", solution.getSolutionId(), g.getGradeId());
+            }
+            return g;
         }
         return null;
     }

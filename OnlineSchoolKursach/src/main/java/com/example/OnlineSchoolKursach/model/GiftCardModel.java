@@ -27,10 +27,22 @@ public class GiftCardModel {
     @Schema(description = "Номер подарочной карты", example = "GC-1234567890")
     private String cardNumber;
 
-    @DecimalMin(value = "0.0", inclusive = false)
+    @NotBlank
+    @Size(max = 50)
+    @Column(name = "code", unique = true, nullable = false)
+    @Schema(description = "Код подарочной карты для использования при покупке курса", example = "GC-1234567890")
+    private String code;
+
+    @DecimalMin(value = "0.0", inclusive = true)
     @Column(name = "balance", precision = 10, scale = 2, nullable = false)
     @Schema(description = "Баланс карты", example = "100.00")
     private BigDecimal balance;
+
+    @NotNull
+    @DecimalMin(value = "0.0", inclusive = false)
+    @Column(name = "amount", precision = 10, scale = 2, nullable = false)
+    @Schema(description = "Сумма подарочной карты", example = "100.00")
+    private BigDecimal amount;
 
     @NotNull
     @Column(name = "issue_date", nullable = false)
@@ -45,6 +57,11 @@ public class GiftCardModel {
     @JoinColumn(name = "user_id")
     @Schema(description = "Пользователь, которому принадлежит карта")
     private UserModel user;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "course_id", nullable = true)
+    @Schema(description = "Курс, на который куплена подарочная карта")
+    private CourseModel course;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "gift_card_status_id", nullable = false)
@@ -76,12 +93,28 @@ public class GiftCardModel {
         this.cardNumber = cardNumber;
     }
 
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
     public BigDecimal getBalance() {
         return balance;
     }
 
     public void setBalance(BigDecimal balance) {
         this.balance = balance;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
     }
 
     public LocalDate getIssueDate() {
@@ -114,5 +147,13 @@ public class GiftCardModel {
 
     public void setGiftCardStatus(GiftCardStatusModel giftCardStatus) {
         this.giftCardStatus = giftCardStatus;
+    }
+
+    public CourseModel getCourse() {
+        return course;
+    }
+
+    public void setCourse(CourseModel course) {
+        this.course = course;
     }
 }

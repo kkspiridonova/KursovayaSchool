@@ -165,4 +165,64 @@ public class TaskController {
             return ResponseEntity.badRequest().build();
         }
     }
+
+    @GetMapping("/my/calendar")
+    @Operation(summary = "Получить задания студента для календаря", description = "Получение заданий студента с дедлайнами для отображения в календаре")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Список заданий успешно получен", 
+                content = @Content(mediaType = "application/json", 
+                    schema = @Schema(implementation = TaskModel.class))),
+            @ApiResponse(responseCode = "400", description = "Ошибка в запросе")
+    })
+    public ResponseEntity<List<TaskModel>> getMyTasksForCalendar(
+            @Parameter(description = "Данные аутентификации") 
+            Authentication authentication,
+            @Parameter(description = "Начало недели (YYYY-MM-DD)") 
+            @RequestParam(required = false) String weekStart) {
+        try {
+            UserModel user = authService.getUserByEmail(authentication.getName());
+            List<TaskModel> tasks;
+            
+            if (weekStart != null && !weekStart.isEmpty()) {
+                java.time.LocalDate weekStartDate = java.time.LocalDate.parse(weekStart);
+                tasks = taskService.getStudentTasksForWeek(user, weekStartDate);
+            } else {
+                tasks = taskService.getStudentTasks(user);
+            }
+            
+            return ResponseEntity.ok(tasks);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/teacher/calendar")
+    @Operation(summary = "Получить задания преподавателя для календаря", description = "Получение заданий преподавателя с дедлайнами для отображения в календаре")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Список заданий успешно получен", 
+                content = @Content(mediaType = "application/json", 
+                    schema = @Schema(implementation = TaskModel.class))),
+            @ApiResponse(responseCode = "400", description = "Ошибка в запросе")
+    })
+    public ResponseEntity<List<TaskModel>> getTeacherTasksForCalendar(
+            @Parameter(description = "Данные аутентификации") 
+            Authentication authentication,
+            @Parameter(description = "Начало недели (YYYY-MM-DD)") 
+            @RequestParam(required = false) String weekStart) {
+        try {
+            UserModel user = authService.getUserByEmail(authentication.getName());
+            List<TaskModel> tasks;
+            
+            if (weekStart != null && !weekStart.isEmpty()) {
+                java.time.LocalDate weekStartDate = java.time.LocalDate.parse(weekStart);
+                tasks = taskService.getTeacherTasksForWeek(user, weekStartDate);
+            } else {
+                tasks = taskService.getTeacherTasks(user);
+            }
+            
+            return ResponseEntity.ok(tasks);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }

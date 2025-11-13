@@ -116,11 +116,16 @@ public class AuthService {
     }
 
     private UserModel convertUserImageUrl(UserModel user) {
-        if (user.getImageUrl() != null && !user.getImageUrl().startsWith("http")) {
+        if (user.getImageUrl() != null && !user.getImageUrl().isEmpty() 
+                && !user.getImageUrl().startsWith("http") 
+                && !user.getImageUrl().startsWith("/v1/api/files/image")) {
             try {
                 String fullUrl = fileService.getFileUrl(user.getImageUrl());
-                user.setImageUrl(fullUrl);
+                if (fullUrl != null) {
+                    user.setImageUrl(fullUrl);
+                }
             } catch (Exception e) {
+                // Log error but don't fail
             }
         }
         return user;

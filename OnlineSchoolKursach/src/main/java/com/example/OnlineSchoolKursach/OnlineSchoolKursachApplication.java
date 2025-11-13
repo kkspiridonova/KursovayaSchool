@@ -6,8 +6,10 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import com.example.OnlineSchoolKursach.repository.RoleRepository;
 import com.example.OnlineSchoolKursach.model.RoleModel;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+@EnableScheduling
 public class OnlineSchoolKursachApplication {
 
 	public static void main(String[] args) {

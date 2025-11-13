@@ -12,9 +12,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -22,6 +25,8 @@ import java.util.List;
 @RequestMapping("/v1/api/solutions")
 @Tag(name = "Solution Management", description = "API для управления решениями заданий")
 public class SolutionController {
+
+    private static final Logger logger = LoggerFactory.getLogger(SolutionController.class);
 
     @Autowired
     private SolutionService solutionService;
@@ -122,26 +127,51 @@ public class SolutionController {
                     schema = @Schema(implementation = SolutionModel.class))),
             @ApiResponse(responseCode = "400", description = "Ошибка в запросе")
     })
-    public ResponseEntity<SolutionModel> createSolution(
+    public ResponseEntity<?> createSolution(
             @Parameter(description = "Данные нового решения") 
             @RequestBody SolutionModel solution,
             @Parameter(description = "Данные аутентификации") 
             Authentication authentication) {
         try {
+            logger.info("=== CREATE SOLUTION REQUEST ===");
+            logger.info("Solution data: taskId={}, answerText={}, answerFile={}", 
+                solution.getTask() != null ? solution.getTask().getTaskId() : "null",
+                solution.getAnswerText() != null ? "present" : "null",
+                solution.getAnswerFile() != null ? solution.getAnswerFile() : "null");
+            
             UserModel user = authService.getUserByEmail(authentication.getName());
+            logger.info("User loaded: {}", user.getUserId());
             solution.setUser(user);
             
             // Check if solution already exists for this user and task
-            SolutionModel existingSolution = solutionService.getSolutionByTaskAndUser(
-                solution.getTask().getTaskId(), user.getUserId());
-            if (existingSolution != null) {
-                return ResponseEntity.badRequest().build();
+            if (solution.getTask() != null && solution.getTask().getTaskId() != null) {
+                SolutionModel existingSolution = solutionService.getSolutionByTaskAndUser(
+                    solution.getTask().getTaskId(), user.getUserId());
+                if (existingSolution != null) {
+                    // Always merge into existing solution to avoid duplicate errors
+                    logger.info("Existing solution found. Merging incoming data into solutionId={}", existingSolution.getSolutionId());
+                    if (solution.getAnswerText() != null) {
+                        existingSolution.setAnswerText(solution.getAnswerText());
+                    }
+                    if (solution.getAnswerFile() != null) {
+                        existingSolution.setAnswerFile(solution.getAnswerFile());
+                    }
+                    SolutionModel updated = solutionService.updateSolution(existingSolution.getSolutionId(), existingSolution);
+                    return ResponseEntity.ok(updated);
+                }
             }
             
+            logger.info("Calling solutionService.createSolution()...");
             SolutionModel createdSolution = solutionService.createSolution(solution);
+            logger.info("Solution created successfully with ID: {}", createdSolution.getSolutionId());
             return ResponseEntity.ok(createdSolution);
+        } catch (RuntimeException e) {
+            // Return error message for business logic errors
+            logger.error("RuntimeException in createSolution: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            logger.error("Exception in createSolution: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Ошибка при создании решения: " + e.getMessage());
         }
     }
 

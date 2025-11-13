@@ -70,6 +70,31 @@
                     </div>
                 </div>
                 
+                <!-- Кнопка для тестирования выдачи сертификатов -->
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card border-warning">
+                            <div class="card-header bg-warning text-dark">
+                                <h5 class="mb-0"><i class="fas fa-certificate"></i> Тестирование выдачи сертификатов</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted">Нажмите кнопку ниже, чтобы вручную запустить проверку завершенных курсов и выдачу сертификатов студентам.</p>
+                                <p class="text-muted small"><strong>Условия для выдачи сертификата:</strong></p>
+                                <ul class="text-muted small">
+                                    <li>Курс должен быть завершен (endDate <= сегодня)</li>
+                                    <li>Студент должен быть зачислен на курс</li>
+                                    <li>Все задания должны быть выполнены</li>
+                                    <li>По всем решениям должны быть выставлены оценки</li>
+                                </ul>
+                                <button class="btn btn-warning" onclick="checkAndIssueCertificates()">
+                                    <i class="fas fa-play"></i> Запустить проверку сертификатов
+                                </button>
+                                <div id="certificateCheckResult" class="mt-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="row mt-3">
                     <div class="col-12">
                         <div class="card">
@@ -639,6 +664,45 @@
             const sizes = ['Bytes', 'KB', 'MB', 'GB'];
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function checkAndIssueCertificates() {
+            const resultDiv = document.getElementById('certificateCheckResult');
+            resultDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Запуск проверки сертификатов...</div>';
+
+            // Пробуем получить токен из localStorage, если нет - используем сессию
+            const token = localStorage.getItem('token');
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            
+            // Если есть токен, добавляем его в заголовки
+            if (token) {
+                headers['Authorization'] = 'Bearer ' + token;
+            }
+
+            fetch('/v1/api/admin/certificates/check-and-issue', {
+                method: 'POST',
+                headers: headers,
+                credentials: 'include' // Важно для отправки cookies/сессии
+            })
+            .then(response => {
+                if (!response.ok && response.status === 401) {
+                    throw new Error('Не авторизован. Пожалуйста, обновите страницу и войдите заново.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    resultDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle"></i> ' + data.message + '</div>';
+                } else {
+                    resultDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> ' + (data.error || 'Ошибка при проверке сертификатов') + '</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                resultDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> Ошибка при проверке сертификатов: ' + error.message + '</div>';
+            });
         }
 
         // Load respective data when tabs are shown

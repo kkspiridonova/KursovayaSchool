@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "courses")
@@ -53,6 +54,22 @@ public class CourseModel {
     @Column(name = "image_url", length = 1000)
     @Schema(description = "URL изображения курса")
     private String imageUrl;
+
+    @Column(name = "capacity")
+    @Schema(description = "Максимальное количество мест", example = "30")
+    private Integer capacity;
+
+    @Column(name = "start_date")
+    @Schema(description = "Дата начала курса", example = "2025-11-01")
+    private LocalDate startDate;
+
+    @Column(name = "end_date")
+    @Schema(description = "Дата окончания курса", example = "2026-02-01")
+    private LocalDate endDate;
+
+    @Transient
+    @Schema(description = "Количество записанных студентов (вычисляемое поле)", example = "15")
+    private Integer enrolledCount;
 
     public CourseModel() {}
 
@@ -127,5 +144,37 @@ public class CourseModel {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public Integer getCapacity() {
+        return capacity;
+    }
+
+    public void setCapacity(Integer capacity) {
+        this.capacity = capacity;
+    }
+
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+    public Integer getEnrolledCount() {
+        return enrolledCount;
+    }
+
+    public void setEnrolledCount(Integer enrolledCount) {
+        this.enrolledCount = enrolledCount;
     }
 }

@@ -76,19 +76,24 @@
                 </div>
                 
                 <!-- Attached Materials -->
-                <div class="card mb-4" th:if="${lesson.attachedFile}">
+                <div class="card mb-4">
                     <div class="card-header">
                         <h3>Прикрепленные материалы</h3>
                     </div>
                     <div class="card-body">
+                        <div th:if="${lesson.attachedFile != null && !lesson.attachedFile.isEmpty()}">
                         <div class="d-flex align-items-center">
                             <i class="fas fa-file-pdf fa-2x me-3 text-danger"></i>
                             <div>
                                 <h5>Материалы урока</h5>
-                                <a th:href="@{/files/{fileId}(fileId=${lesson.attachedFile})}" class="btn btn-outline-primary" target="_blank">
+                                    <a th:href="@{'/v1/api/files/download?path=' + ${#strings.replace(#strings.replace(lesson.attachedFile, '/', '%2F'), ' ', '%20')}}" class="btn btn-outline-primary" target="_blank">
                                     <i class="fas fa-download"></i> Скачать материалы
                                 </a>
+                                </div>
                             </div>
+                        </div>
+                        <div th:if="${lesson.attachedFile == null || lesson.attachedFile.isEmpty()}" class="text-muted">
+                            <i class="fas fa-info-circle me-2"></i>Материалы к уроку не прикреплены
                         </div>
                     </div>
                 </div>
@@ -142,14 +147,26 @@
                                         
                                         <!-- Solution Status Badge -->
                                         <div th:each="solution : ${solutions}" th:if="${solution.task.taskId == task.taskId}">
-                                            <span th:if="${solution.solutionStatus.statusName == 'Отправлено'}" class="badge bg-warning task-status-badge">Отправлено</span>
-                                            <span th:if="${solution.solutionStatus.statusName == 'На проверке'}" class="badge bg-info task-status-badge">На проверке</span>
-                                            <span th:if="${solution.solutionStatus.statusName == 'Проверено'}" class="badge bg-success task-status-badge">Проверено</span>
+                                            <span th:if="${solution.solutionStatus.statusName == 'Сдано'}" class="badge bg-success task-status-badge">Сдано</span>
+                                            <span th:if="${solution.solutionStatus.statusName == 'Сдано с опозданием'}" class="badge bg-warning task-status-badge">Сдано с опозданием</span>
+                                            <span th:if="${solution.solutionStatus.statusName == 'Просрочено'}" class="badge bg-danger task-status-badge">Просрочено</span>
+                                            <span th:if="${solution.solutionStatus.statusName == 'Назначено'}" class="badge bg-secondary task-status-badge">Назначено</span>
                                             
-                                            <!-- Grade Display -->
-                                            <div th:if="${solution.grade != null}" class="mt-2">
-                                                <span class="badge bg-success">Оценка: <span th:text="${solution.grade.gradeValue}">5</span></span>
+                                            <!-- Grade Display (always show placeholder) -->
+                                            <div class="mt-2">
+                                                <span class="badge" th:classappend="${solution.grade != null} ? ' bg-success' : ' bg-secondary'">
+                                                    Оценка: <span th:text="${solution.grade != null ? solution.grade.gradeValue : '—'}">—</span>
+                                                </span>
+                                                <small class="text-muted d-block mt-1" th:if="${solution.grade != null && solution.grade.feedback != null}">
+                                                    <i class="far fa-comment"></i>
+                                                    <span th:text="${solution.grade.feedback}">Комментарий</span>
+                                                </small>
                                             </div>
+                                        </div>
+                                        <!-- Show "Назначено" or "Просрочено" status for tasks without solutions -->
+                                        <div th:if="${!#lists.contains(solutions.![task.taskId], task.taskId)}">
+                                            <span th:if="${task.deadline != null && task.deadline.isAfter(T(java.time.LocalDate).now())}" class="badge bg-secondary task-status-badge">Назначено</span>
+                                            <span th:if="${task.deadline != null && (task.deadline.isBefore(T(java.time.LocalDate).now()) || task.deadline.isEqual(T(java.time.LocalDate).now()))}" class="badge bg-danger task-status-badge">Просрочено</span>
                                         </div>
                                         
                                         <div class="mt-auto">

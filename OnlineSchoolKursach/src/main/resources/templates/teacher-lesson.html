@@ -43,7 +43,7 @@
                 <span class="navbar-text me-3" th:if="${#authentication != null}">
                     Добро пожаловать, <span th:text="${#authentication.name}"></span>!
                 </span>
-                <a class="nav-link" th:href="@{/teacher/course/{courseId}(courseId=${course.courseId})}">Назад к курсу</a>
+                <a class="nav-link" th:href="@{'/teacher/course/' + ${course.courseId}}">Назад к курсу</a>
                 <a class="nav-link" href="/teacher">Мои курсы</a>
                 <a class="nav-link" href="/logout">Выйти</a>
             </div>
@@ -79,7 +79,7 @@
                             <i class="fas fa-file-pdf fa-2x me-3 text-danger"></i>
                             <div>
                                 <h5>Материалы урока</h5>
-                                <a th:href="@{/files/{fileId}(fileId=${lesson.attachedFile})}" class="btn btn-outline-primary" target="_blank">
+                                <a th:href="@{'/v1/api/files/download?path=' + ${#strings.replace(#strings.replace(lesson.attachedFile, '/', '%2F'), ' ', '%20')}}" class="btn btn-outline-primary" target="_blank">
                                     <i class="fas fa-download"></i> Скачать материалы
                                 </a>
                             </div>
@@ -120,9 +120,9 @@
                         <button class="btn btn-warning w-100 mb-2" onclick="editLesson()">
                             <i class="fas fa-edit"></i> Редактировать урок
                         </button>
-                        <a class="btn btn-success w-100 mb-2" th:href="@{/teacher/course/{courseId}/lesson/{lessonId}/create-task(courseId=${course.courseId}, lessonId=${lesson.lessonId})}">
+                        <button class="btn btn-success w-100 mb-2" onclick="createTask()">
                             <i class="fas fa-tasks"></i> Создать задание
-                        </a>
+                        </button>
                         <button class="btn btn-danger w-100" onclick="deleteLesson()">
                             <i class="fas fa-trash"></i> Удалить урок
                         </button>
@@ -159,11 +159,11 @@
                                                 </small>
                                             </div>
                                             <div class="d-flex gap-2">
-                                                <a th:href="@{/teacher/course/{courseId}/lesson/{lessonId}/task/{taskId}(courseId=${course.courseId}, lessonId=${lesson.lessonId}, taskId=${task.taskId})}"
+                                            <a th:href="@{'/teacher/course/' + ${course.courseId} + '/lesson/' + ${lesson.lessonId} + '/task/' + ${task.taskId}}" 
                                                    class="btn btn-primary flex-fill">
                                                     <i class="fas fa-tasks"></i>
                                                 </a>
-                                                <form th:action="@{/teacher/course/{courseId}/lesson/{lessonId}/task/{taskId}/delete(courseId=${course.courseId}, lessonId=${lesson.lessonId}, taskId=${task.taskId})}"
+                                                <form th:action="@{'/teacher/course/' + ${course.courseId} + '/lesson/' + ${lesson.lessonId} + '/task/' + ${task.taskId} + '/delete'}"
                                                       method="post" class="flex-fill"
                                                       onsubmit="return confirm('Удалить это задание? Это действие необратимо.');">
                                                     <button type="submit" class="btn btn-danger w-100">
@@ -193,7 +193,19 @@
             // window.location.href = `/teacher/course/${courseId}/edit-lesson/${lessonId}`;
         }
         
-        // JS fallback больше не нужен, ссылка формируется на сервере.
+        function createTask() {
+            const courseId = /*[[${course.courseId}]]*/ '1';
+            const lessonId = /*[[${lesson.lessonId}]]*/ '1';
+            const courseStatus = /*[[${course.courseStatus != null ? course.courseStatus.statusName : 'не установлен'}]]*/ 'не установлен';
+            
+            // Check if course is in "Активный" status
+            if (courseStatus !== 'Активный') {
+                alert('Уроки и задания можно создавать только когда курс в статусе "Активный".\n\nТекущий статус курса: ' + courseStatus + '\n\nКурс еще не начался. Дождитесь начала курса, чтобы создавать уроки и задания.');
+                return;
+            }
+            
+            window.location.href = `/teacher/course/${courseId}/lesson/${lessonId}/create-task`;
+        }
         
         function deleteLesson() {
             const courseId = /*[[${course.courseId}]]*/ '1';

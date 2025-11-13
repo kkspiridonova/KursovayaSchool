@@ -64,7 +64,7 @@ public class GradeController {
                     schema = @Schema(implementation = GradeModel.class))),
             @ApiResponse(responseCode = "400", description = "Ошибка в запросе")
     })
-    public ResponseEntity<GradeModel> createGrade(
+    public ResponseEntity<?> createGrade(
             @Parameter(description = "Данные новой оценки") 
             @RequestBody GradeModel grade,
             @Parameter(description = "Данные аутентификации") 
@@ -88,25 +88,18 @@ public class GradeController {
                 return ResponseEntity.badRequest().build();
             }
             
-            // Set the full solution object in the grade (without null check - we've already verified)
-            grade.setSolution(solution);
-            
-            // Check if grade already exists for this solution
+            // Запрет повторной оценки: если у решения уже есть оценка — ошибка
             if (solution.getGrade() != null) {
-                // Update existing grade instead of creating new one
-                GradeModel existingGrade = solution.getGrade();
-                existingGrade.setGradeValue(grade.getGradeValue());
-                existingGrade.setFeedback(grade.getFeedback());
-                GradeModel updatedGrade = gradeService.updateGrade(existingGrade.getGradeId(), existingGrade);
-                return ResponseEntity.ok(updatedGrade);
-            } else {
-                // Create new grade
-                GradeModel createdGrade = gradeService.createGrade(grade);
-                return ResponseEntity.ok(createdGrade);
+                return ResponseEntity.badRequest().body("Оценка уже выставлена и не может быть изменена");
             }
+
+            // Always link to an EXISTING grade (by id or by value); do not create new grade rows
+            grade.setSolution(solution);
+            GradeModel linkedGrade = gradeService.createGrade(grade);
+            return ResponseEntity.ok(toDto(linkedGrade, solution.getSolutionId()));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("Ошибка при выставлении оценки: " + e.getMessage());
         }
     }
 
@@ -119,7 +112,7 @@ public class GradeController {
             @ApiResponse(responseCode = "400", description = "Ошибка в запросе"),
             @ApiResponse(responseCode = "404", description = "Оценка не найдена")
     })
-    public ResponseEntity<GradeModel> updateGrade(
+    public ResponseEntity<?> updateGrade(
             @Parameter(description = "Идентификатор оценки") 
             @PathVariable Long gradeId,
             @Parameter(description = "Обновленные данные оценки") 
@@ -141,13 +134,23 @@ public class GradeController {
             
             GradeModel updatedGrade = gradeService.updateGrade(gradeId, grade);
             if (updatedGrade != null) {
-                return ResponseEntity.ok(updatedGrade);
+                Long solutionId = updatedGrade.getSolution() != null ? updatedGrade.getSolution().getSolutionId() : null;
+                return ResponseEntity.ok(toDto(updatedGrade, solutionId));
             } else {
                 return ResponseEntity.notFound().build();
             }
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("Ошибка при обновлении оценки: " + e.getMessage());
         }
+    }
+
+    private java.util.Map<String, Object> toDto(GradeModel grade, Long solutionId) {
+        java.util.Map<String, Object> dto = new java.util.HashMap<>();
+        dto.put("gradeId", grade.getGradeId());
+        dto.put("gradeValue", grade.getGradeValue());
+        dto.put("feedback", grade.getFeedback());
+        dto.put("solutionId", solutionId);
+        return dto;
     }
 
     @DeleteMapping("/{gradeId}")

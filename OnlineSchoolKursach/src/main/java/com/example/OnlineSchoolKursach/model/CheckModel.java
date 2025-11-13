@@ -21,7 +21,7 @@ public class CheckModel {
     private UserModel user;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "course_id", nullable = false)
+    @JoinColumn(name = "course_id", nullable = true)
     private CourseModel course;
 
     @NotNull

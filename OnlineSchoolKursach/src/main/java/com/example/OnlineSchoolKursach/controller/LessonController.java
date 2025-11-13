@@ -90,6 +90,11 @@ public class LessonController {
             if (!lesson.getCourse().getTeacher().getUserId().equals(user.getUserId())) {
                 return ResponseEntity.badRequest().build();
             }
+            // Restrict creating lessons when course is recruiting or active
+            String statusName = lesson.getCourse().getCourseStatus() != null ? lesson.getCourse().getCourseStatus().getStatusName() : null;
+            if ("Идет набор".equals(statusName) || "Активный".equals(statusName)) {
+                return ResponseEntity.badRequest().build();
+            }
             
             LessonModel createdLesson = lessonService.createLesson(lesson);
             return ResponseEntity.ok(createdLesson);

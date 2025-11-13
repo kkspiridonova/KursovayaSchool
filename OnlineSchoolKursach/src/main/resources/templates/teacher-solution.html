@@ -69,7 +69,7 @@
                             </div>
                             <div class="col-md-6">
                                 <h5>Дата отправки</h5>
-                                <p th:text="${#temporals.format(solution.submitDate, 'dd.MM.yyyy HH:mm')}">дд.мм.гггг чч:мм</p>
+                                <p id="submitDateValue" th:text="${#temporals.format(solution.submitDate, 'dd.MM.yyyy HH:mm')}">дд.мм.гггг чч:мм</p>
                             </div>
                         </div>
                         
@@ -82,9 +82,9 @@
                                     <span th:if="${solution.solutionStatus.statusName == 'Проверено'}" class="badge bg-success">Проверено</span>
                                 </p>
                             </div>
-                            <div class="col-md-6" th:if="${solution.grade != null}">
+                            <div class="col-md-6">
                                 <h5>Текущая оценка</h5>
-                                <p th:text="${solution.grade.gradeValue}">Оценка</p>
+                                <p id="currentGradeValue" th:text="${solution.grade != null ? solution.grade.gradeValue : '—'}">Оценка</p>
                             </div>
                         </div>
                     </div>
@@ -105,7 +105,7 @@
                         
                         <div th:if="${solution.answerFile}" class="mt-3">
                             <h5>Файл ответа:</h5>
-                            <a th:href="@{/files/{fileId}(fileId=${solution.answerFile})}" class="btn btn-outline-primary" target="_blank">
+                            <a th:href="@{'/v1/api/files/download?path=' + ${#strings.replace(#strings.replace(solution.answerFile, '/', '%2F'), ' ', '%20')}}" class="btn btn-outline-primary" target="_blank">
                                 <i class="fas fa-download"></i> Скачать файл ответа
                             </a>
                         </div>
@@ -153,19 +153,28 @@
                         <form id="gradeForm" class="grade-form">
                             <div class="mb-3">
                                 <label for="gradeValue" class="form-label">Оценка</label>
-                                <input type="number" class="form-control" id="gradeValue" min="1" max="5" 
-                                       th:value="${solution.grade != null ? solution.grade.gradeValue : ''}" 
-                                       placeholder="Введите оценку от 1 до 5">
+                                <select class="form-select" id="gradeValue" 
+                                        th:disabled="${solution.grade != null}">
+                                    <option value="">Выберите оценку</option>
+                                    <option value="0" th:selected="${solution.grade != null && solution.grade.gradeValue == 0}">0 - Неудовлетворительно</option>
+                                    <option value="1" th:selected="${solution.grade != null && solution.grade.gradeValue == 1}">1 - Очень плохо</option>
+                                    <option value="2" th:selected="${solution.grade != null && solution.grade.gradeValue == 2}">2 - Плохо</option>
+                                    <option value="3" th:selected="${solution.grade != null && solution.grade.gradeValue == 3}">3 - Удовлетворительно</option>
+                                    <option value="4" th:selected="${solution.grade != null && solution.grade.gradeValue == 4}">4 - Хорошо</option>
+                                    <option value="5" th:selected="${solution.grade != null && solution.grade.gradeValue == 5}">5 - Отлично</option>
+                                </select>
                             </div>
                             
                             <div class="mb-3">
                                 <label for="feedback" class="form-label">Комментарий</label>
                                 <textarea class="form-control" id="feedback" rows="4" 
                                           th:text="${solution.grade != null ? solution.grade.feedback : ''}" 
+                                          th:disabled="${solution.grade != null}"
                                           placeholder="Оставьте комментарий к оценке"></textarea>
                             </div>
                             
-                            <button type="button" class="btn btn-primary w-100" onclick="submitGrade()">
+                            <button type="button" class="btn btn-primary w-100" onclick="submitGrade()"
+                                    th:disabled="${solution.grade != null}">
                                 <i class="fas fa-save"></i> Сохранить оценку
                             </button>
                         </form>
@@ -177,14 +186,14 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
-    <script>
+    <script th:inline="javascript">
         function submitGrade() {
             const gradeValue = document.getElementById('gradeValue').value;
             const feedback = document.getElementById('feedback').value;
             const solutionId = /*[[${solution.solutionId}]]*/ '1';
             
-            if (!gradeValue || gradeValue < 1 || gradeValue > 5) {
-                alert('Пожалуйста, введите оценку от 1 до 5');
+            if (!gradeValue || gradeValue < 0 || gradeValue > 5) {
+                alert('Пожалуйста, выберите оценку от 0 до 5');
                 return;
             }
             
@@ -215,34 +224,26 @@
                 alert('Оценка успешно сохранена!');
                 
                 // Update UI to show the new grade without reloading the page
-                if (data.gradeValue) {
-                    document.getElementById('gradeValue').value = data.gradeValue;
+                if (data.gradeValue !== undefined && data.gradeValue !== null) {
+                    const gradeSelect = document.getElementById('gradeValue');
+                    if (gradeSelect) {
+                        gradeSelect.value = data.gradeValue;
                 }
-                
-                // Update the current grade display in the solution info section
-                const currentGradeElement = document.querySelector('.card-body .row .col-md-6:nth-child(2) h5 + p');
-                if (currentGradeElement) {
-                    currentGradeElement.textContent = data.gradeValue;
-                }
-                
-                // Update the current grade display in the solution info section
-                const solutionInfoRow = document.querySelector('.card-body .row');
-                if (solutionInfoRow && data.gradeValue) {
-                    // Check if grade element already exists
-                    let gradeElement = solutionInfoRow.querySelector('.grade-display');
-                    if (!gradeElement) {
-                        // Create grade display element if it doesn't exist
-                        const colDiv = document.createElement('div');
-                        colDiv.className = 'col-md-6';
-                        colDiv.innerHTML = `
-                            <h5>Текущая оценка</h5>
-                            <p class="grade-display">${data.gradeValue}</p>
-                        `;
-                        solutionInfoRow.appendChild(colDiv);
-                    } else {
-                        // Update existing grade display
-                        gradeElement.textContent = data.gradeValue;
+                    const currentGradeValue = document.getElementById('currentGradeValue');
+                    if (currentGradeValue) {
+                        currentGradeValue.textContent = data.gradeValue;
                     }
+                }
+                
+                // Заблокировать дальнейшее редактирование после сохранения
+                const gradeSelect = document.getElementById('gradeValue');
+                const feedbackInput = document.getElementById('feedback');
+                const saveBtn = document.querySelector('#gradeForm button[type="button"]');
+                if (gradeSelect) gradeSelect.disabled = true;
+                if (feedbackInput) feedbackInput.disabled = true;
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.innerHTML = '<i class="fas fa-lock"></i> Оценка сохранена';
                 }
             })
             .catch(error => {

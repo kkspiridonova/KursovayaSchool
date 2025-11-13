@@ -3,6 +3,8 @@ package com.example.OnlineSchoolKursach.controller;
 import com.example.OnlineSchoolKursach.model.*;
 import com.example.OnlineSchoolKursach.repository.*;
 import com.example.OnlineSchoolKursach.service.AuthService;
+import com.example.OnlineSchoolKursach.service.CourseService;
+import com.example.OnlineSchoolKursach.service.CertificateScheduler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -10,17 +12,23 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/v1/api/admin")
 @Tag(name = "Admin Management", description = "API для административных функций")
 public class AdminController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -39,6 +47,12 @@ public class AdminController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private CourseService courseService;
+
+    @Autowired
+    private CertificateScheduler certificateScheduler;
 
     @GetMapping("/users")
     @Operation(summary = "Получить всех пользователей", description = "Получение списка всех пользователей системы")
@@ -141,6 +155,11 @@ public class AdminController {
             enrollment.setEnrollmentStatus(status);
             EnrollmentModel updatedEnrollment = enrollmentRepository.save(enrollment);
 
+            // Check if course is now full and update status
+            if (updatedEnrollment.getCourse() != null) {
+                courseService.checkAndUpdateCourseStatusIfFull(updatedEnrollment.getCourse());
+            }
+
             return ResponseEntity.ok(updatedEnrollment);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
@@ -162,6 +181,49 @@ public class AdminController {
             return ResponseEntity.ok(files);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/certificates/check-and-issue")
+    @Operation(summary = "Ручной запуск проверки и выдачи сертификатов", 
+               description = "Запускает проверку завершенных курсов и выдает сертификаты студентам (для тестирования)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Проверка выполнена успешно"),
+            @ApiResponse(responseCode = "401", description = "Не авторизован"),
+            @ApiResponse(responseCode = "403", description = "Нет прав доступа")
+    })
+    public ResponseEntity<Map<String, String>> checkAndIssueCertificatesManually(
+            @Parameter(description = "Данные аутентификации") 
+            Authentication authentication,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        Map<String, String> response = new HashMap<>();
+        
+        // Проверяем аутентификацию через сессию или JWT токен
+        boolean isAuthenticated = false;
+        if (authentication != null && authentication.isAuthenticated()) {
+            isAuthenticated = true;
+        } else if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            // Если есть JWT токен в заголовке, тоже считаем авторизованным
+            isAuthenticated = true;
+        }
+        
+        if (!isAuthenticated) {
+            response.put("error", "Не авторизован. Пожалуйста, войдите в систему.");
+            response.put("status", "error");
+            return ResponseEntity.status(401).body(response);
+        }
+
+        try {
+            // Запускаем проверку вручную
+            certificateScheduler.checkAndIssueCertificates();
+            response.put("message", "Проверка сертификатов выполнена. Проверьте логи для деталей.");
+            response.put("status", "success");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("Error checking and issuing certificates: {}", e.getMessage(), e);
+            response.put("error", "Ошибка при проверке сертификатов: " + e.getMessage());
+            response.put("status", "error");
+            return ResponseEntity.internalServerError().body(response);
         }
     }
 }

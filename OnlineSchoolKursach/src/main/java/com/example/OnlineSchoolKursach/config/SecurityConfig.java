@@ -1,6 +1,7 @@
 package com.example.OnlineSchoolKursach.config;
 
 import com.example.OnlineSchoolKursach.security.JwtAuthenticationFilter;
+import com.example.OnlineSchoolKursach.security.CustomAuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +24,9 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    @Autowired
+    private CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -38,15 +42,21 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/register").permitAll()
+                        .requestMatchers("/", "/login", "/register", "/reset-password").permitAll()
+                        .requestMatchers("/forgot-password").permitAll()
+                        .requestMatchers("/forgot-password/me").authenticated()
                         .requestMatchers("/admin").hasAuthority("ROLE_Администратор")
+                        .requestMatchers("/teacher/**").hasAnyAuthority("ROLE_Преподаватель", "ROLE_Администратор")
                         .requestMatchers("/teacher").hasAuthority("ROLE_Преподаватель")
                         .requestMatchers("/student").hasAuthority("ROLE_Студент")
                         .requestMatchers("/dashboard").authenticated()
                         
                         .requestMatchers("/v1/api/auth/**").permitAll()
                         .requestMatchers("/v1/api/test").permitAll()
+                        .requestMatchers("/v1/api/files/image").permitAll()
+                        .requestMatchers("/v1/api/files/download").authenticated()
                         .requestMatchers("/v1/api/files/upload").hasAnyAuthority("ROLE_Студент", "ROLE_Преподаватель", "ROLE_Администратор")
+                        .requestMatchers("/v1/api/files/upload-solution").hasAnyAuthority("ROLE_Студент", "ROLE_Преподаватель", "ROLE_Администратор")
                         .requestMatchers("/v1/api/files/**").authenticated()
                         .requestMatchers("/v1/api/admin/**").hasAuthority("ROLE_Администратор")
                         .requestMatchers("/v1/api/teacher/**").hasAnyAuthority("ROLE_Преподаватель", "ROLE_Администратор")
@@ -61,7 +71,7 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/", true)
+                        .successHandler(customAuthenticationSuccessHandler)
                         .failureUrl("/login?error=true")
                         .permitAll()
                 )

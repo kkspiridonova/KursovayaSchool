@@ -87,6 +87,20 @@
                                     <option value="">Выберите статус</option>
                                 </select>
                             </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="courseCapacity" class="form-label">Вместимость (кол-во студентов)</label>
+                                    <input type="number" class="form-control" id="courseCapacity" min="1" th:value="${course.capacity}">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="courseStartDate" class="form-label">Дата начала</label>
+                                    <input type="date" class="form-control" id="courseStartDate" th:value="${course.startDate}">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="courseEndDate" class="form-label">Дата окончания</label>
+                                    <input type="date" class="form-control" id="courseEndDate" th:value="${course.endDate}">
+                                </div>
+                            </div>
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                                 <a href="/teacher" class="btn btn-secondary">Отмена</a>
                                 <button type="submit" class="btn btn-primary">Сохранить изменения</button>
@@ -100,7 +114,13 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
-    <script>
+    <script th:inline="javascript">
+        function authHeaders() {
+            const headers = {};
+            const token = localStorage.getItem('token');
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+            return headers;
+        }
         document.addEventListener('DOMContentLoaded', function() {
             loadCategories();
             loadCourseStatuses();
@@ -113,9 +133,7 @@
 
         function loadCategories() {
             fetch('/v1/api/categories', {
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('token')
-                }
+                headers: authHeaders()
             })
             .then(response => {
                 if (response.ok) {
@@ -153,9 +171,7 @@
 
         function loadCourseStatuses() {
             fetch('/v1/api/course-statuses', {
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('token')
-                }
+                headers: authHeaders()
             })
             .then(response => {
                 if (response.ok) {
@@ -217,9 +233,7 @@
             
             return fetch('/v1/api/files/upload', {
                 method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('token')
-                },
+                headers: authHeaders(),
                 body: formData
             })
             .then(response => {
@@ -251,7 +265,10 @@
                 },
                 courseStatus: {
                     courseStatusId: document.getElementById('courseStatus').value
-                }
+                },
+                capacity: document.getElementById('courseCapacity').value ? parseInt(document.getElementById('courseCapacity').value) : null,
+                startDate: document.getElementById('courseStartDate').value || null,
+                endDate: document.getElementById('courseEndDate').value || null
             };
             
             // Add image URL if provided
@@ -261,10 +278,9 @@
 
             fetch(`/v1/api/courses/${courseId}`, {
                 method: 'PUT',
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                headers: Object.assign({
                     'Content-Type': 'application/json'
-                },
+                }, authHeaders()),
                 body: JSON.stringify(courseData)
             })
             .then(response => {

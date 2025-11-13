@@ -14,6 +14,7 @@ import com.example.OnlineSchoolKursach.service.TaskService;
 import com.example.OnlineSchoolKursach.service.SolutionService;
 import com.example.OnlineSchoolKursach.service.MinioFileService;
 import com.example.OnlineSchoolKursach.model.TaskStatusModel;
+import com.example.OnlineSchoolKursach.repository.EnrollmentRepository;
 import org.springframework.web.multipart.MultipartFile;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.ArrayList;
@@ -50,6 +52,15 @@ public class WebController {
     
     @Autowired
     private MinioFileService minioFileService;
+    
+    @Autowired
+    private EnrollmentRepository enrollmentRepository;
+
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        // Exclude attachedFile from model binding to avoid conflict with MultipartFile
+        binder.setDisallowedFields("attachedFile");
+    }
 
     @GetMapping("/")
     public String home() {
@@ -193,6 +204,37 @@ public class WebController {
         
         return "teacher-task";
     }
+
+    @GetMapping("/teacher/course/{courseId}/materials")
+    public String teacherCourseMaterialsPage(@PathVariable Long courseId, Model model, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        try {
+            CourseModel course = courseService.getCourseById(courseId);
+            UserModel user = authService.getUserByEmail(authentication.getName());
+            if (!course.getTeacher().getUserId().equals(user.getUserId())) {
+                return "redirect:/teacher";
+            }
+
+            // Try to load lessons for the course and gather materials
+            List<LessonModel> lessons = lessonService.getLessonsByCourseId(courseId);
+            List<TaskModel> allTasks = new ArrayList<>();
+            for (LessonModel lesson : lessons) {
+                List<TaskModel> tasks = taskService.getTasksByLessonId(lesson.getLessonId());
+                if (tasks != null && !tasks.isEmpty()) {
+                    allTasks.addAll(tasks);
+                }
+            }
+
+            model.addAttribute("course", course);
+            model.addAttribute("lessons", lessons);
+            model.addAttribute("tasks", allTasks);
+            return "teacher-course-materials";
+        } catch (Exception e) {
+            return "redirect:/teacher/course/" + courseId;
+        }
+    }
     
     @PostMapping("/teacher/course/{courseId}/lesson/{lessonId}/task/{taskId}/delete")
     public String deleteTask(@PathVariable Long courseId,
@@ -232,7 +274,7 @@ public class WebController {
     }
     
     @GetMapping("/teacher/course/{courseId}/create-lesson")
-    public String createLessonPage(@PathVariable Long courseId, Model model, Authentication authentication) {
+    public String createLessonPage(@PathVariable Long courseId, Model model, Authentication authentication, RedirectAttributes redirectAttributes) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return "redirect:/login";
         }
@@ -243,16 +285,33 @@ public class WebController {
             // Check if user is the teacher of this course
             UserModel user = authService.getUserByEmail(authentication.getName());
             if (!course.getTeacher().getUserId().equals(user.getUserId())) {
-                return "redirect:/teacher";
+                // Redirect based on user role
+                if (user.getRole().getRoleName().equals("Студент")) {
+                    return "redirect:/student";
+                } else if (user.getRole().getRoleName().equals("Преподаватель")) {
+                    return "redirect:/teacher";
+                } else {
+                    return "redirect:/";
+                }
             }
-            
+
+            // Restrict creating lessons when course is recruiting or filled
+            // Can only create lessons when course is Active
+            String statusName = course.getCourseStatus() != null ? course.getCourseStatus().getStatusName() : null;
+            System.out.println("Course status when creating lesson: " + statusName);
+            System.out.println("Course start date: " + course.getStartDate());
+            System.out.println("Today: " + java.time.LocalDate.now());
+            if (!"Активный".equals(statusName)) {
+                redirectAttributes.addFlashAttribute("error", "Уроки можно создавать только когда курс в статусе 'Активный'. Текущий статус: " + (statusName != null ? statusName : "не установлен"));
+                return "redirect:/teacher/course/" + courseId;
+            }
+
             model.addAttribute("course", course);
             model.addAttribute("lesson", new LessonModel());
+            return "create-lesson";
         } catch (Exception e) {
-            return "redirect:/teacher";
+            return "redirect:/teacher/course/" + courseId;
         }
-        
-        return "create-lesson";
     }
     
     @PostMapping("/teacher/course/{courseId}/create-lesson")
@@ -272,7 +331,22 @@ public class WebController {
             // Check if user is the teacher of this course
             UserModel user = authService.getUserByEmail(authentication.getName());
             if (!course.getTeacher().getUserId().equals(user.getUserId())) {
-                return "redirect:/teacher";
+                // Redirect based on user role
+                if (user.getRole().getRoleName().equals("Студент")) {
+                    return "redirect:/student";
+                } else if (user.getRole().getRoleName().equals("Преподаватель")) {
+                    return "redirect:/teacher";
+                } else {
+                    return "redirect:/";
+                }
+            }
+            
+            // Restrict creating lessons when course is recruiting or filled
+            // Can only create lessons when course is Active
+            String statusName = course.getCourseStatus() != null ? course.getCourseStatus().getStatusName() : null;
+            if (!"Активный".equals(statusName)) {
+                redirectAttributes.addFlashAttribute("error", "Уроки можно создавать только когда курс в статусе 'Активный'");
+                return "redirect:/teacher/course/" + courseId;
             }
             
             if (bindingResult.hasErrors()) {
@@ -302,7 +376,7 @@ public class WebController {
     
     @GetMapping("/teacher/course/{courseId}/lesson/{lessonId}/create-task")
     public String createTaskPage(@PathVariable Long courseId, @PathVariable Long lessonId, 
-                                Model model, Authentication authentication) {
+                                Model model, Authentication authentication, RedirectAttributes redirectAttributes) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return "redirect:/login";
         }
@@ -315,6 +389,17 @@ public class WebController {
             UserModel user = authService.getUserByEmail(authentication.getName());
             if (!course.getTeacher().getUserId().equals(user.getUserId())) {
                 return "redirect:/teacher";
+            }
+
+            // Restrict creating tasks when course is recruiting or filled
+            // Can only create tasks when course is Active
+            String statusName = course.getCourseStatus() != null ? course.getCourseStatus().getStatusName() : null;
+            System.out.println("Course status when creating task: " + statusName);
+            System.out.println("Course start date: " + course.getStartDate());
+            System.out.println("Today: " + java.time.LocalDate.now());
+            if (!"Активный".equals(statusName)) {
+                redirectAttributes.addFlashAttribute("error", "Задания можно создавать только когда курс в статусе 'Активный'. Текущий статус: " + (statusName != null ? statusName : "не установлен"));
+                return "redirect:/teacher/course/" + courseId;
             }
             
             if (lesson == null || !lesson.getCourse().getCourseId().equals(courseId)) {
@@ -349,6 +434,14 @@ public class WebController {
             UserModel user = authService.getUserByEmail(authentication.getName());
             if (!course.getTeacher().getUserId().equals(user.getUserId())) {
                 return "redirect:/teacher";
+            }
+            
+            // Restrict creating tasks when course is recruiting or filled
+            // Can only create tasks when course is Active
+            String statusName = course.getCourseStatus() != null ? course.getCourseStatus().getStatusName() : null;
+            if (!"Активный".equals(statusName)) {
+                redirectAttributes.addFlashAttribute("error", "Задания можно создавать только когда курс в статусе 'Активный'");
+                return "redirect:/teacher/course/" + courseId;
             }
             
             if (lesson == null || !lesson.getCourse().getCourseId().equals(courseId)) {
@@ -461,12 +554,17 @@ public class WebController {
             boolean isEnrolled = userEnrollments.stream()
                     .anyMatch(enrollment -> enrollment.getCourse().getCourseId().equals(courseId));
             
+            // Get enrolled students count
+            List<EnrollmentModel> courseEnrollments = enrollmentRepository.findByCourseCourseId(courseId);
+            int enrolledCount = courseEnrollments.size();
+            
             System.out.println("User: " + user.getEmail() + " enrolled in course " + courseId + ": " + isEnrolled);
             System.out.println("User enrollments: " + userEnrollments.size());
             
             model.addAttribute("course", course);
             model.addAttribute("courseId", courseId);
             model.addAttribute("isEnrolled", isEnrolled);
+            model.addAttribute("enrolledCount", enrolledCount);
         } catch (Exception e) {
             e.printStackTrace();
             return "redirect:/student";
@@ -490,16 +588,32 @@ public class WebController {
                 return "redirect:/student/course/" + courseId;
             }
             
+            // Проверяем, что студент зачислен и имеет статус "Активен"
+            UserModel user = authService.getUserByEmail(authentication.getName());
+            List<EnrollmentModel> enrollments = courseService.getUserEnrollments(user);
+            boolean isActiveEnrollment = enrollments.stream()
+                    .anyMatch(enrollment -> enrollment.getCourse().getCourseId().equals(courseId) &&
+                            enrollment.getEnrollmentStatus() != null &&
+                            "Активен".equals(enrollment.getEnrollmentStatus().getStatusName()));
+            
+            if (!isActiveEnrollment) {
+                // Если студент не зачислен или имеет статус "Ожидает подтверждения", редиректим
+                return "redirect:/student/course/" + courseId + "?error=Доступ к урокам доступен только для студентов со статусом 'Активен'";
+            }
+            
             // Get tasks for this lesson
             List<TaskModel> tasks = taskService.getTasksByLessonId(lessonId);
             
             // Get user solutions for these tasks
-            UserModel user = authService.getUserByEmail(authentication.getName());
             List<SolutionModel> solutions = new ArrayList<>();
             for (TaskModel task : tasks) {
-                SolutionModel solution = solutionService.getSolutionByTaskAndUser(task.getTaskId(), user.getUserId());
-                if (solution != null) {
-                    solutions.add(solution);
+                try {
+                    SolutionModel solution = solutionService.getSolutionByTaskAndUser(task.getTaskId(), user.getUserId());
+                    if (solution != null) {
+                        solutions.add(solution);
+                    }
+                } catch (Exception ignored) {
+                    // If any duplicate/loader issue occurs, skip this task's solution to prevent redirect
                 }
             }
             
@@ -530,8 +644,20 @@ public class WebController {
                 return "redirect:/student/course/" + courseId + "/lesson/" + lessonId;
             }
             
-            // Get user solution for this task
+            // Проверяем, что студент зачислен и имеет статус "Активен"
             UserModel user = authService.getUserByEmail(authentication.getName());
+            List<EnrollmentModel> enrollments = courseService.getUserEnrollments(user);
+            boolean isActiveEnrollment = enrollments.stream()
+                    .anyMatch(enrollment -> enrollment.getCourse().getCourseId().equals(courseId) &&
+                            enrollment.getEnrollmentStatus() != null &&
+                            "Активен".equals(enrollment.getEnrollmentStatus().getStatusName()));
+            
+            if (!isActiveEnrollment) {
+                // Если студент не зачислен или имеет статус "Ожидает подтверждения", редиректим
+                return "redirect:/student/course/" + courseId + "?error=Доступ к заданиям доступен только для студентов со статусом 'Активен'";
+            }
+            
+            // Get user solution for this task
             SolutionModel solution = solutionService.getSolutionByTaskAndUser(taskId, user.getUserId());
             
             model.addAttribute("course", course);
@@ -583,6 +709,14 @@ public class WebController {
         }
         
         return "edit-course";
+    }
+
+    @GetMapping("/gift-cards")
+    public String giftCardsPage(Model model, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        return "gift-cards";
     }
 
     @GetMapping("/logout")

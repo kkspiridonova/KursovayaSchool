@@ -23,6 +23,39 @@
             transform: translateY(-5px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
+        .calendar-day {
+            min-height: 120px;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            background-color: #fff;
+        }
+        .calendar-day.today {
+            background-color: #e7f3ff;
+            border: 2px solid #0d6efd;
+        }
+        .calendar-day-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .task-item {
+            background-color: #f8f9fa;
+            border-left: 3px solid #0d6efd;
+            padding: 5px 8px;
+            margin-bottom: 5px;
+            border-radius: 3px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .task-item.urgent {
+            border-left-color: #dc3545;
+            background-color: #fff5f5;
+        }
+        .task-item.warning {
+            border-left-color: #ffc107;
+            background-color: #fffbf0;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -46,6 +79,12 @@
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="my-courses-tab" data-bs-toggle="tab" data-bs-target="#my-courses" type="button" role="tab" aria-controls="my-courses" aria-selected="false">Мои курсы</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="calendar-tab" data-bs-toggle="tab" data-bs-target="#calendar" type="button" role="tab" aria-controls="calendar" aria-selected="false">Календарь</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="certificates-tab" data-bs-toggle="tab" data-bs-target="#certificates" type="button" role="tab" aria-controls="certificates" aria-selected="false">Сертификаты</button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">Профиль</button>
@@ -115,6 +154,73 @@
                 </div>
             </div>
 
+            <!-- Calendar Tab -->
+            <div class="tab-pane fade" id="calendar" role="tabpanel" aria-labelledby="calendar-tab">
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h3>Календарь заданий</h3>
+                        <p class="text-muted">Расписание дедлайнов заданий на неделю</p>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Недельное расписание</h5>
+                                <div>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="previousWeek()">
+                                        <i class="fas fa-chevron-left"></i> Предыдущая
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm mx-2" onclick="currentWeek()">
+                                        <i class="fas fa-calendar-day"></i> Текущая неделя
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="nextWeek()">
+                                        Следующая <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                    <button class="btn btn-outline-primary btn-sm ms-2" onclick="loadCalendar()">
+                                        <i class="fas fa-sync-alt"></i> Обновить
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="calendarContainer">
+                                    <p class="text-muted text-center">Загрузка календаря...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Certificates Tab -->
+            <div class="tab-pane fade" id="certificates" role="tabpanel" aria-labelledby="certificates-tab">
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h3>Мои сертификаты</h3>
+                        <p class="text-muted">Здесь отображаются все ваши сертификаты о прохождении курсов.</p>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Сертификаты</h5>
+                                <button class="btn btn-outline-primary btn-sm" onclick="loadCertificates()">
+                                    <i class="fas fa-sync-alt"></i> Обновить
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="certificatesList">
+                                    <p class="text-muted text-center">Загрузка списка сертификатов...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Profile Tab -->
             <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
                 <div class="row mt-4">
@@ -135,24 +241,32 @@
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="receipts-sub-tab" data-bs-toggle="tab" data-bs-target="#receipts-sub" type="button" role="tab" aria-controls="receipts-sub" aria-selected="false">Чеки</button>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="gift-cards-sub-tab" data-bs-toggle="tab" data-bs-target="#gift-cards-sub" type="button" role="tab" aria-controls="gift-cards-sub" aria-selected="false">Подарочные карты</button>
+                    </li>
                 </ul>
 
                 <!-- Profile Sub-tab Content -->
                 <div class="tab-content" id="profileSubTabsContent">
                     <!-- Personal Info Sub-tab -->
                     <div class="tab-pane fade show active" id="personal-info" role="tabpanel" aria-labelledby="personal-info-tab">
-                        <div class="row mt-3">
-                            <div class="col-md-8 mx-auto">
-                                <div class="card">
-                                    <div class="card-header">
+                <div class="row mt-3">
+                    <div class="col-md-8 mx-auto">
+                        <div class="card">
+                            <div class="card-header">
                                         <h5>Личная информация</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div id="profileInfo">
-                                            <p class="text-muted text-center">Загрузка информации о профиле...</p>
-                                        </div>
-                                        <div class="mt-3 text-center">
-                                            <a href="/profile/edit" class="btn btn-primary">Редактировать профиль</a>
+                            </div>
+                            <div class="card-body">
+                                <div id="profileInfo">
+                                    <p class="text-muted text-center">Загрузка информации о профиле...</p>
+                                </div>
+                                <div class="mt-3 text-center">
+                                            <a href="/profile/edit" class="btn btn-primary mb-2">Редактировать профиль</a>
+                                            <br>
+                                            <button class="btn btn-outline-warning" onclick="requestPasswordResetFromProfile()">
+                                                <i class="fas fa-key"></i> Восстановить пароль
+                                            </button>
+                                            <div id="passwordResetMessage" class="mt-2"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -195,6 +309,27 @@
                                     <div class="card-body">
                                         <div id="receiptsList">
                                             <p class="text-muted text-center">Загрузка списка чеков...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gift Cards Sub-tab -->
+                    <div class="tab-pane fade" id="gift-cards-sub" role="tabpanel" aria-labelledby="gift-cards-sub-tab">
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5>Мои подарочные карты</h5>
+                                        <button class="btn btn-outline-primary btn-sm" onclick="loadMyGiftCards()">
+                                            <i class="fas fa-sync-alt"></i> Обновить
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="giftCardsList">
+                                            <p class="text-muted text-center">Загрузка списка подарочных карт...</p>
                                         </div>
                                     </div>
                                 </div>
@@ -282,12 +417,13 @@
                                                 <small class="text-muted">Преподаватель: ${course.teacher ? course.teacher.firstName + ' ' + course.teacher.lastName : 'Не указан'}</small>
                                                 <span class="badge bg-success">${course.price ? course.price + ' руб.' : 'Бесплатно'}</span>
                                             </div>
+                                            ${course.courseStatus ? `<div class="mb-2"><small class="text-muted">Статус: <span class="badge bg-info">${course.courseStatus.statusName}</span></small></div>` : ''}
+                                            ${course.startDate ? `<div class="mb-2"><small class="text-muted">Начало: <span class="fw-bold text-primary">${new Date(course.startDate).toLocaleDateString('ru-RU')}</span></small></div>` : ''}
+                                            ${course.endDate ? `<div class="mb-2"><small class="text-muted">Окончание: <span class="fw-bold text-primary">${new Date(course.endDate).toLocaleDateString('ru-RU')}</span></small></div>` : ''}
+                                            ${course.capacity ? `<div class="mb-2"><small class="text-muted">Студентов: ${course.enrolledCount || 0}/${course.capacity}</small></div>` : ''}
                                             <div class="d-grid gap-2">
                                                 <a href="/student/course/${course.courseId}" class="btn btn-outline-primary">
                                                     <i class="fas fa-info-circle"></i> Подробнее
-                                                </a>
-                                                <a href="javascript:void(0)" class="btn btn-primary" onclick="enrollInCourse(${course.courseId})">
-                                                    <i class="fas fa-user-plus"></i> Записаться
                                                 </a>
                                             </div>
                                         </div>
@@ -342,12 +478,13 @@
                                                 <small class="text-muted">Преподаватель: ${course.teacher ? course.teacher.firstName + ' ' + course.teacher.lastName : 'Не указан'}</small>
                                                 <span class="badge bg-success">${course.price ? course.price + ' руб.' : 'Бесплатно'}</span>
                                             </div>
+                                            ${course.courseStatus ? `<div class="mb-2"><small class="text-muted">Статус: <span class="badge bg-info">${course.courseStatus.statusName}</span></small></div>` : ''}
+                                            ${course.startDate ? `<div class="mb-2"><small class="text-muted">Начало: <span class="fw-bold text-primary">${new Date(course.startDate).toLocaleDateString('ru-RU')}</span></small></div>` : ''}
+                                            ${course.endDate ? `<div class="mb-2"><small class="text-muted">Окончание: <span class="fw-bold text-primary">${new Date(course.endDate).toLocaleDateString('ru-RU')}</span></small></div>` : ''}
+                                            ${course.capacity ? `<div class="mb-2"><small class="text-muted">Студентов: ${course.enrolledCount || 0}/${course.capacity}</small></div>` : ''}
                                             <div class="d-grid gap-2">
                                                 <a href="/student/course/${course.courseId}" class="btn btn-outline-primary">
                                                     <i class="fas fa-info-circle"></i> Подробнее
-                                                </a>
-                                                <a href="javascript:void(0)" class="btn btn-primary" onclick="enrollInCourse(${course.courseId})">
-                                                    <i class="fas fa-user-plus"></i> Записаться
                                                 </a>
                                             </div>
                                         </div>
@@ -423,6 +560,10 @@
                                                 <small class="text-muted">Преподаватель: ${course.teacher ? course.teacher.firstName + ' ' + course.teacher.lastName : 'Не указан'}</small>
                                                 <span class="badge bg-success">${course.price ? course.price + ' руб.' : 'Бесплатно'}</span>
                                             </div>
+                                            ${course.courseStatus ? `<div class="mb-2"><small class="text-muted">Статус: <span class="badge bg-info">${course.courseStatus.statusName}</span></small></div>` : ''}
+                                            ${course.startDate ? `<div class="mb-2"><small class="text-muted">Начало: <span class="fw-bold text-primary">${new Date(course.startDate).toLocaleDateString('ru-RU')}</span></small></div>` : ''}
+                                            ${course.endDate ? `<div class="mb-2"><small class="text-muted">Окончание: <span class="fw-bold text-primary">${new Date(course.endDate).toLocaleDateString('ru-RU')}</span></small></div>` : ''}
+                                            ${course.capacity ? `<div class="mb-2"><small class="text-muted">Студентов: ${course.enrolledCount || 0}/${course.capacity}</small></div>` : ''}
                                             <div class="mb-2">
                                                 <small class="${statusClass}"><strong>Статус записи: ${statusText}</strong></small>
                                             </div>
@@ -552,10 +693,12 @@
                     `;
                     
                     checks.forEach(check => {
+                        // Check if this is a gift card purchase by checking if user has a gift card with this amount and date
+                        const courseName = check.course ? check.course.title : 'Подарочная карта';
                         html += `
                             <tr>
                                 <td>${check.checkId || 'Не указан'}</td>
-                                <td>${check.course ? check.course.title : 'Не указан'}</td>
+                                <td>${courseName}</td>
                                 <td>${check.amount ? check.amount + ' руб.' : 'Не указана'}</td>
                                 <td>${check.paymentDate ? new Date(check.paymentDate).toLocaleDateString('ru-RU') : 'Не указана'}</td>
                                 <td>${check.paymentStatus ? check.paymentStatus.statusName : 'Не указан'}</td>
@@ -574,6 +717,160 @@
             })
             .catch(error => {
                 document.getElementById('receiptsList').innerHTML = '<p class="text-danger text-center">Ошибка загрузки списка чеков</p>';
+            });
+        }
+
+        function loadMyGiftCards() {
+            fetch('/v1/api/gift-cards/my', {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => response.json())
+            .then(giftCards => {
+                const giftCardsList = document.getElementById('giftCardsList');
+                if (giftCards.length === 0) {
+                    giftCardsList.innerHTML = '<p class="text-muted text-center">У вас пока нет подарочных карт</p>';
+                } else {
+                    let html = '<div class="row">';
+                    giftCards.forEach(card => {
+                        const statusBadge = card.giftCardStatus && card.giftCardStatus.statusName === 'Активна' 
+                            ? '<span class="badge bg-success">Активна</span>' 
+                            : card.giftCardStatus && card.giftCardStatus.statusName === 'Использована'
+                            ? '<span class="badge bg-secondary">Использована</span>'
+                            : '<span class="badge bg-secondary">' + (card.giftCardStatus ? card.giftCardStatus.statusName : 'Неизвестно') + '</span>';
+                        
+                        const courseName = card.course ? card.course.title : 'Не указан';
+                        
+                        html += `
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-gift fa-4x text-primary mb-3"></i>
+                                        <h5 class="card-title">Подарочная карта</h5>
+                                        ${card.course ? `<p class="card-text"><strong>Курс: ${courseName}</strong></p>` : ''}
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted small">Код карты:</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control text-center fw-bold" id="cardCode-${card.giftCardId}" value="${card.code || card.cardNumber}" readonly>
+                                                <button class="btn btn-outline-secondary" type="button" onclick="copyCardCode('${card.code || card.cardNumber}')" title="Копировать код">
+                                                    <i class="fas fa-copy"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <p class="card-text">
+                                            <strong>Баланс: ${card.balance} руб.</strong>
+                                        </p>
+                                        <p class="card-text">
+                                            <small class="text-muted">Выпущена: ${new Date(card.issueDate).toLocaleDateString('ru-RU')}</small>
+                                        </p>
+                                        <p class="card-text">
+                                            <small class="text-muted">Действительна до: ${card.expiryDate ? new Date(card.expiryDate).toLocaleDateString('ru-RU') : 'Не ограничена'}</small>
+                                        </p>
+                                        <div class="mt-2">
+                                            ${statusBadge}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    giftCardsList.innerHTML = html;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading gift cards:', error);
+                document.getElementById('giftCardsList').innerHTML = '<p class="text-danger text-center">Ошибка загрузки списка подарочных карт</p>';
+            });
+        }
+
+
+        function copyCardCode(cardNumber) {
+            navigator.clipboard.writeText(cardNumber).then(() => {
+                alert('Код карты скопирован: ' + cardNumber);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = cardNumber;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    alert('Код карты скопирован: ' + cardNumber);
+                } catch (err) {
+                    alert('Не удалось скопировать код. Код карты: ' + cardNumber);
+                }
+                document.body.removeChild(textArea);
+            });
+        }
+
+        function requestPasswordResetFromProfile() {
+            const messageDiv = document.getElementById('passwordResetMessage');
+            messageDiv.innerHTML = '<div class="alert alert-info">Отправка запроса на восстановление пароля...</div>';
+            
+            const token = localStorage.getItem('token');
+            if (!token) {
+                // Сессия истекла, перенаправляем на страницу логина с сообщением
+                window.location.href = '/login?sessionExpired=true';
+                return;
+            }
+            
+            // Сначала получаем email пользователя из API
+            fetch('/v1/api/auth/me', {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            })
+            .then(response => {
+                if (response.status === 401 || !response.ok) {
+                    // Сессия истекла, перенаправляем на страницу логина с сообщением
+                    window.location.href = '/login?sessionExpired=true';
+                    return null;
+                }
+                return response.json();
+            })
+            .then(user => {
+                if (!user) {
+                    return; // Уже произошел редирект
+                }
+                
+                if (!user.email) {
+                    throw new Error('Email пользователя не найден');
+                }
+                
+                // Теперь отправляем запрос на восстановление пароля с email
+                const formData = new FormData();
+                formData.append('email', user.email);
+                
+                return fetch('/forgot-password', {
+                    method: 'POST',
+                    body: formData
+                });
+            })
+            .then(response => {
+                if (!response) {
+                    return null; // Уже произошел редирект
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data) {
+                    return; // Уже произошел редирект
+                }
+                
+                if (data && data.message) {
+                    messageDiv.innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
+                } else if (data && data.error) {
+                    messageDiv.innerHTML = '<div class="alert alert-danger">' + data.error + '</div>';
+                } else {
+                    messageDiv.innerHTML = '<div class="alert alert-danger">Неизвестная ошибка</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                messageDiv.innerHTML = '<div class="alert alert-danger">Произошла ошибка: ' + (error.message || 'Попробуйте позже') + '</div>';
             });
         }
 
@@ -642,6 +939,11 @@
             loadMyCourses();
         });
         
+        // Load calendar when calendar tab is shown
+        document.getElementById('calendar-tab').addEventListener('shown.bs.tab', function (e) {
+            loadCalendar();
+        });
+        
         // Load enrollments when enrollments sub-tab is shown
         document.getElementById('enrollments-tab').addEventListener('shown.bs.tab', function (e) {
             loadMyEnrollments();
@@ -650,6 +952,11 @@
         // Load receipts when receipts sub-tab is shown
         document.getElementById('receipts-sub-tab').addEventListener('shown.bs.tab', function (e) {
             loadMyReceipts();
+        });
+        
+        // Load gift cards when gift cards sub-tab is shown
+        document.getElementById('gift-cards-sub-tab').addEventListener('shown.bs.tab', function (e) {
+            loadMyGiftCards();
         });
 
         function enrollInCourse(courseId) {
@@ -667,11 +974,21 @@
                         // Refresh the courses list
                         loadAllCourses();
                     } else {
+                        // Try to get error message from response
+                        response.text().then(text => {
+                            try {
+                                const errorData = JSON.parse(text);
+                                alert(errorData.message || 'Ошибка при записи на курс');
+                            } catch (e) {
+                                alert(text || 'Ошибка при записи на курс');
+                            }
+                        }).catch(() => {
                         alert('Ошибка при записи на курс');
+                        });
                     }
                 })
                 .catch(error => {
-                    alert('Ошибка при записи на курс: ' + error.message);
+                    alert('Ошибка при записи на курс: ' + (error.message || 'Неизвестная ошибка'));
                 });
             }
         }
@@ -684,6 +1001,212 @@
             // Redirect to course details page
             window.location.href = '/student/course/' + courseId;
         }
+
+        let currentWeekStart = null;
+
+        function getWeekStart(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(d.setDate(diff));
+        }
+
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatDateDisplay(date) {
+            return date.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' });
+        }
+
+        function currentWeek() {
+            currentWeekStart = getWeekStart(new Date());
+            loadCalendar();
+        }
+
+        function previousWeek() {
+            if (!currentWeekStart) {
+                currentWeekStart = getWeekStart(new Date());
+            }
+            currentWeekStart = new Date(currentWeekStart);
+            currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+            loadCalendar();
+        }
+
+        function nextWeek() {
+            if (!currentWeekStart) {
+                currentWeekStart = getWeekStart(new Date());
+            }
+            currentWeekStart = new Date(currentWeekStart);
+            currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+            loadCalendar();
+        }
+
+        function loadCalendar() {
+            if (!currentWeekStart) {
+                currentWeekStart = getWeekStart(new Date());
+            }
+            
+            const weekStartStr = formatDate(currentWeekStart);
+            const calendarContainer = document.getElementById('calendarContainer');
+            calendarContainer.innerHTML = '<p class="text-muted text-center">Загрузка календаря...</p>';
+
+            fetch(`/v1/api/tasks/my/calendar?weekStart=${weekStartStr}`, {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => response.json())
+            .then(tasks => {
+                renderCalendar(tasks);
+            })
+            .catch(error => {
+                console.error('Error loading calendar:', error);
+                calendarContainer.innerHTML = '<p class="text-danger text-center">Ошибка загрузки календаря</p>';
+            });
+        }
+
+        function renderCalendar(tasks) {
+            const calendarContainer = document.getElementById('calendarContainer');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const weekStart = new Date(currentWeekStart);
+            weekStart.setHours(0, 0, 0, 0);
+            
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            
+            let html = `
+                <div class="mb-3">
+                    <h5>Неделя: ${formatDateDisplay(weekStart)} - ${formatDateDisplay(weekEnd)}</h5>
+                </div>
+                <div class="row g-2">
+            `;
+            
+            for (let i = 0; i < 7; i++) {
+                const dayDate = new Date(weekStart);
+                dayDate.setDate(dayDate.getDate() + i);
+                
+                const dayStr = formatDate(dayDate);
+                const dayTasks = tasks.filter(task => {
+                    if (!task.deadline) return false;
+                    const taskDate = new Date(task.deadline);
+                    taskDate.setHours(0, 0, 0, 0);
+                    return taskDate.getTime() === dayDate.getTime();
+                });
+                
+                const isToday = dayDate.getTime() === today.getTime();
+                const dayClass = isToday ? 'calendar-day today' : 'calendar-day';
+                
+                html += `
+                    <div class="col-md">
+                        <div class="${dayClass}">
+                            <div class="calendar-day-header">
+                                ${formatDateDisplay(dayDate)}
+                            </div>
+                            <div class="task-list">
+                `;
+                
+                if (dayTasks.length === 0) {
+                    html += '<p class="text-muted small">Нет заданий</p>';
+                } else {
+                    dayTasks.forEach(task => {
+                        const taskDate = new Date(task.deadline);
+                        const daysUntilDeadline = Math.ceil((taskDate - today) / (1000 * 60 * 60 * 24));
+                        let taskClass = 'task-item';
+                        
+                        if (daysUntilDeadline < 0) {
+                            taskClass += ' urgent';
+                        } else if (daysUntilDeadline <= 2) {
+                            taskClass += ' warning';
+                        }
+                        
+                        const courseName = task.lesson && task.lesson.course ? task.lesson.course.title : 'Неизвестный курс';
+                        const lessonName = task.lesson ? task.lesson.title : 'Неизвестный урок';
+                        const courseId = task.lesson && task.lesson.course ? task.lesson.course.courseId : 0;
+                        const lessonId = task.lesson ? task.lesson.lessonId : 0;
+                        
+                        if (courseId && lessonId) {
+                            html += `
+                                <div class="${taskClass}" onclick="viewTask(${courseId}, ${lessonId}, ${task.taskId})" title="${task.description || ''}">
+                                    <strong>${task.title || 'Без названия'}</strong><br>
+                                    <small class="text-muted">${courseName}</small><br>
+                                    <small class="text-muted">${lessonName}</small>
+                                </div>
+                            `;
+                        } else {
+                            html += `
+                                <div class="${taskClass}" title="${task.description || ''}">
+                                    <strong>${task.title || 'Без названия'}</strong><br>
+                                    <small class="text-muted">${courseName}</small><br>
+                                    <small class="text-muted">${lessonName}</small>
+                                </div>
+                            `;
+                        }
+                    });
+                }
+                
+                html += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            calendarContainer.innerHTML = html;
+        }
+
+        function viewTask(courseId, lessonId, taskId) {
+            window.location.href = `/student/course/${courseId}/lesson/${lessonId}/task/${taskId}`;
+        }
+
+        function loadCertificates() {
+            const certificatesList = document.getElementById('certificatesList');
+            certificatesList.innerHTML = '<p class="text-muted text-center">Загрузка списка сертификатов...</p>';
+
+            // Используем сессионную аутентификацию через fetch с credentials
+            fetch('/student/certificates', {
+                method: 'GET',
+                credentials: 'include' // Важно для отправки cookies/сессии
+            })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        throw new Error('Не авторизован. Пожалуйста, обновите страницу и войдите заново.');
+                    }
+                    throw new Error('Ошибка загрузки сертификатов');
+                }
+                return response.text();
+            })
+            .then(html => {
+                // Парсим HTML ответ и извлекаем список сертификатов
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const certificatesContainer = doc.querySelector('#certificatesList');
+                
+                if (certificatesContainer) {
+                    certificatesList.innerHTML = certificatesContainer.innerHTML;
+                } else {
+                    // Если не нашли контейнер, возможно это полная страница
+                    const bodyContent = doc.body ? doc.body.innerHTML : html;
+                    certificatesList.innerHTML = bodyContent;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading certificates:', error);
+                certificatesList.innerHTML = '<div class="alert alert-danger text-center">' + error.message + '</div>';
+            });
+        }
+
+        // Загружаем сертификаты при открытии вкладки
+        document.getElementById('certificates-tab').addEventListener('shown.bs.tab', function() {
+            loadCertificates();
+        });
     </script>
 </body>
 </html>

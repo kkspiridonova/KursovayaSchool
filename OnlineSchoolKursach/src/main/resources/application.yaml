@@ -21,6 +21,33 @@ spring:
   jackson:
     serialization:
       fail-on-empty-beans: false
+  mvc:
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      add-mappings: false
+  mail:
+    # Настройки Gmail SMTP
+    # Для работы с Gmail необходимо:
+    # 1. Включить двухфакторную аутентификацию в настройках Google аккаунта
+    # 2. Создать пароль приложения: https://myaccount.google.com/apppasswords
+    # 3. Использовать пароль приложения (16 символов без пробелов) в MAIL_PASSWORD
+    # 4. Установить переменные окружения:
+    #    MAIL_USERNAME=your-email@gmail.com
+    #    MAIL_PASSWORD=your-app-password
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:k6117039@gmail.com}
+    password: ${MAIL_PASSWORD:tckbbbnshwxpwkzy}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          debug: true  # Включить детальное логирование SMTP для отладки
+        debug: true  # Дополнительное логирование для Jakarta Mail
 
 server:
   port: 8080
@@ -33,6 +60,10 @@ logging:
   level:
     com.example.OnlineSchoolKursach: DEBUG
     org.springframework.security: DEBUG
+    org.springframework.mail: DEBUG  # Детальное логирование отправки email
+    jakarta.mail: DEBUG  # Логирование SMTP протокола
+    org.eclipse.angus.mail: DEBUG  # Логирование SMTP транспорта
+    com.sun.mail: DEBUG  # Альтернативное логирование (если используется)
 
 file:
   storage-type: minio
@@ -53,3 +84,19 @@ springdoc:
   swagger-ui:
     operations-sorter: alpha
     tags-sorter: alpha
+
+management:
+  server:
+    port: 8080
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+      base-path: /actuator
+  endpoint:
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true

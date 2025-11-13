@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
@@ -180,6 +181,27 @@ public class MinioFileService {
         } catch (Exception e) {
             logger.error("Error getting file info: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to get file info from MinIO", e);
+        }
+    }
+
+    /**
+     * Загружает файл из байтов напрямую в MinIO
+     */
+    public void uploadBytes(byte[] fileBytes, String objectName, String contentType) throws IOException {
+        initializeBucket();
+
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(fileBytes)) {
+            minioClient.putObject(PutObjectArgs.builder()
+                    .bucket(bucketName)
+                    .object(objectName)
+                    .stream(inputStream, fileBytes.length, -1)
+                    .contentType(contentType)
+                    .build());
+
+            logger.info("File uploaded successfully from bytes: {}", objectName);
+        } catch (Exception e) {
+            logger.error("Error uploading file from bytes: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to upload file to MinIO", e);
         }
     }
 }

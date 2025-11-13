@@ -23,6 +23,39 @@
             transform: translateY(-5px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
+        .calendar-day {
+            min-height: 120px;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            background-color: #fff;
+        }
+        .calendar-day.today {
+            background-color: #e7f3ff;
+            border: 2px solid #0d6efd;
+        }
+        .calendar-day-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .task-item {
+            background-color: #f8f9fa;
+            border-left: 3px solid #0d6efd;
+            padding: 5px 8px;
+            margin-bottom: 5px;
+            border-radius: 3px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .task-item.urgent {
+            border-left-color: #dc3545;
+            background-color: #fff5f5;
+        }
+        .task-item.warning {
+            border-left-color: #ffc107;
+            background-color: #fffbf0;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -43,6 +76,12 @@
         <ul class="nav nav-tabs" id="teacherTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="my-courses-tab" data-bs-toggle="tab" data-bs-target="#my-courses" type="button" role="tab" aria-controls="my-courses" aria-selected="true">Мои курсы</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="calendar-tab" data-bs-toggle="tab" data-bs-target="#calendar" type="button" role="tab" aria-controls="calendar" aria-selected="false">Календарь</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="archive-tab" data-bs-toggle="tab" data-bs-target="#archive" type="button" role="tab" aria-controls="archive" aria-selected="false">Архив</button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">Профиль</button>
@@ -79,12 +118,12 @@
                 </div>
             </div>
 
-            <!-- Receipts Tab -->
-            <div class="tab-pane fade" id="receipts" role="tabpanel" aria-labelledby="receipts-tab">
+            <!-- Archive Tab -->
+            <div class="tab-pane fade" id="archive" role="tabpanel" aria-labelledby="archive-tab">
                 <div class="row mt-4">
                     <div class="col-12">
-                        <h3>Чеки за мои курсы</h3>
-                        <p class="text-muted">Здесь представлены чеки за оплаченные курсы, которые вы ведете.</p>
+                        <h3>Архив курсов</h3>
+                        <p class="text-muted">Здесь представлены ваши завершенные курсы со статусом "Архивный".</p>
                     </div>
                 </div>
 
@@ -92,14 +131,53 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5>Список чеков</h5>
-                                <button class="btn btn-outline-primary btn-sm" onclick="loadMyReceipts()">
+                                <h5>Архивные курсы</h5>
+                                <button class="btn btn-outline-primary btn-sm" onclick="loadArchivedCourses()">
                                     <i class="fas fa-sync-alt"></i> Обновить
                                 </button>
                             </div>
                             <div class="card-body">
-                                <div id="receiptsList">
-                                    <p class="text-muted text-center">Загрузка списка чеков...</p>
+                                <div id="archivedCoursesList">
+                                    <p class="text-muted text-center">Загрузка списка архивных курсов...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Tab -->
+            <div class="tab-pane fade" id="calendar" role="tabpanel" aria-labelledby="calendar-tab">
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h3>Календарь заданий</h3>
+                        <p class="text-muted">Расписание дедлайнов заданий на неделю</p>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Недельное расписание</h5>
+                                <div>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="previousWeek()">
+                                        <i class="fas fa-chevron-left"></i> Предыдущая
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm mx-2" onclick="currentWeek()">
+                                        <i class="fas fa-calendar-day"></i> Текущая неделя
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="nextWeek()">
+                                        Следующая <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                    <button class="btn btn-outline-primary btn-sm ms-2" onclick="loadCalendar()">
+                                        <i class="fas fa-sync-alt"></i> Обновить
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="calendarContainer">
+                                    <p class="text-muted text-center">Загрузка календаря...</p>
                                 </div>
                             </div>
                         </div>
@@ -209,9 +287,23 @@
                         </div>
                         <div class="mb-3">
                             <label for="courseStatus" class="form-label">Статус курса</label>
-                            <select class="form-select" id="courseStatus" required>
+                            <select class="form-select" id="courseStatus">
                                 <option value="">Выберите статус</option>
                             </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="courseCapacity" class="form-label">Вместимость (кол-во студентов)</label>
+                                <input type="number" class="form-control" id="courseCapacity" min="1">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="courseStartDate" class="form-label">Дата начала</label>
+                                <input type="date" class="form-control" id="courseStartDate" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="courseEndDate" class="form-label">Дата окончания</label>
+                                <input type="date" class="form-control" id="courseEndDate" required>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -226,6 +318,12 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
     <script>
+        function authHeaders() {
+            const headers = {};
+            const token = localStorage.getItem('token');
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+            return headers;
+        }
         document.addEventListener('DOMContentLoaded', function() {
             // Load data for the active tab (my courses by default)
             loadMyCourses();
@@ -234,28 +332,14 @@
         });
 
         function loadMyCourses() {
-            fetch('/v1/api/courses', {
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('token')
-                }
+            fetch('/v1/api/courses/teacher/all', {
+                headers: authHeaders()
             })
             .then(response => response.json())
             .then(allCourses => {
-                // Filter courses by current teacher
-                return fetch('/v1/api/auth/me', {
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token')
-                    }
-                })
-                .then(response => response.json())
-                .then(user => {
-                    return {allCourses, user};
-                });
-            })
-            .then(data => {
-                const {allCourses, user} = data;
+                // Filter out archived courses
                 const teacherCourses = allCourses.filter(course => 
-                    course.teacher && course.teacher.userId === user.userId
+                    course.courseStatus && course.courseStatus.statusName !== 'Архивный'
                 );
                 
                 const coursesList = document.getElementById('myCoursesList');
@@ -310,11 +394,70 @@
             });
         }
 
+        function loadArchivedCourses() {
+            fetch('/v1/api/courses/teacher/all', {
+                headers: authHeaders()
+            })
+            .then(response => response.json())
+            .then(allCourses => {
+                // Filter only archived courses
+                const archivedCourses = allCourses.filter(course => 
+                    course.courseStatus && course.courseStatus.statusName === 'Архивный'
+                );
+                
+                const coursesList = document.getElementById('archivedCoursesList');
+                if (archivedCourses.length === 0) {
+                    coursesList.innerHTML = '<p class="text-muted text-center">У вас нет архивных курсов</p>';
+                } else {
+                    let html = '<div class="row">';
+                    archivedCourses.forEach(course => {
+                        // Add category display
+                        const categoryBadge = course.category ? 
+                            `<span class="badge bg-info me-2">${course.category.categoryName}</span>` : '';
+                        
+                        html += `
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card course-card h-100" style="opacity: 0.8;">
+                                    <div class="card-body d-flex flex-column">
+                                        ${course.imageUrl ? 
+                                            `<img src="${course.imageUrl}" class="card-img-top mb-2" style="width: 100%; height: 150px; object-fit: cover;" alt="${course.title}">` : 
+                                            `<div class="bg-light mb-2" style="width: 100%; height: 150px; display: flex; align-items: center; justify-content: center;">
+                                                <i class="fas fa-image fa-3x text-muted"></i>
+                                            </div>`}
+                                        <h5 class="card-title">
+                                            ${categoryBadge}
+                                            ${course.title}
+                                        </h5>
+                                        <p class="card-text flex-grow-1">${course.description || 'Без описания'}</p>
+                                        <div class="mt-auto">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="badge bg-primary">${course.price ? course.price + ' руб.' : 'Бесплатно'}</span>
+                                                <span class="badge bg-secondary">${course.courseStatus ? course.courseStatus.statusName : 'Не указан'}</span>
+                                            </div>
+                                            <div class="d-grid gap-2">
+                                                <a href="/teacher/course/${course.courseId}" class="btn btn-outline-secondary">
+                                                    <i class="fas fa-info-circle"></i> Подробнее
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    coursesList.innerHTML = html;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading archived courses:', error);
+                document.getElementById('archivedCoursesList').innerHTML = '<p class="text-danger text-center">Ошибка загрузки списка архивных курсов</p>';
+            });
+        }
+
         function loadCategories() {
             fetch('/v1/api/categories', {
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('token')
-                }
+                headers: authHeaders()
             })
             .then(response => response.json())
             .then(categories => {
@@ -333,9 +476,7 @@
 
         function loadCourseStatuses() {
             fetch('/v1/api/course-statuses', {
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('token')
-                }
+                headers: authHeaders()
             })
             .then(response => response.json())
             .then(statuses => {
@@ -346,6 +487,11 @@
                     option.textContent = status.statusName;
                     statusSelect.appendChild(option);
                 });
+                // try select default 'Идет набор' if exists
+                const recruitOption = Array.from(statusSelect.options).find(o => o.textContent === 'Идет набор');
+                if (recruitOption) {
+                    statusSelect.value = recruitOption.value;
+                }
             })
             .catch(error => {
                 console.error('Error loading course statuses:', error);
@@ -355,17 +501,13 @@
         function loadMyReceipts() {
             // First get all courses taught by the teacher
             fetch('/v1/api/courses', {
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('token')
-                }
+                headers: authHeaders()
             })
             .then(response => response.json())
             .then(allCourses => {
                 // Filter courses by current teacher
                 return fetch('/v1/api/auth/me', {
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token')
-                    }
+                    headers: authHeaders()
                 })
                 .then(response => response.json())
                 .then(user => {
@@ -379,9 +521,7 @@
                     // For simplicity, we'll just show all checks for now
                     // In a real implementation, you might want to filter by course IDs
                     return fetch('/v1/api/courses/my/checks', {
-                        headers: {
-                            'Authorization': 'Bearer ' + localStorage.getItem('token')
-                        }
+                        headers: authHeaders()
                     })
                     .then(response => response.json())
                     .then(checks => {
@@ -441,9 +581,7 @@
 
         function loadProfile() {
             fetch('/v1/api/auth/me', {
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('token')
-                }
+                headers: authHeaders()
             })
             .then(response => response.json())
             .then(user => {
@@ -502,6 +640,16 @@
         // Load my courses when my courses tab is shown
         document.getElementById('my-courses-tab').addEventListener('shown.bs.tab', function (e) {
             loadMyCourses();
+        });
+        
+        // Load calendar when calendar tab is shown
+        document.getElementById('calendar-tab').addEventListener('shown.bs.tab', function (e) {
+            loadCalendar();
+        });
+        
+        // Load archived courses when archive tab is shown
+        document.getElementById('archive-tab').addEventListener('shown.bs.tab', function (e) {
+            loadArchivedCourses();
         });
         
         // Load receipts when receipts sub-tab is shown
@@ -564,9 +712,7 @@
             
             return fetch('/v1/api/files/upload', {
                 method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer ' + + localStorage.getItem('token')
-                },
+                headers: authHeaders(),
                 body: formData
             })
             .then(response => {
@@ -590,8 +736,11 @@
                     categoryId: document.getElementById('courseCategory').value
                 },
                 courseStatus: {
-                    courseStatusId: document.getElementById('courseStatus').value
-                }
+                    courseStatusId: document.getElementById('courseStatus').value || null
+                },
+                capacity: document.getElementById('courseCapacity').value ? parseInt(document.getElementById('courseCapacity').value) : null,
+                startDate: document.getElementById('courseStartDate').value || null,
+                endDate: document.getElementById('courseEndDate').value || null
             };
             
             // Add image URL if provided
@@ -601,10 +750,7 @@
 
             fetch('/v1/api/courses', {
                 method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                    'Content-Type': 'application/json'
-                },
+                headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
                 body: JSON.stringify(courseData)
             })
             .then(response => {
@@ -633,7 +779,10 @@
                 },
                 courseStatus: {
                     courseStatusId: document.getElementById('courseStatus').value
-                }
+                },
+                capacity: document.getElementById('courseCapacity').value ? parseInt(document.getElementById('courseCapacity').value) : null,
+                startDate: document.getElementById('courseStartDate').value || null,
+                endDate: document.getElementById('courseEndDate').value || null
             };
             
             // Add image URL if provided
@@ -643,10 +792,7 @@
 
             fetch(`/v1/api/courses/${courseId}`, {
                 method: 'PUT',
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                    'Content-Type': 'application/json'
-                },
+                headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
                 body: JSON.stringify(courseData)
             })
             .then(response => {
@@ -662,6 +808,167 @@
             .catch(error => {
                 alert('Ошибка обновления курса: ' + error.message);
             });
+        }
+
+        let currentWeekStart = null;
+
+        function getWeekStart(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(d.setDate(diff));
+        }
+
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatDateDisplay(date) {
+            return date.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' });
+        }
+
+        function currentWeek() {
+            currentWeekStart = getWeekStart(new Date());
+            loadCalendar();
+        }
+
+        function previousWeek() {
+            if (!currentWeekStart) {
+                currentWeekStart = getWeekStart(new Date());
+            }
+            currentWeekStart = new Date(currentWeekStart);
+            currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+            loadCalendar();
+        }
+
+        function nextWeek() {
+            if (!currentWeekStart) {
+                currentWeekStart = getWeekStart(new Date());
+            }
+            currentWeekStart = new Date(currentWeekStart);
+            currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+            loadCalendar();
+        }
+
+        function loadCalendar() {
+            if (!currentWeekStart) {
+                currentWeekStart = getWeekStart(new Date());
+            }
+            
+            const weekStartStr = formatDate(currentWeekStart);
+            const calendarContainer = document.getElementById('calendarContainer');
+            calendarContainer.innerHTML = '<p class="text-muted text-center">Загрузка календаря...</p>';
+
+            fetch(`/v1/api/tasks/teacher/calendar?weekStart=${weekStartStr}`, {
+                headers: authHeaders()
+            })
+            .then(response => response.json())
+            .then(tasks => {
+                renderCalendar(tasks);
+            })
+            .catch(error => {
+                console.error('Error loading calendar:', error);
+                calendarContainer.innerHTML = '<p class="text-danger text-center">Ошибка загрузки календаря</p>';
+            });
+        }
+
+        function renderCalendar(tasks) {
+            const calendarContainer = document.getElementById('calendarContainer');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const weekStart = new Date(currentWeekStart);
+            weekStart.setHours(0, 0, 0, 0);
+            
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            
+            let html = `
+                <div class="mb-3">
+                    <h5>Неделя: ${formatDateDisplay(weekStart)} - ${formatDateDisplay(weekEnd)}</h5>
+                </div>
+                <div class="row g-2">
+            `;
+            
+            for (let i = 0; i < 7; i++) {
+                const dayDate = new Date(weekStart);
+                dayDate.setDate(dayDate.getDate() + i);
+                
+                const dayStr = formatDate(dayDate);
+                const dayTasks = tasks.filter(task => {
+                    if (!task.deadline) return false;
+                    const taskDate = new Date(task.deadline);
+                    taskDate.setHours(0, 0, 0, 0);
+                    return taskDate.getTime() === dayDate.getTime();
+                });
+                
+                const isToday = dayDate.getTime() === today.getTime();
+                const dayClass = isToday ? 'calendar-day today' : 'calendar-day';
+                
+                html += `
+                    <div class="col-md">
+                        <div class="${dayClass}">
+                            <div class="calendar-day-header">
+                                ${formatDateDisplay(dayDate)}
+                            </div>
+                            <div class="task-list">
+                `;
+                
+                if (dayTasks.length === 0) {
+                    html += '<p class="text-muted small">Нет заданий</p>';
+                } else {
+                    dayTasks.forEach(task => {
+                        const taskDate = new Date(task.deadline);
+                        const daysUntilDeadline = Math.ceil((taskDate - today) / (1000 * 60 * 60 * 24));
+                        let taskClass = 'task-item';
+                        
+                        if (daysUntilDeadline < 0) {
+                            taskClass += ' urgent';
+                        } else if (daysUntilDeadline <= 2) {
+                            taskClass += ' warning';
+                        }
+                        
+                        const courseName = task.lesson && task.lesson.course ? task.lesson.course.title : 'Неизвестный курс';
+                        const lessonName = task.lesson ? task.lesson.title : 'Неизвестный урок';
+                        const courseId = task.lesson && task.lesson.course ? task.lesson.course.courseId : 0;
+                        const lessonId = task.lesson ? task.lesson.lessonId : 0;
+                        
+                        if (courseId && lessonId) {
+                            html += `
+                                <div class="${taskClass}" onclick="viewTask(${courseId}, ${lessonId}, ${task.taskId})" title="${task.description || ''}">
+                                    <strong>${task.title || 'Без названия'}</strong><br>
+                                    <small class="text-muted">${courseName}</small><br>
+                                    <small class="text-muted">${lessonName}</small>
+                                </div>
+                            `;
+                        } else {
+                            html += `
+                                <div class="${taskClass}" title="${task.description || ''}">
+                                    <strong>${task.title || 'Без названия'}</strong><br>
+                                    <small class="text-muted">${courseName}</small><br>
+                                    <small class="text-muted">${lessonName}</small>
+                                </div>
+                            `;
+                        }
+                    });
+                }
+                
+                html += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            calendarContainer.innerHTML = html;
+        }
+
+        function viewTask(courseId, lessonId, taskId) {
+            window.location.href = `/teacher/course/${courseId}/lesson/${lessonId}/task/${taskId}`;
         }
     </script>
 </body>

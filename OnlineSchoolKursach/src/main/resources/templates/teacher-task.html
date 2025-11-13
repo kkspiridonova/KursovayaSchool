@@ -71,19 +71,24 @@
                 </div>
                 
                 <!-- Attached Materials -->
-                <div class="card mb-4" th:if="${task.attachedFile}">
+                <div class="card mb-4">
                     <div class="card-header">
                         <h3>Материалы задания</h3>
                     </div>
                     <div class="card-body">
+                        <div th:if="${task.attachedFile != null && !task.attachedFile.isEmpty()}">
                         <div class="d-flex align-items-center">
                             <i class="fas fa-file-pdf fa-2x me-3 text-danger"></i>
                             <div>
                                 <h5>Файл задания</h5>
-                                <a th:href="@{/files/{fileId}(fileId=${task.attachedFile})}" class="btn btn-outline-primary" target="_blank">
+                                    <a th:href="@{'/v1/api/files/download?path=' + ${#strings.replace(#strings.replace(task.attachedFile, '/', '%2F'), ' ', '%20')}}" class="btn btn-outline-primary" target="_blank">
                                     <i class="fas fa-download"></i> Скачать файл задания
                                 </a>
+                                </div>
                             </div>
+                        </div>
+                        <div th:if="${task.attachedFile == null || task.attachedFile.isEmpty()}" class="text-muted">
+                            <i class="fas fa-info-circle me-2"></i>Материалы к заданию не прикреплены
                         </div>
                     </div>
                 </div>
@@ -179,7 +184,7 @@
                                             
                                             <div th:if="${solution.answerFile}">
                                                 <h6>Файл ответа:</h6>
-                                                <a th:href="@{/files/{fileId}(fileId=${solution.answerFile})}" class="btn btn-outline-primary btn-sm" target="_blank">
+                                                <a th:href="@{'/v1/api/files/download?path=' + ${#strings.replace(#strings.replace(solution.answerFile, '/', '%2F'), ' ', '%20')}}" class="btn btn-outline-primary btn-sm" target="_blank">
                                                     <i class="fas fa-download"></i> Скачать
                                                 </a>
                                             </div>
@@ -189,7 +194,7 @@
                                             <a th:href="@{/teacher/solution/{solutionId}(solutionId=${solution.solutionId})}" class="btn btn-primary w-100 mb-2">
                                                 <i class="fas fa-eye"></i> Просмотреть решение
                                             </a>
-                                            <button class="btn btn-success w-100" onclick="gradeSolution(/*[[${solution.solutionId}]]*/)">
+                                            <button class="btn btn-success w-100" th:attr="onclick=|gradeSolution(${solution.solutionId})|">
                                                 <i class="fas fa-star"></i> Быстрая оценка
                                             </button>
                                         </div>
@@ -221,17 +226,33 @@
             const taskId = /*[[${task.taskId}]]*/ '1';
             
             if (confirm('Вы уверены, что хотите удалить это задание? Это действие нельзя отменить.')) {
-                // In a real implementation, you would send a DELETE request to the server
-                alert('Задание будет удалено в следующем обновлении');
-                // window.location.href = `/teacher/course/${courseId}/lesson/${lessonId}`;
+                // Send DELETE request to the server
+                fetch(`/teacher/course/${courseId}/lesson/${lessonId}/task/${taskId}/delete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    }
+                })
+                .then(response => {
+                    if (response.ok || response.redirected) {
+                        window.location.href = `/teacher/course/${courseId}/lesson/${lessonId}`;
+                    } else {
+                        alert('Ошибка при удалении задания');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ошибка при удалении задания: ' + error.message);
+                });
             }
         }
         
         function gradeSolution(solutionId) {
             // For quick grading, we'll prompt for grade and feedback
-            const gradeValue = prompt('Введите оценку (1-5):');
-            if (!gradeValue || gradeValue < 1 || gradeValue > 5) {
-                alert('Пожалуйста, введите оценку от 1 до 5');
+            const gradeValue = prompt('Введите оценку (0-5):\n0 - Неудовлетворительно\n1 - Очень плохо\n2 - Плохо\n3 - Удовлетворительно\n4 - Хорошо\n5 - Отлично');
+            if (gradeValue === null) return; // User cancelled
+            if (gradeValue === '' || gradeValue < 0 || gradeValue > 5) {
+                alert('Пожалуйста, введите оценку от 0 до 5');
                 return;
             }
             
@@ -253,11 +274,8 @@
                 body: JSON.stringify(grade)
             })
             .then(response => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error('Failed to submit grade');
-                }
+                if (response.ok) return response.json();
+                return response.text().then(t => { throw new Error(t || 'Failed to submit grade'); });
             })
             .then(data => {
                 // Show success message
@@ -284,6 +302,10 @@
                             newBadge.textContent = 'Проверено';
                             statusContainer.appendChild(newBadge);
                         }
+
+                        // Disable the quick grade button after success
+                        button.disabled = true;
+                        button.innerHTML = '<i class="fas fa-lock"></i> Оценка выставлена';
                     }
                 });
             })

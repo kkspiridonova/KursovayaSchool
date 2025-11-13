@@ -57,7 +57,21 @@ public class FileService {
     }
 
     public String getFileUrl(String objectName) {
-        return minioFileService.getFileUrl(objectName);
+        // Return API endpoint URL instead of presigned URL
+        if (objectName == null || objectName.isEmpty()) {
+            return null;
+        }
+        // Encode the path for URL
+        try {
+            String encodedPath = java.net.URLEncoder.encode(objectName, "UTF-8").replace("+", "%20");
+            return "/v1/api/files/image?path=" + encodedPath;
+        } catch (Exception e) {
+            return "/v1/api/files/image?path=" + objectName;
+        }
+    }
+
+    public InputStream getFileInputStream(String objectName) throws IOException {
+        return minioFileService.downloadFile(objectName);
     }
 
     public FileModel getFileInfo(Long fileId) {

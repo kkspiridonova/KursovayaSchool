@@ -33,7 +33,7 @@
                 <span class="navbar-text me-3" th:if="${#authentication != null}">
                     Добро пожаловать, <span th:text="${#authentication.name}"></span>!
                 </span>
-                <a class="nav-link" th:href="@{/teacher/course/{courseId}(courseId=${course.courseId})}">Назад к курсу</a>
+                <a class="nav-link" th:href="@{'/teacher/course/' + ${course.courseId}}">Назад к курсу</a>
                 <a class="nav-link" href="/teacher">Мои курсы</a>
                 <a class="nav-link" href="/logout">Выйти</a>
             </div>
@@ -57,7 +57,7 @@
                             <span th:text="${error}">Ошибка</span>
                         </div>
                         
-                        <form th:action="@{/teacher/course/{courseId}/create-lesson(courseId=${course.courseId})}" 
+                        <form th:action="@{'/teacher/course/' + ${course.courseId} + '/create-lesson'}" 
                               th:object="${lesson}" method="post" enctype="multipart/form-data">
                             <div class="mb-3">
                                 <label for="title" class="form-label">Название урока *</label>
@@ -76,7 +76,7 @@
                             </div>
                             
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                <a th:href="@{/teacher/course/{courseId}(courseId=${course.courseId})}" class="btn btn-secondary me-md-2">
+                                <a th:href="@{'/teacher/course/' + ${course.courseId}}" class="btn btn-secondary me-md-2">
                                     Отмена
                                 </a>
                                 <button type="submit" class="btn btn-primary">

@@ -93,10 +93,23 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="calendar-tab" data-bs-toggle="tab" data-bs-target="#calendar" type="button" role="tab" aria-controls="calendar" aria-selected="false">Календарь</button>
             </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" th:href="@{'/teacher/course/' + ${course.courseId} + '/materials'}">Материалы</a>
+            </li>
         </ul>
 
         <!-- Tab Content -->
         <div class="tab-content" id="courseTabsContent">
+            <!-- Flash Messages -->
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                <span th:text="${error}">Ошибка</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                <span th:text="${success}">Успех</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            
             <!-- Description Tab -->
             <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
                 <div class="row mt-4">
@@ -234,8 +247,18 @@
         
         function createLesson() {
             const courseId = /*[[${course.courseId}]]*/ '1';
-            // Redirect to create lesson page
-            window.location.href = `/teacher/course/${courseId}/create-lesson`;
+            const courseStatus = /*[[${course.courseStatus != null ? course.courseStatus.statusName : 'не установлен'}]]*/ 'не установлен';
+            
+            if (courseId) {
+                // Check if course is in "Активный" status
+                if (courseStatus !== 'Активный') {
+                    alert('Уроки и задания можно создавать только когда курс в статусе "Активный".\n\nТекущий статус курса: ' + courseStatus + '\n\nКурс еще не начался. Дождитесь начала курса, чтобы создавать уроки и задания.');
+                    return;
+                }
+                window.location.href = `/teacher/course/${courseId}/create-lesson`;
+            } else {
+                alert('Ошибка: не удалось определить ID курса');
+            }
         }
         
         function createTask() {

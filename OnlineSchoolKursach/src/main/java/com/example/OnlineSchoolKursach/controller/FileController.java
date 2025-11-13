@@ -5,6 +5,7 @@ import com.example.OnlineSchoolKursach.model.FileModel;
 import com.example.OnlineSchoolKursach.model.UserModel;
 import com.example.OnlineSchoolKursach.service.AuthService;
 import com.example.OnlineSchoolKursach.service.FileService;
+import com.example.OnlineSchoolKursach.service.MinioFileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 @RestController
@@ -35,6 +38,9 @@ public class FileController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private MinioFileService minioFileService;
 
     @PostMapping("/upload")
     @Operation(summary = "Загрузить файл", description = "Загрузка файла в систему")
@@ -65,6 +71,7 @@ public class FileController {
             response.setDescription(uploadedFile.getDescription());
             response.setUploadDate(uploadedFile.getUploadDate());
             response.setUrl(fileService.getFileUrl(uploadedFile.getFilePath()));
+            response.setFilePath(uploadedFile.getFilePath());
             
             return ResponseEntity.ok(response);
         } catch (IOException e) {
@@ -72,6 +79,38 @@ public class FileController {
                     .body("Ошибка при загрузке файла: " + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Ошибка: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/upload-solution")
+    @Operation(summary = "Загрузить файл решения", description = "Загрузка файла решения в MinIO (папка solutions/)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Файл успешно загружен"),
+            @ApiResponse(responseCode = "400", description = "Ошибка в запросе"),
+            @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
+    })
+    public ResponseEntity<?> uploadSolutionFile(
+            @Parameter(description = "Файл для загрузки") 
+            @RequestParam("file") MultipartFile file,
+            @Parameter(description = "Данные аутентификации") 
+            Authentication authentication) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body("Файл не может быть пустым");
+            }
+            
+            // Upload file to MinIO in solutions/ folder
+            String filePath = minioFileService.uploadFile(file, "solution");
+            
+            // Return file path for use in solution
+            java.util.Map<String, String> response = new java.util.HashMap<>();
+            response.put("filePath", filePath);
+            response.put("originalName", file.getOriginalFilename());
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Ошибка при загрузке файла: " + e.getMessage());
         }
     }
 
@@ -154,6 +193,102 @@ public class FileController {
                     .body("Ошибка при удалении файла: " + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Ошибка: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/image")
+    @Operation(summary = "Получить изображение", description = "Получение изображения из MinIO по пути")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Изображение успешно получено"),
+            @ApiResponse(responseCode = "404", description = "Изображение не найдено"),
+            @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
+    })
+    public ResponseEntity<Resource> getImage(
+            @Parameter(description = "Путь к изображению в MinIO") 
+            @RequestParam("path") String path) {
+        try {
+            if (path == null || path.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // Decode URL-encoded path
+            String imagePath = java.net.URLDecoder.decode(path, "UTF-8");
+
+            InputStream inputStream = fileService.getFileInputStream(imagePath);
+            Resource resource = new InputStreamResource(inputStream);
+            
+            // Determine content type
+            String contentType = "image/jpeg";
+            if (imagePath.toLowerCase().endsWith(".png")) {
+                contentType = "image/png";
+            } else if (imagePath.toLowerCase().endsWith(".gif")) {
+                contentType = "image/gif";
+            } else if (imagePath.toLowerCase().endsWith(".webp")) {
+                contentType = "image/webp";
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CACHE_CONTROL, "max-age=3600")
+                    .body(resource);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/download")
+    @Operation(summary = "Скачать файл из MinIO", description = "Скачивание файла из MinIO по пути")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Файл успешно скачан"),
+            @ApiResponse(responseCode = "404", description = "Файл не найден"),
+            @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
+    })
+    public ResponseEntity<Resource> downloadFileFromMinio(
+            @Parameter(description = "Путь к файлу в MinIO") 
+            @RequestParam("path") String path) {
+        try {
+            if (path == null || path.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // Decode URL-encoded path
+            String filePath = java.net.URLDecoder.decode(path, java.nio.charset.StandardCharsets.UTF_8);
+
+            InputStream inputStream = fileService.getFileInputStream(filePath);
+            Resource resource = new InputStreamResource(inputStream);
+            
+            // Extract filename from path
+            String filename = filePath.substring(filePath.lastIndexOf("/") + 1);
+            if (filename.isEmpty()) {
+                filename = "file";
+            }
+            
+            // Determine content type based on file extension
+            String contentType = "application/octet-stream";
+            String lowerPath = filePath.toLowerCase();
+            if (lowerPath.endsWith(".pdf")) {
+                contentType = "application/pdf";
+            } else if (lowerPath.endsWith(".doc") || lowerPath.endsWith(".docx")) {
+                contentType = "application/msword";
+            } else if (lowerPath.endsWith(".xls") || lowerPath.endsWith(".xlsx")) {
+                contentType = "application/vnd.ms-excel";
+            } else if (lowerPath.endsWith(".txt")) {
+                contentType = "text/plain";
+            } else if (lowerPath.endsWith(".zip")) {
+                contentType = "application/zip";
+            } else if (lowerPath.endsWith(".jpg") || lowerPath.endsWith(".jpeg")) {
+                contentType = "image/jpeg";
+            } else if (lowerPath.endsWith(".png")) {
+                contentType = "image/png";
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, 
+                            "attachment; filename=\"" + filename + "\"")
+                    .body(resource);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
         }
     }
 }

@@ -99,10 +99,13 @@
             <li class="nav-item" role="presentation" th:if="${isEnrolled}">
                 <button class="nav-link" id="assignments-tab" data-bs-toggle="tab" data-bs-target="#assignments" type="button" role="tab" aria-controls="assignments" aria-selected="false">Задания</button>
             </li>
-            <li class="nav-item" role="presentation" th:if="${isEnrolled}">
-                <button class="nav-link" id="calendar-tab" data-bs-toggle="tab" data-bs-target="#calendar" type="button" role="tab" aria-controls="calendar" aria-selected="false">Календарь</button>
-            </li>
         </ul>
+
+        <!-- Error Message -->
+        <div th:if="${param.error != null}" class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
+            <span th:text="${param.error[0]}">Ошибка</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
 
         <!-- Tab Content -->
         <div class="tab-content" id="courseTabsContent">
@@ -164,6 +167,18 @@
                                         <strong>Преподаватель:</strong>
                                         <span class="text-muted" th:text="${course.teacher.firstName + ' ' + course.teacher.lastName}">Имя преподавателя</span>
                                     </li>
+                                    <li class="mb-2">
+                                        <strong>Студентов:</strong>
+                                        <span class="text-muted" th:text="${enrolledCount} + '/' + ${course.capacity != null ? course.capacity : '∞'}">0/∞</span>
+                                    </li>
+                                    <li class="mb-2" th:if="${course.startDate != null}">
+                                        <strong>Начало курса:</strong>
+                                        <span class="text-muted fw-bold text-primary" th:text="${#temporals.format(course.startDate, 'dd.MM.yyyy')}">01.01.2025</span>
+                                    </li>
+                                    <li class="mb-2" th:if="${course.endDate != null}">
+                                        <strong>Окончание курса:</strong>
+                                        <span class="text-muted fw-bold text-primary" th:text="${#temporals.format(course.endDate, 'dd.MM.yyyy')}">31.12.2025</span>
+                                    </li>
                                 </ul>
                             </div>
                         </div>
@@ -175,6 +190,13 @@
                             <div class="card-body">
                                 <button class="btn btn-primary w-100 mb-2" th:if="${!isEnrolled}" onclick="showEnrollmentConfirmation()">
                                     <i class="fas fa-user-plus"></i> Записаться на курс
+                                </button>
+                                <button class="btn btn-success w-100 mb-2" 
+                                        th:if="${course.price != null && course.price > 0 && 
+                                                (course.courseStatus == null || course.courseStatus.statusName != 'Заполнен') && 
+                                                (course.startDate == null || course.startDate.isAfter(T(java.time.LocalDate).now()))}" 
+                                        onclick="showGiftCardPurchaseConfirmation()">
+                                    <i class="fas fa-gift"></i> Купить подарочную карту
                                 </button>
                                 <div th:if="${isEnrolled}" class="alert alert-success">
                                     <i class="fas fa-check-circle"></i> Вы уже записаны на этот курс
@@ -224,21 +246,6 @@
                 </div>
             </div>
 
-            <!-- Calendar Tab -->
-            <div class="tab-pane fade" id="calendar" role="tabpanel" aria-labelledby="calendar-tab" th:if="${isEnrolled}">
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3>Календарь курса</h3>
-                            </div>
-                            <div class="card-body">
-                                <p class="text-muted text-center">Календарь пока не заполнен</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -278,8 +285,13 @@
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="paymentMethod" id="giftCard" value="giftCard">
                             <label class="form-check-label" for="giftCard">
-                                Сертификат
+                                Подарочная карта
                             </label>
+                        </div>
+                        <div id="giftCardCodeInput" class="mt-3" style="display: none;">
+                            <label for="giftCardCode" class="form-label"><strong>Код подарочной карты:</strong></label>
+                            <input type="text" class="form-control" id="giftCardCode" placeholder="Введите код подарочной карты">
+                            <small class="form-text text-muted">Введите код подарочной карты для оплаты курса</small>
                         </div>
                     </div>
                 </div>
@@ -324,6 +336,103 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
                     <button type="button" class="btn btn-primary" onclick="submitBankCardPayment()">Оплатить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gift Card Purchase Confirmation Modal -->
+    <div class="modal fade" id="giftCardPurchaseModal" tabindex="-1" aria-labelledby="giftCardPurchaseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="giftCardPurchaseModalLabel">Покупка подарочной карты</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Название курса:</strong></label>
+                        <p class="form-control-plaintext" th:text="${course.title}">Название курса</p>
+                    </div>
+                    <div class="mb-3" th:if="${course.category != null}">
+                        <label class="form-label"><strong>Категория:</strong></label>
+                        <p class="form-control-plaintext" th:text="${course.category.categoryName}">Категория</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Сумма подарочной карты:</strong></label>
+                        <p class="form-control-plaintext" th:text="${course.price != null ? course.price + ' руб.' : 'Бесплатно'}">Цена</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Выберите способ оплаты:</strong></label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="giftCardPaymentMethod" id="giftCardBankCard" value="bankCard" checked>
+                            <label class="form-check-label" for="giftCardBankCard">
+                                Банковская карта
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" onclick="processGiftCardPayment()">Оплатить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gift Card Bank Card Payment Modal -->
+    <div class="modal fade" id="giftCardBankCardModal" tabindex="-1" aria-labelledby="giftCardBankCardModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="giftCardBankCardModalLabel">Оплата банковской картой</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="giftCardBankCardForm">
+                        <div class="mb-3">
+                            <label for="giftCardCardNumber" class="form-label">Номер карты</label>
+                            <input type="text" class="form-control" id="giftCardCardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="giftCardExpiryDate" class="form-label">Срок действия</label>
+                                <input type="text" class="form-control" id="giftCardExpiryDate" placeholder="MM/YY" maxlength="5">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="giftCardCvv" class="form-label">CVV</label>
+                                <input type="password" class="form-control" id="giftCardCvv" placeholder="123" maxlength="3">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="giftCardCardholderName" class="form-label">Имя владельца карты</label>
+                            <input type="text" class="form-control" id="giftCardCardholderName" placeholder="Иван Иванов">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" onclick="submitGiftCardBankCardPayment()">Оплатить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gift Card Purchase Success Modal -->
+    <div class="modal fade" id="giftCardSuccessModal" tabindex="-1" aria-labelledby="giftCardSuccessModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="giftCardSuccessModalLabel">Успешная покупка</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Подарочная карта успешно куплена!</p>
+                    <p id="giftCardDetails"></p>
+                    <p>Подарочная карта добавлена в ваш профиль. Код карты можно использовать при покупке курса.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="redirectToStudentPage()">OK</button>
                 </div>
             </div>
         </div>
@@ -527,6 +636,18 @@
             enrollmentModal.show();
         }
 
+        // Show/hide gift card code input based on payment method
+        document.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const giftCardCodeInput = document.getElementById('giftCardCodeInput');
+                if (this.value === 'giftCard') {
+                    giftCardCodeInput.style.display = 'block';
+                } else {
+                    giftCardCodeInput.style.display = 'none';
+                }
+            });
+        });
+
         function processPayment() {
             const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
 
@@ -539,10 +660,51 @@
                     const bankCardModal = new bootstrap.Modal(document.getElementById('bankCardModal'));
                     bankCardModal.show();
                 }, 300);
-            } else {
+            } else if (paymentMethod === 'giftCard') {
                 // Handle gift card payment
-                enrollInCourse();
+                const giftCardCode = document.getElementById('giftCardCode').value.trim();
+                if (!giftCardCode) {
+                    alert('Пожалуйста, введите код подарочной карты');
+                    return;
+                }
+                useGiftCardAndEnroll(giftCardCode);
             }
+        }
+
+        function useGiftCardAndEnroll(giftCardCode) {
+            const courseId = /*[[${course.courseId}]]*/ '1';
+
+            // First use the gift card
+            fetch('/v1/api/gift-cards/use', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    code: giftCardCode,
+                    courseId: courseId
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    return response.text().then(text => { throw new Error(text || 'Ошибка при использовании карты'); });
+                }
+            })
+            .then(giftCard => {
+                // Close enrollment modal
+                const enrollmentModal = bootstrap.Modal.getInstance(document.getElementById('enrollmentModal'));
+                enrollmentModal.hide();
+                
+                // Now enroll in course
+                enrollInCourse();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка при использовании подарочной карты: ' + error.message);
+            });
         }
 
         function submitBankCardPayment() {
@@ -582,16 +744,100 @@
                     const successModal = new bootstrap.Modal(document.getElementById('successModal'));
                     successModal.show();
                 } else {
-                    alert('Ошибка при записи на курс');
+                    // Try to get error message from response
+                    response.text().then(text => {
+                        try {
+                            const errorData = JSON.parse(text);
+                            alert(errorData.message || 'Ошибка при записи на курс');
+                        } catch (e) {
+                            alert(text || 'Ошибка при записи на курс');
+                        }
+                    }).catch(() => {
+                        alert('Ошибка при записи на курс');
+                    });
                 }
             })
             .catch(error => {
-                alert('Ошибка при записи на курс: ' + error.message);
+                alert('Ошибка при записи на курс: ' + (error.message || 'Неизвестная ошибка'));
             });
         }
 
         function redirectToStudentPage() {
             window.location.href = '/student';
+        }
+
+        function showGiftCardPurchaseConfirmation() {
+            const giftCardPurchaseModal = new bootstrap.Modal(document.getElementById('giftCardPurchaseModal'));
+            giftCardPurchaseModal.show();
+        }
+
+        function processGiftCardPayment() {
+            const paymentMethod = document.querySelector('input[name="giftCardPaymentMethod"]:checked').value;
+
+            if (paymentMethod === 'bankCard') {
+                // Hide gift card purchase modal and show bank card modal
+                const giftCardPurchaseModal = bootstrap.Modal.getInstance(document.getElementById('giftCardPurchaseModal'));
+                giftCardPurchaseModal.hide();
+
+                setTimeout(() => {
+                    const giftCardBankCardModal = new bootstrap.Modal(document.getElementById('giftCardBankCardModal'));
+                    giftCardBankCardModal.show();
+                }, 300);
+            }
+        }
+
+        function submitGiftCardBankCardPayment() {
+            // Validate form fields
+            const cardNumber = document.getElementById('giftCardCardNumber').value.trim();
+            const expiryDate = document.getElementById('giftCardExpiryDate').value.trim();
+            const cvv = document.getElementById('giftCardCvv').value.trim();
+            const cardholderName = document.getElementById('giftCardCardholderName').value.trim();
+
+            if (!cardNumber || !expiryDate || !cvv || !cardholderName) {
+                alert('Пожалуйста, заполните все поля');
+                return;
+            }
+
+            // Simulate payment processing
+            const giftCardBankCardModal = bootstrap.Modal.getInstance(document.getElementById('giftCardBankCardModal'));
+            giftCardBankCardModal.hide();
+
+            setTimeout(() => {
+                purchaseGiftCardForCourse();
+            }, 300);
+        }
+
+        function purchaseGiftCardForCourse() {
+            const courseId = /*[[${course.courseId}]]*/ '1';
+
+            fetch(`/v1/api/gift-cards/purchase/course/${courseId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    return response.text().then(text => { throw new Error(text || 'Ошибка при покупке'); });
+                }
+            })
+            .then(giftCard => {
+                // Show success modal
+                const giftCardDetails = document.getElementById('giftCardDetails');
+                giftCardDetails.innerHTML = `
+                    <strong>Код карты:</strong> ${giftCard.cardNumber}<br>
+                    <strong>Баланс:</strong> ${giftCard.balance} руб.
+                `;
+                const successModal = new bootstrap.Modal(document.getElementById('giftCardSuccessModal'));
+                successModal.show();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка при покупке подарочной карты: ' + error.message);
+            });
         }
     </script>
 </body>

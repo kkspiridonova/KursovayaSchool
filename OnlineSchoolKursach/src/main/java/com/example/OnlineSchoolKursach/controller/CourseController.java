@@ -68,6 +68,26 @@ public class CourseController {
         }
     }
 
+    @GetMapping("/teacher/all")
+    @Operation(summary = "Получить все курсы преподавателя", description = "Получение списка всех курсов преподавателя, включая архивные")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Список курсов успешно получен", 
+                content = @Content(mediaType = "application/json", 
+                    schema = @Schema(implementation = CourseModel.class))),
+            @ApiResponse(responseCode = "400", description = "Ошибка в запросе")
+    })
+    public ResponseEntity<List<CourseModel>> getAllCoursesByTeacher(
+            @Parameter(description = "Данные аутентификации") 
+            Authentication authentication) {
+        try {
+            UserModel user = authService.getUserByEmail(authentication.getName());
+            List<CourseModel> courses = courseService.getAllCoursesByTeacher(user);
+            return ResponseEntity.ok(courses);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     @GetMapping("/my/enrollments")
     @Operation(summary = "Получить все записи пользователя", description = "Получение списка всех записей текущего пользователя на курсы")
     @ApiResponses(value = {
@@ -203,7 +223,7 @@ public class CourseController {
             @ApiResponse(responseCode = "400", description = "Ошибка в запросе"),
             @ApiResponse(responseCode = "404", description = "Курс не найден")
     })
-    public ResponseEntity<EnrollmentModel> enrollInCourse(
+    public ResponseEntity<?> enrollInCourse(
             @Parameter(description = "Идентификатор курса") 
             @PathVariable Long courseId,
             @Parameter(description = "Данные аутентификации") 
@@ -213,7 +233,10 @@ public class CourseController {
             EnrollmentModel enrollment = courseService.enrollUserInCourse(user, courseId);
             return ResponseEntity.ok(enrollment);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            // Return error message in response body
+            java.util.Map<String, String> errorResponse = new java.util.HashMap<>();
+            errorResponse.put("message", e.getMessage() != null ? e.getMessage() : "Ошибка при записи на курс");
+            return ResponseEntity.badRequest().body(errorResponse);
         }
     }
 }

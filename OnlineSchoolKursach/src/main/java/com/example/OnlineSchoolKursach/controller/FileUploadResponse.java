@@ -24,6 +24,10 @@ public class FileUploadResponse {
 
     @Schema(description = "URL для доступа к файлу", example = "http://localhost:9000/school-files/uuid-filename.jpg")
     private String url;
+
+    @Schema(description = "Путь к файлу в MinIO", example = "images/uuid-filename.jpg")
+    private String filePath;
+
     public Long getId() {
         return id;
     }
@@ -78,5 +82,13 @@ public class FileUploadResponse {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
     }
 }
