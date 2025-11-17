@@ -31,9 +31,6 @@ public class CertificateController {
     @Autowired
     private MinioFileService minioFileService;
 
-    /**
-     * Страница со списком сертификатов студента
-     */
     @GetMapping("/student/certificates")
     public String studentCertificatesPage(Model model, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -47,9 +44,6 @@ public class CertificateController {
         return "student-certificates";
     }
 
-    /**
-     * Скачивание сертификата
-     */
     @GetMapping("/student/certificate/{certificateId}/download")
     public ResponseEntity<InputStreamResource> downloadCertificate(
             @PathVariable Long certificateId,
@@ -59,21 +53,23 @@ public class CertificateController {
             return ResponseEntity.status(401).build();
         }
 
-        CertificateModel certificate = certificateRepository.findById(certificateId)
-                .orElse(null);
-
+        CertificateModel certificate = certificateRepository.findById(certificateId).orElse(null);
         if (certificate == null) {
             return ResponseEntity.notFound().build();
         }
 
-        // Проверяем, что сертификат принадлежит текущему пользователю
         UserModel user = authService.getUserByEmail(authentication.getName());
         if (!certificate.getUser().getUserId().equals(user.getUserId())) {
             return ResponseEntity.status(403).build();
         }
 
+        String filePath = resolveCertificatePath(certificate);
+        if (filePath == null) {
+            return ResponseEntity.internalServerError().build();
+        }
+
         try {
-            InputStream pdfStream = minioFileService.downloadFile(certificate.getFilePath());
+            InputStream pdfStream = minioFileService.downloadFileWithFallback(filePath);
 
             HttpHeaders headers = new HttpHeaders();
             headers.add(HttpHeaders.CONTENT_DISPOSITION, 
@@ -86,6 +82,16 @@ public class CertificateController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    private String resolveCertificatePath(CertificateModel certificate) {
+        if (certificate.getFilePath() != null && !certificate.getFilePath().isBlank()) {
+            return certificate.getFilePath();
+        }
+        if (certificate.getDocumentFile() != null && !certificate.getDocumentFile().isBlank()) {
+            return certificate.getDocumentFile();
+        }
+        return null;
     }
 }
 

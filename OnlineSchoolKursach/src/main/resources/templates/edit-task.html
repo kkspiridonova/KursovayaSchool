@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактирование задания - SupSchool</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/custom-theme.css}">
+    <script src="/js/user-settings.js"></script>
+    <script src="/js/teacher-hotkeys.js"></script>
+    <style>
+        .task-header {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .task-title {
+            font-size: 2rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            margin: 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body data-context="teacher-task"
+      th:data-course-id="${course.courseId}"
+      th:data-lesson-id="${lesson.lessonId}"
+      th:data-task-id="${task.taskId}">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-info">
+        <div class="container">
+            <a class="navbar-brand text-white" href="/">SupSchool</a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3 text-white" th:if="${#authentication != null}">
+                    Добро пожаловать, <span th:text="${#authentication.name}"></span>!
+                </span>
+                <a class="nav-link text-white" th:href="@{'/teacher/course/' + ${course.courseId} + '/lesson/' + ${lesson.lessonId} + '/task/' + ${task.taskId}}">Назад к заданию</a>
+                <a class="nav-link text-white" th:href="@{'/teacher/course/' + ${course.courseId} + '/lesson/' + ${lesson.lessonId}}">Назад к уроку</a>
+                <a class="nav-link text-white" href="/teacher">Мои курсы</a>
+                <a class="nav-link text-white" href="/logout">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="task-header">
+        <h1 class="task-title" th:text="'Редактирование задания: ' + ${task.title}">Редактирование задания</h1>
+    </div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Редактирование задания</h3>
+                        <p class="mb-0" th:text="${'Для урока: ' + lesson.title}">Для урока: Название урока</p>
+                        <p class="mb-0" th:text="${'Курс: ' + course.title}">Курс: Название курса</p>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+                        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+                        
+                        <form th:action="@{'/teacher/course/' + ${course.courseId} + '/lesson/' + ${lesson.lessonId} + '/task/' + ${task.taskId} + '/edit'}" 
+                              method="post" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Название задания *</label>
+                                <input type="text" class="form-control" id="title" name="title" th:value="${task.title}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Описание задания *</label>
+                                <textarea class="form-control" id="description" name="description" rows="5" required th:text="${task.description}"></textarea>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="deadline" class="form-label">Крайний срок выполнения *</label>
+                                    <input type="date" class="form-control" id="deadline" name="deadline" 
+                                           th:value="${#temporals.format(task.deadline, 'yyyy-MM-dd')}" required>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div th:if="${task.attachedFile != null && !task.attachedFile.isEmpty()}">
+                                        <label class="form-label">Текущий файл</label>
+                                        <div>
+                                            <a th:href="@{'/v1/api/files/download?path=' + ${#strings.replace(#strings.replace(task.attachedFile, '/', '%2F'), ' ', '%20')}}" 
+                                               class="btn btn-outline-primary btn-sm" target="_blank">
+                                                <i class="fas fa-download"></i> Скачать текущий файл
+                                            </a>
+                                        </div>
+                                        <div class="form-text">Оставьте поле ниже пустым, чтобы сохранить текущий файл</div>
+                                    </div>
+                                    <label for="attachedFile" class="form-label">Новый файл (опционально)</label>
+                                    <input type="file" class="form-control" id="attachedFile" name="attachedFile" accept="*/*">
+                                    <div class="form-text">Выберите новый файл, чтобы заменить текущий</div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <a th:href="@{'/teacher/course/' + ${course.courseId} + '/lesson/' + ${lesson.lessonId} + '/task/' + ${task.taskId}}" 
+                                   class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Отмена
+                                </a>
+                                <button type="submit" class="btn btn-primary" data-action="save">
+                                    <i class="fas fa-save"></i> Сохранить изменения
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('deadline').min = today;
+        });
+    </script>
+</body>
+</html>
+

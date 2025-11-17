@@ -125,7 +125,6 @@ public class AuthService {
                     user.setImageUrl(fullUrl);
                 }
             } catch (Exception e) {
-                // Log error but don't fail
             }
         }
         return user;

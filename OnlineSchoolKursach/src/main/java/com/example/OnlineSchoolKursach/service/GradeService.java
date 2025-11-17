@@ -29,6 +29,9 @@ public class GradeService {
     @Autowired
     private SolutionStatusRepository solutionStatusRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
     public GradeModel getGradeById(Long gradeId) {
         Optional<GradeModel> grade = gradeRepository.findById(gradeId);
         return grade.orElse(null);
@@ -36,7 +39,6 @@ public class GradeService {
 
     @Transactional
     public GradeModel createGrade(GradeModel grade) {
-        // REUSE existing grade record by id or by value, do NOT create new rows
         SolutionModel solution = grade.getSolution();
         if (solution == null) {
             throw new RuntimeException("Решение не может быть null при установке оценки");
@@ -47,11 +49,8 @@ public class GradeService {
             targetGrade = gradeRepository.findById(grade.getGradeId())
                     .orElseThrow(() -> new RuntimeException("Оценка с id=" + grade.getGradeId() + " не найдена"));
         } else if (grade.getGradeValue() != null) {
-            // Используем findFirstByGradeValue для получения первой записи, если есть дубликаты
             targetGrade = gradeRepository.findFirstByGradeValue(grade.getGradeValue());
             if (targetGrade == null) {
-                // Fallback: иногда в БД могут использовать id=0..5 для значений 0..5
-                // Для пятибалльной системы: 0, 1, 2, 3, 4, 5
                 Long gradeId = Long.valueOf(grade.getGradeValue());
                 targetGrade = gradeRepository.findById(gradeId).orElse(null);
             }
@@ -65,10 +64,15 @@ public class GradeService {
         logger.info("Linking solution {} to existing grade id={}, value={}",
                 solution.getSolutionId(), targetGrade.getGradeId(), targetGrade.getGradeValue());
 
-        // Link existing grade; do not change solution status here
         solution.setGrade(targetGrade);
-        solutionRepository.save(solution);
+        SolutionModel savedSolution = solutionRepository.save(solution);
         logger.info("Solution {} updated with grade_id={}", solution.getSolutionId(), targetGrade.getGradeId());
+
+        try {
+            notificationService.sendGradeNotification(targetGrade, savedSolution);
+        } catch (Exception e) {
+            logger.error("Error sending grade notification: {}", e.getMessage(), e);
+        }
 
         return targetGrade;
     }
@@ -82,7 +86,7 @@ public class GradeService {
             existingGrade.setFeedback(updatedGrade.getFeedback());
             GradeModel g = gradeRepository.save(existingGrade);
             logger.info("Grade {} updated: value={}, feedback='{}'", g.getGradeId(), g.getGradeValue(), g.getFeedback());
-            // Ensure linkage remains intact if provided
+
             if (updatedGrade.getSolution() != null && updatedGrade.getSolution().getSolutionId() != null) {
                 SolutionModel solution = updatedGrade.getSolution();
                 solution.setGrade(g);

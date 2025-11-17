@@ -124,7 +124,7 @@ public class CertificateModel {
 
     public void setFilePath(String filePath) {
         this.filePath = filePath;
-        // Синхронизируем documentFile с filePath
+
         this.documentFile = filePath;
     }
 

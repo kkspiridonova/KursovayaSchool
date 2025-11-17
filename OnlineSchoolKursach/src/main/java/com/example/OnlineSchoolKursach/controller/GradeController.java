@@ -71,29 +71,24 @@ public class GradeController {
             Authentication authentication) {
         try {
             UserModel user = authService.getUserByEmail(authentication.getName());
-            
-            // Load the full solution object from database
+
             SolutionModel solution = null;
             if (grade.getSolution() != null && grade.getSolution().getSolutionId() != null) {
                 solution = solutionService.getSolutionById(grade.getSolution().getSolutionId());
             }
-            
-            // Check if solution exists and user is teacher of the course
+
             if (solution == null) {
                 return ResponseEntity.badRequest().build();
             }
-            
-            // Verify the user is the teacher of the course
+
             if (!solution.getTask().getLesson().getCourse().getTeacher().getUserId().equals(user.getUserId())) {
                 return ResponseEntity.badRequest().build();
             }
-            
-            // Запрет повторной оценки: если у решения уже есть оценка — ошибка
+
             if (solution.getGrade() != null) {
                 return ResponseEntity.badRequest().body("Оценка уже выставлена и не может быть изменена");
             }
 
-            // Always link to an EXISTING grade (by id or by value); do not create new grade rows
             grade.setSolution(solution);
             GradeModel linkedGrade = gradeService.createGrade(grade);
             return ResponseEntity.ok(toDto(linkedGrade, solution.getSolutionId()));
@@ -121,13 +116,12 @@ public class GradeController {
             Authentication authentication) {
         try {
             UserModel user = authService.getUserByEmail(authentication.getName());
-            // Load the existing grade from database
+
             GradeModel existingGrade = gradeService.getGradeById(gradeId);
             if (existingGrade == null) {
                 return ResponseEntity.notFound().build();
             }
-            
-            // Check if user is teacher of the course
+
             if (!existingGrade.getSolution().getTask().getLesson().getCourse().getTeacher().getUserId().equals(user.getUserId())) {
                 return ResponseEntity.badRequest().build();
             }
@@ -167,13 +161,12 @@ public class GradeController {
             Authentication authentication) {
         try {
             UserModel user = authService.getUserByEmail(authentication.getName());
-            // Load the existing grade from database
+
             GradeModel existingGrade = gradeService.getGradeById(gradeId);
             if (existingGrade == null) {
                 return ResponseEntity.notFound().build();
             }
-            
-            // Check if user is teacher of the course
+
             if (!existingGrade.getSolution().getTask().getLesson().getCourse().getTeacher().getUserId().equals(user.getUserId())) {
                 return ResponseEntity.badRequest().build();
             }

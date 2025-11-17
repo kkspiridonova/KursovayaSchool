@@ -1,5 +1,6 @@
 package com.example.OnlineSchoolKursach.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -29,6 +30,7 @@ public class CommentModel {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_comment_id")
+    @JsonIgnoreProperties({"parentComment", "task", "lesson"})
     private CommentModel parentComment;
 
     @NotBlank

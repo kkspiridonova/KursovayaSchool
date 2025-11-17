@@ -26,21 +26,20 @@ public class CertificateEmailService {
     @Autowired
     private MinioFileService minioFileService;
 
-    /**
-     * Отправляет сертификат на email студента
-     */
+    @Autowired
+    private com.example.OnlineSchoolKursach.repository.CertificateRepository certificateRepository;
+
     @Transactional
     public boolean sendCertificateByEmail(CertificateModel certificate) {
         try {
-            if (certificate.getFilePath() == null || certificate.getFilePath().isEmpty()) {
+            String filePath = resolveFilePath(certificate);
+            if (filePath == null) {
                 logger.error("Certificate file path is empty for certificate: {}", certificate.getCertificateId());
                 return false;
             }
 
-            // Получаем PDF из MinIO
-            InputStream pdfStream = minioFileService.downloadFile(certificate.getFilePath());
+            InputStream pdfStream = minioFileService.downloadFileWithFallback(filePath);
 
-            // Создаем email сообщение
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
@@ -54,18 +53,16 @@ public class CertificateEmailService {
             String emailBody = buildEmailBody(studentName, courseTitle, certificate.getIssueDate(), 
                     certificate.getCertificateNumber());
 
-            helper.setText(emailBody, true); // true = HTML
+            helper.setText(emailBody, true);
 
-            // Прикрепляем PDF сертификата
             helper.addAttachment("Сертификат_" + certificate.getCertificateNumber() + ".pdf", 
                     new InputStreamResource(pdfStream), "application/pdf");
 
-            // Отправляем email
             mailSender.send(message);
 
-            // Обновляем статус отправки
             certificate.setEmailSent(true);
             certificate.setEmailSentDate(LocalDate.now());
+            certificateRepository.save(certificate);
 
             logger.info("Certificate email sent successfully to: {} for certificate: {}", 
                     studentEmail, certificate.getCertificateNumber());
@@ -107,8 +104,18 @@ public class CertificateEmailService {
                 "<p><strong>Дата выдачи:</strong> " + issueDate.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy")) + "</p>" +
                 "<p>Сертификат также доступен в вашем личном кабинете на сайте.</p>" +
                 "<p>Желаем дальнейших успехов в обучении!</p>" +
-                "<p>С уважением,<br>Команда Онлайн Школы</p>" +
+                "<p>С уважением,<br>Команда SupSchool</p>" +
                 "</body></html>";
+    }
+
+    private String resolveFilePath(CertificateModel certificate) {
+        if (certificate.getFilePath() != null && !certificate.getFilePath().isBlank()) {
+            return certificate.getFilePath();
+        }
+        if (certificate.getDocumentFile() != null && !certificate.getDocumentFile().isBlank()) {
+            return certificate.getDocumentFile();
+        }
+        return null;
     }
 }
 

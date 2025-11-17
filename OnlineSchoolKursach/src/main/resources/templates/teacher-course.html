@@ -3,8 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${'Курс: ' + course.title + ' - Онлайн Школа'}">Детали курса - Онлайн Школа</title>
+    <title th:text="${'Курс: ' + course.title + ' - SupSchool'}">Детали курса - SupSchool</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/custom-theme.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/user-settings.js"></script>
+    <script src="/js/teacher-hotkeys.js"></script>
     <style>
         .course-header {
             position: relative;
@@ -56,21 +61,24 @@
         }
     </style>
 </head>
-<body>
+<body data-context="teacher-course" th:data-course-id="${course.courseId}">
     <nav class="navbar navbar-expand-lg navbar-dark bg-info">
         <div class="container">
-            <a class="navbar-brand" href="/">Онлайн Школа</a>
-            <div class="navbar-nav ms-auto">
+            <a class="navbar-brand text-white" href="/">SupSchool</a>
+            <div class="navbar-nav ms-auto d-flex align-items-center">
                 <span class="navbar-text me-3" th:if="${#authentication != null}">
                     Добро пожаловать, <span th:text="${#authentication.name}"></span>!
                 </span>
+                <button id="themeToggle" class="btn btn-sm btn-outline-light me-2" title="Переключить тему">
+                    🌙
+                </button>
                 <a class="nav-link" href="/teacher">Назад к курсам</a>
                 <a class="nav-link" href="/logout">Выйти</a>
             </div>
         </div>
     </nav>
 
-    <!-- ======= ГЛАВНЫЙ БЛОК С КАРТИНКОЙ ======= -->
+    
     <div class="course-header">
         <img th:if="${course.imageUrl}" th:src="${course.imageUrl}" th:alt="${course.title}">
         <div th:unless="${course.imageUrl}" style="width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
@@ -82,7 +90,7 @@
     </div>
 
     <div class="container">
-        <!-- Tabs Navigation -->
+        
         <ul class="nav nav-tabs" id="courseTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab" aria-controls="description" aria-selected="true">Описание</button>
@@ -98,9 +106,9 @@
             </li>
         </ul>
 
-        <!-- Tab Content -->
+        
         <div class="tab-content" id="courseTabsContent">
-            <!-- Flash Messages -->
+            
             <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
                 <span th:text="${error}">Ошибка</span>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -110,10 +118,10 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             
-            <!-- Description Tab -->
+            
             <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
                 <div class="row mt-4">
-                    <!-- Course Content -->
+                    
                     <div class="col-md-8">
                         <div class="card mb-4">
                             <div class="card-header">
@@ -139,7 +147,7 @@
                         </div>
                     </div>
 
-                    <!-- Sidebar -->
+                    
                     <div class="col-md-4">
                         <div class="card mb-4 course-meta">
                             <div class="card-header">
@@ -177,8 +185,11 @@
                                 <h5>Управление курсом</h5>
                             </div>
                             <div class="card-body">
-                                <button class="btn btn-warning w-100 mb-2" onclick="editCourse()">
+                                <button class="btn btn-warning w-100 mb-2" onclick="editCourse()" data-action="edit-course">
                                     <i class="fas fa-edit"></i> Редактировать курс
+                                </button>
+                                <button class="btn btn-info w-100 mb-2" onclick="copyCourse()" data-action="copy-course">
+                                    <i class="fas fa-copy"></i> Копировать курс
                                 </button>
                                 <a href="/teacher" class="btn btn-outline-secondary w-100">
                                     <i class="fas fa-arrow-left"></i> Назад к списку курсов
@@ -189,14 +200,14 @@
                 </div>
             </div>
 
-            <!-- Lessons Tab -->
+            
             <div class="tab-pane fade" id="lessons" role="tabpanel" aria-labelledby="lessons-tab">
                 <div class="row mt-4">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h3>Уроки курса</h3>
-                                <button class="btn btn-success" onclick="createLesson()">
+                                <button class="btn btn-success" onclick="createLesson()" data-action="create-lesson">
                                     <i class="fas fa-plus"></i> Добавить урок
                                 </button>
                             </div>
@@ -210,7 +221,7 @@
                 </div>
             </div>
 
-            <!-- Calendar Tab -->
+            
             <div class="tab-pane fade" id="calendar" role="tabpanel" aria-labelledby="calendar-tab">
                 <div class="row mt-4">
                     <div class="col-12">
@@ -234,15 +245,25 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
     <script th:inline="javascript">
-        // Load lessons when lessons tab is shown
+
         document.getElementById('lessons-tab').addEventListener('shown.bs.tab', function (e) {
             loadLessons();
         });
 
         function editCourse() {
             const courseId = /*[[${course.courseId}]]*/ '1';
-            // Redirect to edit course page or open edit modal
+
             window.location.href = `/teacher/edit-course/${courseId}`;
+        }
+        
+        function copyCourse() {
+            const courseId = /*[[${course.courseId}]]*/ '1';
+
+            const params = new URLSearchParams({
+                copy: 'true',
+                courseId: courseId
+            });
+            window.location.href = `/teacher?${params.toString()}`;
         }
         
         function createLesson() {
@@ -250,19 +271,19 @@
             const courseStatus = /*[[${course.courseStatus != null ? course.courseStatus.statusName : 'не установлен'}]]*/ 'не установлен';
             
             if (courseId) {
-                // Check if course is in "Активный" status
+
                 if (courseStatus !== 'Активный') {
                     alert('Уроки и задания можно создавать только когда курс в статусе "Активный".\n\nТекущий статус курса: ' + courseStatus + '\n\nКурс еще не начался. Дождитесь начала курса, чтобы создавать уроки и задания.');
                     return;
                 }
-                window.location.href = `/teacher/course/${courseId}/create-lesson`;
+            window.location.href = `/teacher/course/${courseId}/create-lesson`;
             } else {
                 alert('Ошибка: не удалось определить ID курса');
             }
         }
         
         function createTask() {
-            // For now, we'll redirect to the first lesson if it exists, or show an alert
+
             alert('Пожалуйста, перейдите к уроку, чтобы добавить задание');
         }
         

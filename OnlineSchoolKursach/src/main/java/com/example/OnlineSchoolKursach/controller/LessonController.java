@@ -86,11 +86,11 @@ public class LessonController {
             Authentication authentication) {
         try {
             UserModel user = authService.getUserByEmail(authentication.getName());
-            // Check if user is teacher of the course
+
             if (!lesson.getCourse().getTeacher().getUserId().equals(user.getUserId())) {
                 return ResponseEntity.badRequest().build();
             }
-            // Restrict creating lessons when course is recruiting or active
+
             String statusName = lesson.getCourse().getCourseStatus() != null ? lesson.getCourse().getCourseStatus().getStatusName() : null;
             if ("Идет набор".equals(statusName) || "Активный".equals(statusName)) {
                 return ResponseEntity.badRequest().build();
@@ -121,7 +121,7 @@ public class LessonController {
             Authentication authentication) {
         try {
             UserModel user = authService.getUserByEmail(authentication.getName());
-            // Check if user is teacher of the course
+
             LessonModel existingLesson = lessonService.getLessonById(lessonId);
             if (existingLesson == null || 
                 !existingLesson.getCourse().getTeacher().getUserId().equals(user.getUserId())) {
@@ -153,7 +153,7 @@ public class LessonController {
             Authentication authentication) {
         try {
             UserModel user = authService.getUserByEmail(authentication.getName());
-            // Check if user is teacher of the course
+
             LessonModel existingLesson = lessonService.getLessonById(lessonId);
             if (existingLesson == null || 
                 !existingLesson.getCourse().getTeacher().getUserId().equals(user.getUserId())) {

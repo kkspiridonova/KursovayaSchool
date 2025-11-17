@@ -3,9 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Панель администратора - Онлайн Школа</title>
+    <title>Панель администратора - SupSchool</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/custom-theme.css}">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="/js/user-settings.js"></script>
     <style>
         .admin-card {
             transition: transform 0.2s;
@@ -29,18 +35,21 @@
 <body class="bg-light">
     <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
         <div class="container">
-            <a class="navbar-brand" href="/">Онлайн Школа - Админ панель</a>
-            <div class="navbar-nav ms-auto">
-                <span class="navbar-text me-3" th:if="${#authentication != null}">
+            <a class="navbar-brand text-white" href="/">SupSchool - Админ панель</a>
+            <div class="navbar-nav ms-auto d-flex align-items-center">
+                <span class="navbar-text me-3 text-white" th:if="${#authentication != null}">
                     Добро пожаловать, <span th:text="${#authentication.name}"></span>!
                 </span>
-                <a class="nav-link" href="/logout">Выйти</a>
+                <button id="themeToggle" class="btn btn-sm btn-outline-light me-2" title="Переключить тему">
+                    🌙
+                </button>
+                <a class="nav-link text-white" href="/logout">Выйти</a>
             </div>
         </div>
     </nav>
 
     <div class="container mt-4">
-        <!-- Tabs Navigation -->
+        
         <ul class="nav nav-tabs" id="adminTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button" role="tab" aria-controls="courses" aria-selected="true">Курсы</button>
@@ -55,43 +64,51 @@
                 <button class="nav-link" id="enrollments-tab" data-bs-toggle="tab" data-bs-target="#enrollments" type="button" role="tab" aria-controls="enrollments" aria-selected="false">Записи на курсы</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="files-tab" data-bs-toggle="tab" data-bs-target="#files" type="button" role="tab" aria-controls="files" aria-selected="false">Файлы</button>
+                <button class="nav-link" id="lessons-tab" data-bs-toggle="tab" data-bs-target="#lessons" type="button" role="tab" aria-controls="lessons" aria-selected="false">Уроки</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button" role="tab" aria-controls="tasks" aria-selected="false">Задания</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="certificates-tab" data-bs-toggle="tab" data-bs-target="#certificates" type="button" role="tab" aria-controls="certificates" aria-selected="false">Сертификаты</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="checks-tab" data-bs-toggle="tab" data-bs-target="#checks" type="button" role="tab" aria-controls="checks" aria-selected="false">Чеки</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="gift-cards-tab" data-bs-toggle="tab" data-bs-target="#gift-cards" type="button" role="tab" aria-controls="gift-cards" aria-selected="false">Подарочные карты</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button" role="tab" aria-controls="comments" aria-selected="false">Комментарии</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab" aria-controls="reports" aria-selected="false">
+                    <i class="fas fa-chart-bar"></i> Отчёты
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="charts-tab" data-bs-toggle="tab" data-bs-target="#charts" type="button" role="tab" aria-controls="charts" aria-selected="false">
+                    <i class="fas fa-chart-pie"></i> Графики
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="audit-tab" data-bs-toggle="tab" data-bs-target="#audit" type="button" role="tab" aria-controls="audit" aria-selected="false">
+                    <i class="fas fa-history"></i> Логи аудита
+                </button>
             </li>
         </ul>
 
-        <!-- Tab Content -->
+        
         <div class="tab-content" id="adminTabsContent">
-            <!-- Courses Tab -->
+            
             <div class="tab-pane fade show active" id="courses" role="tabpanel" aria-labelledby="courses-tab">
                 <div class="row mt-4">
                     <div class="col-12">
                         <h3>Управление курсами</h3>
-                        <p class="text-muted">Просмотр и удаление курсов. Администратор может только удалять курсы.</p>
-                    </div>
-                </div>
-                
-                <!-- Кнопка для тестирования выдачи сертификатов -->
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <div class="card border-warning">
-                            <div class="card-header bg-warning text-dark">
-                                <h5 class="mb-0"><i class="fas fa-certificate"></i> Тестирование выдачи сертификатов</h5>
-                            </div>
-                            <div class="card-body">
-                                <p class="text-muted">Нажмите кнопку ниже, чтобы вручную запустить проверку завершенных курсов и выдачу сертификатов студентам.</p>
-                                <p class="text-muted small"><strong>Условия для выдачи сертификата:</strong></p>
-                                <ul class="text-muted small">
-                                    <li>Курс должен быть завершен (endDate <= сегодня)</li>
-                                    <li>Студент должен быть зачислен на курс</li>
-                                    <li>Все задания должны быть выполнены</li>
-                                    <li>По всем решениям должны быть выставлены оценки</li>
-                                </ul>
-                                <button class="btn btn-warning" onclick="checkAndIssueCertificates()">
-                                    <i class="fas fa-play"></i> Запустить проверку сертификатов
-                                </button>
-                                <div id="certificateCheckResult" class="mt-3"></div>
-                            </div>
-                        </div>
+                        <p class="text-muted">Полное управление курсами (создание, редактирование, удаление).</p>
+                        <button class="btn btn-primary btn-sm" onclick="showCreateModal('courses')">
+                            <i class="fas fa-plus"></i> Создать курс
+                        </button>
                     </div>
                 </div>
                 
@@ -114,12 +131,15 @@
                 </div>
             </div>
 
-            <!-- Users Tab -->
+            
             <div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
                 <div class="row mt-4">
                     <div class="col-12">
                         <h3>Пользователи</h3>
-                        <p class="text-muted">Просмотр информации о пользователях системы.</p>
+                        <p class="text-muted">Управление пользователями системы.</p>
+                        <button class="btn btn-primary btn-sm" onclick="showCreateModal('users')">
+                            <i class="fas fa-plus"></i> Создать пользователя
+                        </button>
                     </div>
                 </div>
 
@@ -142,12 +162,15 @@
                 </div>
             </div>
 
-            <!-- Categories Tab -->
+            
             <div class="tab-pane fade" id="categories" role="tabpanel" aria-labelledby="categories-tab">
                 <div class="row mt-4">
                     <div class="col-12">
                         <h3>Категории курсов</h3>
-                        <p class="text-muted">Просмотр категорий курсов.</p>
+                        <p class="text-muted">Управление категориями курсов.</p>
+                        <button class="btn btn-primary btn-sm" onclick="showCreateModal('categories')">
+                            <i class="fas fa-plus"></i> Создать категорию
+                        </button>
                     </div>
                 </div>
 
@@ -170,12 +193,15 @@
                 </div>
             </div>
 
-            <!-- Enrollments Tab -->
+            
             <div class="tab-pane fade" id="enrollments" role="tabpanel" aria-labelledby="enrollments-tab">
                 <div class="row mt-4">
                     <div class="col-12">
                         <h3>Записи на курсы</h3>
-                        <p class="text-muted">Просмотр всех записей пользователей на курсы.</p>
+                        <p class="text-muted">Управление записями пользователей на курсы.</p>
+                        <button class="btn btn-primary btn-sm" onclick="showCreateModal('enrollments')">
+                            <i class="fas fa-plus"></i> Создать запись
+                        </button>
                     </div>
                 </div>
 
@@ -198,12 +224,226 @@
                 </div>
             </div>
 
-            <!-- Files Tab -->
-            <div class="tab-pane fade" id="files" role="tabpanel" aria-labelledby="files-tab">
+            
+            <div class="tab-pane fade" id="lessons" role="tabpanel" aria-labelledby="lessons-tab">
                 <div class="row mt-4">
                     <div class="col-12">
-                        <h3>Файлы</h3>
-                        <p class="text-muted">Просмотр всех файлов в системе.</p>
+                        <h3>Уроки</h3>
+                        <p class="text-muted">Управление уроками курсов.</p>
+                        <button class="btn btn-primary btn-sm" onclick="showCreateModal('lessons')">
+                            <i class="fas fa-plus"></i> Создать урок
+                        </button>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Список уроков</h5>
+                                <button class="btn btn-outline-primary btn-sm" onclick="loadTableData('lessons')">
+                                    <i class="fas fa-sync-alt"></i> Обновить
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="lessonsList"></div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+
+            
+            <div class="tab-pane fade" id="tasks" role="tabpanel" aria-labelledby="tasks-tab">
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h3>Задания</h3>
+                        <p class="text-muted">Управление заданиями.</p>
+                        <button class="btn btn-primary btn-sm" onclick="showCreateModal('tasks')">
+                            <i class="fas fa-plus"></i> Создать задание
+                        </button>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Список заданий</h5>
+                                <button class="btn btn-outline-primary btn-sm" onclick="loadTableData('tasks')">
+                                    <i class="fas fa-sync-alt"></i> Обновить
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="tasksList"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            
+            <div class="tab-pane fade" id="certificates" role="tabpanel" aria-labelledby="certificates-tab">
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h3>Сертификаты</h3>
+                        <p class="text-muted">Управление сертификатами.</p>
+                        <button class="btn btn-primary btn-sm" onclick="showCreateModal('certificates')">
+                            <i class="fas fa-plus"></i> Создать сертификат
+                        </button>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Список сертификатов</h5>
+                                <button class="btn btn-outline-primary btn-sm" onclick="loadTableData('certificates')">
+                                    <i class="fas fa-sync-alt"></i> Обновить
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="certificatesList"></div>
+                            </div>
+                        </div>
+            </div>
+        </div>
+    </div>
+
+            
+            <div class="tab-pane fade" id="checks" role="tabpanel" aria-labelledby="checks-tab">
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h3>Чеки</h3>
+                        <p class="text-muted">Управление чеками платежей.</p>
+                        <button class="btn btn-primary btn-sm" onclick="showCreateModal('checks')">
+                            <i class="fas fa-plus"></i> Создать чек
+                        </button>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Список чеков</h5>
+                                <button class="btn btn-outline-primary btn-sm" onclick="loadTableData('checks')">
+                                    <i class="fas fa-sync-alt"></i> Обновить
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="checksList"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="tab-pane fade" id="gift-cards" role="tabpanel" aria-labelledby="gift-cards-tab">
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h3>Подарочные карты</h3>
+                        <p class="text-muted">Управление подарочными картами.</p>
+                        <button class="btn btn-primary btn-sm" onclick="showCreateModal('gift-cards')">
+                            <i class="fas fa-plus"></i> Создать карту
+                        </button>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Список подарочных карт</h5>
+                                <button class="btn btn-outline-primary btn-sm" onclick="loadTableData('gift-cards')">
+                                    <i class="fas fa-sync-alt"></i> Обновить
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="gift-cardsList"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="tab-pane fade" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h3>Комментарии</h3>
+                        <p class="text-muted">Управление комментариями.</p>
+                        <button class="btn btn-primary btn-sm" onclick="showCreateModal('comments')">
+                            <i class="fas fa-plus"></i> Создать комментарий
+                        </button>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Список комментариев</h5>
+                                <button class="btn btn-outline-primary btn-sm" onclick="loadTableData('comments')">
+                                    <i class="fas fa-sync-alt"></i> Обновить
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="commentsList"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="tab-pane fade" id="reports" role="tabpanel" aria-labelledby="reports-tab">
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h3><i class="fas fa-chart-bar"></i> Отчёты по курсам</h3>
+                        <p class="text-muted">Детальная статистика по всем курсам системы.</p>
+                    </div>
+                </div>
+
+                
+                <div class="row mt-3 mb-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-file-csv"></i> Экспорт/Импорт данных</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <h6>Экспорт в CSV:</h6>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <button class="btn btn-success btn-sm" onclick="exportToCsv('users')">
+                                                <i class="fas fa-download"></i> Пользователи
+                                            </button>
+                                            <button class="btn btn-success btn-sm" onclick="exportToCsv('courses')">
+                                                <i class="fas fa-download"></i> Курсы
+                                            </button>
+                                            <button class="btn btn-success btn-sm" onclick="exportToCsv('enrollments')">
+                                                <i class="fas fa-download"></i> Записи на курсы
+                                            </button>
+                                            <button class="btn btn-success btn-sm" onclick="exportToCsv('statistics')">
+                                                <i class="fas fa-download"></i> Статистика по курсам
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <h6>Импорт из CSV:</h6>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <label class="btn btn-primary btn-sm">
+                                                <i class="fas fa-upload"></i> Импорт пользователей
+                                                <input type="file" accept=".csv" style="display: none;" onchange="importFromCsv('users', this.files[0])">
+                                            </label>
+                                            <label class="btn btn-primary btn-sm">
+                                                <i class="fas fa-upload"></i> Импорт курсов
+                                                <input type="file" accept=".csv" style="display: none;" onchange="importFromCsv('courses', this.files[0])">
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="importResult" class="mt-3"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -211,14 +451,142 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5>Список файлов</h5>
-                                <button class="btn btn-outline-primary btn-sm" onclick="loadFiles()">
+                                <h5>Статистика по курсам</h5>
+                                <button class="btn btn-outline-primary btn-sm" onclick="loadReports()">
                                     <i class="fas fa-sync-alt"></i> Обновить
                                 </button>
                             </div>
                             <div class="card-body">
-                                <div id="filesList">
-                                    <p class="text-muted text-center">Загрузка списка файлов...</p>
+                                <div id="reportsList">
+                                    <p class="text-muted text-center">Загрузка отчётов...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="tab-pane fade" id="charts" role="tabpanel" aria-labelledby="charts-tab">
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="row align-items-end">
+                                    <div class="col-md-3">
+                                        <label for="dateFrom" class="form-label">Дата начала:</label>
+                                        <input type="date" class="form-control" id="dateFrom" onchange="updateCharts()">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="dateTo" class="form-label">Дата окончания:</label>
+                                        <input type="date" class="form-control" id="dateTo" onchange="updateCharts()">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">&nbsp;</label>
+                                        <div>
+                                            <button class="btn btn-primary w-100" onclick="updateCharts()">
+                                                <i class="fas fa-filter"></i> Применить фильтр
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">&nbsp;</label>
+                                        <div>
+                                            <button class="btn btn-success w-100" onclick="exportChartsToPDF()">
+                                                <i class="fas fa-file-pdf"></i> Экспорт в PDF
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <h3><i class="fas fa-chart-pie"></i> Графики и аналитика</h3>
+                        <p class="text-muted">Визуализация данных системы.</p>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Статистика по статусам курсов</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="statusChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Топ-5 курсов по выручке</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="revenueChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Общая статистика</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="dashboardStats">
+                                    <p class="text-muted text-center">Загрузка статистики...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Распределение студентов по курсам</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="studentsChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="tab-pane fade" id="audit" role="tabpanel" aria-labelledby="audit-tab">
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h3><i class="fas fa-history"></i> Логи аудита</h3>
+                        <p class="text-muted">История всех изменений в системе.</p>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Журнал действий</h5>
+                                <div>
+                                    <select class="form-select form-select-sm d-inline-block" id="auditLimit" style="width: auto;" onchange="loadAuditLogs()">
+                                        <option value="50">Последние 50</option>
+                                        <option value="100" selected>Последние 100</option>
+                                        <option value="200">Последние 200</option>
+                                        <option value="500">Последние 500</option>
+                                    </select>
+                                    <button class="btn btn-outline-primary btn-sm ms-2" onclick="loadAuditLogs()">
+                                        <i class="fas fa-sync-alt"></i> Обновить
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="auditLogsList">
+                                    <p class="text-muted text-center">Загрузка логов...</p>
                                 </div>
                             </div>
                         </div>
@@ -228,7 +596,7 @@
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
+    
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -249,7 +617,7 @@
         </div>
     </div>
 
-    <!-- Edit Enrollment Status Modal -->
+    
     <div class="modal fade" id="editStatusModal" tabindex="-1" aria-labelledby="editStatusModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -262,7 +630,7 @@
                     <div class="mb-3">
                         <label for="statusSelect" class="form-label">Выберите новый статус:</label>
                         <select class="form-select" id="statusSelect">
-                            <!-- Status options will be populated dynamically -->
+                            
                         </select>
                     </div>
                 </div>
@@ -276,14 +644,15 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
-        // Global variable to store enrollment statuses
+
         let enrollmentStatuses = [];
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Load data for the active tab (courses by default)
+
             loadCourses();
-            // Load enrollment statuses for use in the modal
+
             loadEnrollmentStatuses();
         });
 
@@ -507,45 +876,131 @@
             });
         }
 
-        function loadFiles() {
-            fetch('/v1/api/files/list', {
+        const tableEndpoints = {
+            'users': '/v1/api/admin/users',
+            'courses': '/v1/api/admin/courses',
+            'categories': '/v1/api/admin/categories',
+            'enrollments': '/v1/api/admin/enrollments',
+            'lessons': '/v1/api/admin/lessons',
+            'tasks': '/v1/api/admin/tasks',
+            'solutions': '/v1/api/admin/solutions',
+            'grades': '/v1/api/admin/grades',
+            'certificates': '/v1/api/admin/certificates',
+            'checks': '/v1/api/admin/checks',
+            'gift-cards': '/v1/api/admin/gift-cards',
+            'comments': '/v1/api/admin/comments'
+        };
+
+        function loadTableData(tableName) {
+            const endpoint = tableEndpoints[tableName];
+            if (!endpoint) {
+                console.error('Unknown table:', tableName);
+                return;
+            }
+
+            const listElement = document.getElementById(tableName + 'List');
+            if (!listElement) {
+                console.error('List element not found for:', tableName);
+                return;
+            }
+
+            listElement.innerHTML = '<p class="text-muted text-center">Загрузка...</p>';
+
+            fetch(endpoint, {
                 headers: {
                     'Authorization': 'Bearer ' + localStorage.getItem('token')
                 }
             })
-            .then(response => response.json())
-            .then(files => {
-                const filesList = document.getElementById('filesList');
-                if (files.length === 0) {
-                    filesList.innerHTML = '<p class="text-muted text-center">Пока нет файлов в системе</p>';
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Loaded data for', tableName, ':', data);
+                if (!data || data.length === 0) {
+                    listElement.innerHTML = '<p class="text-muted text-center">Нет данных</p>';
                 } else {
+                    listElement.innerHTML = renderTable(data, tableName);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading', tableName, ':', error);
+                listElement.innerHTML = '<p class="text-danger text-center">Ошибка загрузки данных: ' + error.message + '</p>';
+            });
+        }
+
+        function renderTable(data, tableName) {
+            if (!data || data.length === 0) return '<p class="text-muted text-center">Нет данных</p>';
+            
+            const firstItem = data[0];
+            const columns = Object.keys(firstItem).filter(key => {
+                const value = firstItem[key];
+                if (key.includes('password')) return false;
+                if (tableName === 'grades' && key === 'solution') return false;
+                return true;
+            });
+
                     let html = `
                         <div class="table-responsive">
                             <table class="table table-striped table-hover">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Имя файла</th>
-                                        <th>Размер</th>
-                                        <th>Тип</th>
-                                        <th>Загружен</th>
-                                        <th>Пользователь</th>
+                                ${columns.map(col => `<th>${formatColumnName(col)}</th>`).join('')}
+                                <th>Действия</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                     `;
                     
-                    files.forEach(file => {
+            data.forEach(item => {
+                const idField = getIdField(tableName);
+                const id = item[idField];
+                if (!id) {
+                    console.warn('Item without ID:', item);
+                    return;
+                }
+                html += '<tr>';
+                columns.forEach(col => {
+                    let value = item[col];
+                    if (value === null || value === undefined) value = '-';
+                    else if (typeof value === 'object' && value !== null) {
+                        if (value.taskId) value = 'Задание #' + value.taskId + (value.title ? ' (' + value.title + ')' : '');
+                        else if (value.userId) value = (value.firstName && value.lastName ? value.firstName + ' ' + value.lastName : 'Пользователь #' + value.userId) + (value.email ? ' (' + value.email + ')' : '');
+                        else if (value.gradeId) value = 'Оценка #' + value.gradeId + (value.gradeValue !== undefined ? ' (' + value.gradeValue + ')' : '');
+                        else if (value.lessonId) value = 'Урок #' + value.lessonId + (value.title ? ' (' + value.title + ')' : '');
+                        else if (value.courseId) value = 'Курс #' + value.courseId + (value.title ? ' (' + value.title + ')' : '');
+                        else if (value.solutionId) value = 'Решение #' + value.solutionId;
+                        else if (value.id) value = value.id;
+                        else if (value.name) value = value.name;
+                        else if (value.statusName) value = value.statusName;
+                        else if (value.title) value = value.title;
+                        else if (value.firstName && value.lastName) value = value.firstName + ' ' + value.lastName;
+                        else if (value.categoryName) value = value.categoryName;
+                        else if (value.roleName) value = value.roleName;
+                        else value = JSON.stringify(value).substring(0, 50) + '...';
+                    } else if (typeof value === 'boolean') value = value ? 'Да' : 'Нет';
+                    else if (typeof value === 'string' && value.length > 100) value = value.substring(0, 100) + '...';
+                    if (typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        try {
+                            const date = new Date(value + 'T00:00:00');
+                            value = date.toLocaleDateString('ru-RU');
+                        } catch (e) {
+                        }
+                    }
+                    html += `<td>${escapeHtml(String(value))}</td>`;
+                });
                         html += `
-                            <tr>
-                                <td>${file.id || 'Не указан'}</td>
-                                <td>${file.originalName || 'Без названия'}</td>
-                                <td>${formatFileSize(file.fileSize) || 'Не указан'}</td>
-                                <td>${file.contentType || 'Не указан'}</td>
-                                <td>${file.uploadDate ? new Date(file.uploadDate).toLocaleDateString('ru-RU') : 'Не указана'}</td>
-                                <td>${file.uploaderUsername || 'Не указан'}</td>
-                            </tr>
-                        `;
+                    <td>
+                        <button class="btn btn-sm btn-warning me-1" onclick="showEditModal('${tableName}', ${id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteItem('${tableName}', ${id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
                     });
                     
                     html += `
@@ -553,11 +1008,785 @@
                             </table>
                         </div>
                     `;
-                    filesList.innerHTML = html;
+            return html;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function getIdField(tableName) {
+            const idFields = {
+                'users': 'userId',
+                'courses': 'courseId',
+                'categories': 'categoryId',
+                'enrollments': 'enrollmentId',
+                'lessons': 'lessonId',
+                'tasks': 'taskId',
+                'solutions': 'solutionId',
+                'grades': 'gradeId',
+                'certificates': 'certificateId',
+                'checks': 'checkId',
+                'gift-cards': 'giftCardId',
+                'comments': 'commentId'
+            };
+            return idFields[tableName] || 'id';
+        }
+
+        function formatColumnName(col) {
+            const names = {
+                'lessonId': 'ID', 'taskId': 'ID', 'solutionId': 'ID', 'gradeId': 'ID',
+                'certificateId': 'ID', 'checkId': 'ID', 'giftCardId': 'ID', 'commentId': 'ID',
+                'title': 'Название', 'description': 'Описание', 'content': 'Содержание',
+                'submitDate': 'Дата отправки', 'gradeValue': 'Оценка', 'feedback': 'Комментарий',
+                'issueDate': 'Дата выдачи', 'amount': 'Сумма', 'paymentDate': 'Дата платежа',
+                'code': 'Код', 'balance': 'Баланс', 'text': 'Текст', 'createdAt': 'Создан',
+                'answerText': 'Текст ответа', 'answerFile': 'Файл ответа', 'task': 'Задание',
+                'user': 'Пользователь', 'grade': 'Оценка', 'solutionStatus': 'Статус',
+                'lessonStatus': 'Статус', 'taskStatus': 'Статус', 'courseStatus': 'Статус',
+                'enrollmentStatus': 'Статус', 'paymentStatus': 'Статус', 'certificateStatus': 'Статус',
+                'category': 'Категория', 'course': 'Курс', 'lesson': 'Урок', 'teacher': 'Преподаватель',
+                'role': 'Роль', 'deadline': 'Дедлайн', 'attachedFile': 'Прикрепленный файл',
+                'certificateNumber': 'Номер сертификата', 'filePath': 'Путь к файлу',
+                'documentFile': 'Документ', 'emailSent': 'Email отправлен', 'emailSentDate': 'Дата отправки email',
+                'cardNumber': 'Номер карты', 'expiryDate': 'Срок действия', 'issueDate': 'Дата выдачи',
+                'parentCommentId': 'Родительский комментарий', 'lesson': 'Урок', 'task': 'Задание'
+            };
+            return names[col] || col;
+        }
+
+        let referenceData = {
+            roles: [],
+            courseStatuses: [],
+            lessonStatuses: [],
+            taskStatuses: [],
+            solutionStatuses: [],
+            enrollmentStatuses: [],
+            paymentStatuses: [],
+            certificateStatuses: [],
+            categories: [],
+            courses: [],
+            lessons: [],
+            tasks: [],
+            users: [],
+            grades: [],
+            giftCardStatuses: []
+        };
+
+        function loadReferenceData() {
+            Promise.all([
+                fetch('/v1/api/admin/roles').then(r => r.json()).then(d => referenceData.roles = d),
+                fetch('/v1/api/admin/course-statuses').then(r => r.json()).then(d => referenceData.courseStatuses = d),
+                fetch('/v1/api/admin/lesson-statuses').then(r => r.json()).then(d => referenceData.lessonStatuses = d),
+                fetch('/v1/api/admin/task-statuses').then(r => r.json()).then(d => referenceData.taskStatuses = d),
+                fetch('/v1/api/admin/solution-statuses').then(r => r.json()).then(d => referenceData.solutionStatuses = d),
+                fetch('/v1/api/admin/enrollment-statuses').then(r => r.json()).then(d => referenceData.enrollmentStatuses = d),
+                fetch('/v1/api/admin/payment-statuses').then(r => r.json()).then(d => referenceData.paymentStatuses = d),
+                fetch('/v1/api/admin/certificate-statuses').then(r => r.json()).then(d => referenceData.certificateStatuses = d),
+                fetch('/v1/api/admin/gift-card-statuses').then(r => r.json()).then(d => referenceData.giftCardStatuses = d),
+                fetch('/v1/api/admin/categories').then(r => r.json()).then(d => referenceData.categories = d),
+                fetch('/v1/api/admin/courses').then(r => r.json()).then(d => referenceData.courses = d),
+                fetch('/v1/api/admin/lessons').then(r => r.json()).then(d => referenceData.lessons = d),
+                fetch('/v1/api/admin/tasks').then(r => r.json()).then(d => referenceData.tasks = d),
+                fetch('/v1/api/admin/users').then(r => r.json()).then(d => referenceData.users = d),
+                fetch('/v1/api/admin/grades').then(r => r.json()).then(d => referenceData.grades = d)
+            ]).catch(err => console.error('Error loading reference data:', err));
+        }
+
+        loadReferenceData();
+
+        function showCreateModal(tableName) {
+            showCrudModal(tableName, null);
+        }
+
+        function showEditModal(tableName, id) {
+            const endpoint = tableEndpoints[tableName];
+            if (!endpoint) {
+                alert('Неизвестная таблица: ' + tableName);
+                return;
+            }
+
+            fetch(endpoint + '/' + id, {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                showCrudModal(tableName, data);
+            })
+            .catch(error => {
+                console.error('Error loading item:', error);
+                alert('Ошибка загрузки данных для редактирования');
+            });
+        }
+
+        function showCrudModal(tableName, item) {
+            const isEdit = item !== null;
+            const modalId = 'crudModal';
+            const existingModal = document.getElementById(modalId);
+            if (existingModal) existingModal.remove();
+
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = modalId;
+            modal.setAttribute('tabindex', '-1');
+            
+            const formFields = getFormFields(tableName, item);
+            
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">${isEdit ? 'Редактировать' : 'Создать'} ${getTableDisplayName(tableName)}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="crudForm">
+                                ${formFields}
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                            <button type="button" class="btn btn-primary" onclick="saveItem('${tableName}', ${isEdit ? item[getIdField(tableName)] : 'null'})">
+                                ${isEdit ? 'Сохранить' : 'Создать'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            const bsModal = new bootstrap.Modal(modal);
+            bsModal.show();
+            modal.addEventListener('hidden.bs.modal', () => modal.remove());
+        }
+
+        function getTableDisplayName(tableName) {
+            const names = {
+                'users': 'пользователя',
+                'courses': 'курс',
+                'categories': 'категорию',
+                'enrollments': 'запись на курс',
+                'lessons': 'урок',
+                'tasks': 'задание',
+                'solutions': 'решение',
+                'grades': 'оценку',
+                'certificates': 'сертификат',
+                'checks': 'чек',
+                'gift-cards': 'подарочную карту',
+                'comments': 'комментарий'
+            };
+            return names[tableName] || tableName;
+        }
+
+        function getFormFields(tableName, item) {
+            const isEdit = item !== null;
+            let fields = '';
+
+            switch(tableName) {
+                case 'users':
+                    if (isEdit) {
+
+                        fields = `
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> При редактировании пользователя можно изменить только роль.
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Текущий пользователь</label>
+                                <input type="text" class="form-control" value="${item?.firstName || ''} ${item?.lastName || ''} (${item?.email || ''})" disabled>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Роль *</label>
+                                <select class="form-select" name="role.roleId" required>
+                                    <option value="">Выберите роль</option>
+                                    ${referenceData.roles.map(r => 
+                                        `<option value="${r.roleId}" ${item?.role?.roleId === r.roleId ? 'selected' : ''}>${r.roleName}</option>`
+                                    ).join('')}
+                                </select>
+                            </div>
+                        `;
+                    } else {
+
+                        fields = `
+                            <div class="mb-3">
+                                <label class="form-label">Имя *</label>
+                                <input type="text" class="form-control" name="firstName" value="${item?.firstName || ''}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Фамилия *</label>
+                                <input type="text" class="form-control" name="lastName" value="${item?.lastName || ''}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Отчество</label>
+                                <input type="text" class="form-control" name="middleName" value="${item?.middleName || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email *</label>
+                                <input type="email" class="form-control" name="email" value="${item?.email || ''}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Пароль *</label>
+                                <input type="password" class="form-control" name="passwordHash" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Роль *</label>
+                                <select class="form-select" name="role.roleId" required>
+                                    <option value="">Выберите роль</option>
+                                    ${referenceData.roles.map(r => 
+                                        `<option value="${r.roleId}" ${item?.role?.roleId === r.roleId ? 'selected' : ''}>${r.roleName}</option>`
+                                    ).join('')}
+                                </select>
+                            </div>
+                        `;
+                    }
+                    break;
+                case 'courses':
+                    fields = `
+                        <div class="mb-3">
+                            <label class="form-label">Название *</label>
+                            <input type="text" class="form-control" name="title" value="${item?.title || ''}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Описание *</label>
+                            <textarea class="form-control" name="description" required>${item?.description || ''}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Цена *</label>
+                            <input type="number" step="0.01" class="form-control" name="price" value="${item?.price || ''}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Преподаватель *</label>
+                            <select class="form-select" name="teacher.userId" required>
+                                <option value="">Выберите преподавателя</option>
+                                ${referenceData.users.filter(u => u.role?.roleName === 'Преподаватель').map(u => 
+                                    `<option value="${u.userId}" ${item?.teacher?.userId === u.userId ? 'selected' : ''}>${u.firstName} ${u.lastName}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Статус *</label>
+                            <select class="form-select" name="courseStatus.courseStatusId" required>
+                                <option value="">Выберите статус</option>
+                                ${referenceData.courseStatuses.map(s => 
+                                    `<option value="${s.courseStatusId}" ${item?.courseStatus?.courseStatusId === s.courseStatusId ? 'selected' : ''}>${s.statusName}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Категория</label>
+                            <select class="form-select" name="category.categoryId">
+                                <option value="">Без категории</option>
+                                ${referenceData.categories.map(c => 
+                                    `<option value="${c.categoryId}" ${item?.category?.categoryId === c.categoryId ? 'selected' : ''}>${c.categoryName}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Вместимость</label>
+                            <input type="number" class="form-control" name="capacity" value="${item?.capacity || ''}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Дата начала</label>
+                            <input type="date" class="form-control" name="startDate" value="${item?.startDate || ''}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Дата окончания</label>
+                            <input type="date" class="form-control" name="endDate" value="${item?.endDate || ''}">
+                        </div>
+                    `;
+                    break;
+                case 'categories':
+                    fields = `
+                        <div class="mb-3">
+                            <label class="form-label">Название категории *</label>
+                            <input type="text" class="form-control" name="categoryName" value="${item?.categoryName || ''}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Описание</label>
+                            <textarea class="form-control" name="description">${item?.description || ''}</textarea>
+                        </div>
+                    `;
+                    break;
+                case 'enrollments':
+                    fields = `
+                        <div class="mb-3">
+                            <label class="form-label">Пользователь *</label>
+                            <select class="form-select" name="user.userId" required>
+                                <option value="">Выберите пользователя</option>
+                                ${referenceData.users.map(u => 
+                                    `<option value="${u.userId}" ${item?.user?.userId === u.userId ? 'selected' : ''}>${u.firstName} ${u.lastName} (${u.email})</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Курс *</label>
+                            <select class="form-select" name="course.courseId" required>
+                                <option value="">Выберите курс</option>
+                                ${referenceData.courses.map(c => 
+                                    `<option value="${c.courseId}" ${item?.course?.courseId === c.courseId ? 'selected' : ''}>${c.title}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Статус *</label>
+                            <select class="form-select" name="enrollmentStatus.enrollmentStatusId" required>
+                                <option value="">Выберите статус</option>
+                                ${referenceData.enrollmentStatuses.map(s => 
+                                    `<option value="${s.enrollmentStatusId}" ${item?.enrollmentStatus?.enrollmentStatusId === s.enrollmentStatusId ? 'selected' : ''}>${s.statusName}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Дата записи</label>
+                            <input type="date" class="form-control" name="date" value="${item?.date || new Date().toISOString().split('T')[0]}">
+                        </div>
+                    `;
+                    break;
+                case 'lessons':
+                    fields = `
+                        <div class="mb-3">
+                            <label class="form-label">Курс *</label>
+                            <select class="form-select" name="course.courseId" required>
+                                <option value="">Выберите курс</option>
+                                ${referenceData.courses.map(c => 
+                                    `<option value="${c.courseId}" ${item?.course?.courseId === c.courseId ? 'selected' : ''}>${c.title}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Название *</label>
+                            <input type="text" class="form-control" name="title" value="${item?.title || ''}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Содержание *</label>
+                            <textarea class="form-control" name="content" required>${item?.content || ''}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Прикрепленный файл</label>
+                            <input type="text" class="form-control" name="attachedFile" value="${item?.attachedFile || ''}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Статус *</label>
+                            <select class="form-select" name="lessonStatus.lessonStatusId" required>
+                                <option value="">Выберите статус</option>
+                                ${referenceData.lessonStatuses.map(s => 
+                                    `<option value="${s.lessonStatusId}" ${item?.lessonStatus?.lessonStatusId === s.lessonStatusId ? 'selected' : ''}>${s.statusName}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                    `;
+                    break;
+                case 'tasks':
+                    fields = `
+                        <div class="mb-3">
+                            <label class="form-label">Урок *</label>
+                            <select class="form-select" name="lesson.lessonId" required>
+                                <option value="">Выберите урок</option>
+                                ${referenceData.lessons.map(l => 
+                                    `<option value="${l.lessonId}" ${item?.lesson?.lessonId === l.lessonId ? 'selected' : ''}>${l.title}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Название *</label>
+                            <input type="text" class="form-control" name="title" value="${item?.title || ''}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Описание *</label>
+                            <textarea class="form-control" name="description" required>${item?.description || ''}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Дедлайн *</label>
+                            <input type="date" class="form-control" name="deadline" value="${item?.deadline || ''}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Прикрепленный файл</label>
+                            <input type="text" class="form-control" name="attachedFile" value="${item?.attachedFile || ''}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Статус *</label>
+                            <select class="form-select" name="taskStatus.taskStatusId" required>
+                                <option value="">Выберите статус</option>
+                                ${referenceData.taskStatuses.map(s => 
+                                    `<option value="${s.taskStatusId}" ${item?.taskStatus?.taskStatusId === s.taskStatusId ? 'selected' : ''}>${s.statusName}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                    `;
+                    break;
+                case 'solutions':
+                    fields = `
+                        <div class="mb-3">
+                            <label class="form-label">Задание *</label>
+                            <select class="form-select" name="task.taskId" required>
+                                <option value="">Выберите задание</option>
+                                ${referenceData.tasks.map(t => 
+                                    `<option value="${t.taskId}" ${item?.task?.taskId === t.taskId ? 'selected' : ''}>${t.title}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Пользователь *</label>
+                            <select class="form-select" name="user.userId" required>
+                                <option value="">Выберите пользователя</option>
+                                ${referenceData.users.map(u => 
+                                    `<option value="${u.userId}" ${item?.user?.userId === u.userId ? 'selected' : ''}>${u.firstName} ${u.lastName}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Текст ответа</label>
+                            <textarea class="form-control" name="answerText">${item?.answerText || ''}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Файл ответа</label>
+                            <input type="text" class="form-control" name="answerFile" value="${item?.answerFile || ''}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Дата отправки *</label>
+                            <input type="date" class="form-control" name="submitDate" value="${item?.submitDate || new Date().toISOString().split('T')[0]}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Статус *</label>
+                            <select class="form-select" name="solutionStatus.solutionStatusId" required>
+                                <option value="">Выберите статус</option>
+                                ${referenceData.solutionStatuses.map(s => 
+                                    `<option value="${s.solutionStatusId}" ${item?.solutionStatus?.solutionStatusId === s.solutionStatusId ? 'selected' : ''}>${s.statusName}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Оценка</label>
+                            <select class="form-select" name="grade.gradeId">
+                                <option value="">Без оценки</option>
+                                ${referenceData.grades ? referenceData.grades.map(g => 
+                                    `<option value="${g.gradeId}" ${item?.grade?.gradeId === g.gradeId ? 'selected' : ''}>${g.gradeValue}</option>`
+                                ).join('') : ''}
+                            </select>
+                        </div>
+                    `;
+                    break;
+                case 'grades':
+                    fields = `
+                        <div class="mb-3">
+                            <label class="form-label">Значение оценки (0-100) *</label>
+                            <input type="number" min="0" max="100" class="form-control" name="gradeValue" value="${item?.gradeValue || ''}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Комментарий</label>
+                            <textarea class="form-control" name="feedback">${item?.feedback || ''}</textarea>
+                        </div>
+                    `;
+                    break;
+                case 'certificates':
+                    fields = `
+                        <div class="mb-3">
+                            <label class="form-label">Пользователь *</label>
+                            <select class="form-select" name="user.userId" required>
+                                <option value="">Выберите пользователя</option>
+                                ${referenceData.users.map(u => 
+                                    `<option value="${u.userId}" ${item?.user?.userId === u.userId ? 'selected' : ''}>${u.firstName} ${u.lastName}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Курс *</label>
+                            <select class="form-select" name="course.courseId" required>
+                                <option value="">Выберите курс</option>
+                                ${referenceData.courses.map(c => 
+                                    `<option value="${c.courseId}" ${item?.course?.courseId === c.courseId ? 'selected' : ''}>${c.title}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Номер сертификата *</label>
+                            <input type="text" class="form-control" name="certificateNumber" value="${item?.certificateNumber || ''}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Дата выдачи *</label>
+                            <input type="date" class="form-control" name="issueDate" value="${item?.issueDate || new Date().toISOString().split('T')[0]}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Путь к файлу</label>
+                            <input type="text" class="form-control" name="filePath" value="${item?.filePath || ''}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Документ *</label>
+                            <input type="text" class="form-control" name="documentFile" value="${item?.documentFile || ''}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Статус *</label>
+                            <select class="form-select" name="certificateStatus.certificateStatusId" required>
+                                <option value="">Выберите статус</option>
+                                ${referenceData.certificateStatuses.map(s => 
+                                    `<option value="${s.certificateStatusId}" ${item?.certificateStatus?.certificateStatusId === s.certificateStatusId ? 'selected' : ''}>${s.statusName}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email отправлен</label>
+                            <select class="form-select" name="emailSent">
+                                <option value="false" ${!item?.emailSent ? 'selected' : ''}>Нет</option>
+                                <option value="true" ${item?.emailSent ? 'selected' : ''}>Да</option>
+                            </select>
+                        </div>
+                    `;
+                    break;
+                case 'checks':
+                    fields = `
+                        <div class="mb-3">
+                            <label class="form-label">Пользователь *</label>
+                            <select class="form-select" name="user.userId" required>
+                                <option value="">Выберите пользователя</option>
+                                ${referenceData.users.map(u => 
+                                    `<option value="${u.userId}" ${item?.user?.userId === u.userId ? 'selected' : ''}>${u.firstName} ${u.lastName}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Курс</label>
+                            <select class="form-select" name="course.courseId">
+                                <option value="">Без курса</option>
+                                ${referenceData.courses.map(c => 
+                                    `<option value="${c.courseId}" ${item?.course?.courseId === c.courseId ? 'selected' : ''}>${c.title}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Сумма *</label>
+                            <input type="number" step="0.01" class="form-control" name="amount" value="${item?.amount || ''}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Дата платежа *</label>
+                            <input type="date" class="form-control" name="paymentDate" value="${item?.paymentDate || new Date().toISOString().split('T')[0]}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Статус платежа *</label>
+                            <select class="form-select" name="paymentStatus.paymentStatusId" required>
+                                <option value="">Выберите статус</option>
+                                ${referenceData.paymentStatuses.map(s => 
+                                    `<option value="${s.paymentStatusId}" ${item?.paymentStatus?.paymentStatusId === s.paymentStatusId ? 'selected' : ''}>${s.statusName}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                    `;
+                    break;
+                case 'gift-cards':
+                    fields = `
+                        <div class="mb-3">
+                            <label class="form-label">Номер карты</label>
+                            <input type="text" class="form-control" name="cardNumber" value="${item?.cardNumber || ''}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Код *</label>
+                            <input type="text" class="form-control" name="code" value="${item?.code || ''}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Сумма *</label>
+                            <input type="number" step="0.01" class="form-control" name="amount" value="${item?.amount || ''}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Баланс</label>
+                            <input type="number" step="0.01" class="form-control" name="balance" value="${item?.balance || '0'}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Дата выдачи *</label>
+                            <input type="date" class="form-control" name="issueDate" value="${item?.issueDate || new Date().toISOString().split('T')[0]}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Срок действия</label>
+                            <input type="date" class="form-control" name="expiryDate" value="${item?.expiryDate || ''}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Пользователь</label>
+                            <select class="form-select" name="user.userId">
+                                <option value="">Без пользователя</option>
+                                ${referenceData.users.map(u => 
+                                    `<option value="${u.userId}" ${item?.user?.userId === u.userId ? 'selected' : ''}>${u.firstName} ${u.lastName}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Курс</label>
+                            <select class="form-select" name="course.courseId">
+                                <option value="">Без курса</option>
+                                ${referenceData.courses.map(c => 
+                                    `<option value="${c.courseId}" ${item?.course?.courseId === c.courseId ? 'selected' : ''}>${c.title}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Статус *</label>
+                            <select class="form-select" name="giftCardStatus.giftCardStatusId" required>
+                                <option value="">Выберите статус</option>
+                                ${referenceData.giftCardStatuses ? referenceData.giftCardStatuses.map(s => 
+                                    `<option value="${s.giftCardStatusId}" ${item?.giftCardStatus?.giftCardStatusId === s.giftCardStatusId ? 'selected' : ''}>${s.statusName}</option>`
+                                ).join('') : ''}
+                            </select>
+                        </div>
+                    `;
+                    break;
+                case 'comments':
+                    fields = `
+                        <div class="mb-3">
+                            <label class="form-label">Пользователь *</label>
+                            <select class="form-select" name="user.userId" required>
+                                <option value="">Выберите пользователя</option>
+                                ${referenceData.users.map(u => 
+                                    `<option value="${u.userId}" ${item?.user?.userId === u.userId ? 'selected' : ''}>${u.firstName} ${u.lastName}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Урок</label>
+                            <select class="form-select" name="lesson.lessonId">
+                                <option value="">Без урока</option>
+                                ${referenceData.lessons.map(l => 
+                                    `<option value="${l.lessonId}" ${item?.lesson?.lessonId === l.lessonId ? 'selected' : ''}>${l.title}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Задание</label>
+                            <select class="form-select" name="task.taskId">
+                                <option value="">Без задания</option>
+                                ${referenceData.tasks.map(t => 
+                                    `<option value="${t.taskId}" ${item?.task?.taskId === t.taskId ? 'selected' : ''}>${t.title}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Текст комментария *</label>
+                            <textarea class="form-control" name="text" required>${item?.text || ''}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Родительский комментарий</label>
+                            <input type="number" class="form-control" name="parentCommentId" value="${item?.parentCommentId || ''}">
+                        </div>
+                    `;
+                    break;
+                default:
+                    fields = '<p class="text-muted">Форма для этой таблицы еще не реализована</p>';
+            }
+            
+            return fields;
+        }
+
+        function saveItem(tableName, id) {
+            const form = document.getElementById('crudForm');
+            if (!form || !form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const formData = new FormData(form);
+            const data = {};
+
+            if (tableName === 'users' && id !== null) {
+
+                const roleId = formData.get('role.roleId');
+                if (!roleId) {
+                    alert('Роль обязательна для заполнения');
+                    return;
+                }
+                data.role = { roleId: parseInt(roleId) };
+            } else {
+
+                for (let [key, value] of formData.entries()) {
+                    if (value === '') continue;
+                    
+                    if (key.includes('.')) {
+                        const [parent, child] = key.split('.');
+                        if (!data[parent]) data[parent] = {};
+                        if (child === 'roleId' || child === 'userId' || child === 'courseId' || 
+                            child === 'categoryId' || child === 'lessonId' || child === 'taskId' ||
+                            child === 'gradeId' || child === 'enrollmentStatusId' || child === 'courseStatusId' ||
+                            child === 'lessonStatusId' || child === 'taskStatusId' || child === 'solutionStatusId' ||
+                            child === 'paymentStatusId' || child === 'certificateStatusId' || child === 'giftCardStatusId') {
+                            data[parent][child] = parseInt(value);
+                        } else {
+                            data[parent][child] = value;
+                        }
+                    } else {
+                        if (key === 'gradeValue' || key === 'capacity' || key === 'parentCommentId') {
+                            data[key] = parseInt(value);
+                        } else if (key === 'price' || key === 'amount' || key === 'balance') {
+                            data[key] = parseFloat(value);
+                        } else if (key === 'emailSent') {
+                            data[key] = value === 'true';
+                        } else {
+                            data[key] = value;
+                        }
+                    }
+                }
+            }
+
+            const endpoint = tableEndpoints[tableName];
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? endpoint + '/' + id : endpoint;
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    return response.text().then(text => {
+                        throw new Error(text || 'Ошибка сохранения');
+                    });
+                }
+            })
+            .then(result => {
+                bootstrap.Modal.getInstance(document.getElementById('crudModal')).hide();
+                loadTableData(tableName);
+
+                if (tableName === 'users') loadUsers();
+                else if (tableName === 'courses') loadCourses();
+                else if (tableName === 'categories') loadCategories();
+                else if (tableName === 'enrollments') loadEnrollments();
+                alert('Данные успешно сохранены');
+            })
+            .catch(error => {
+                console.error('Error saving:', error);
+                alert('Ошибка при сохранении: ' + error.message);
+            });
+        }
+
+        function deleteItem(tableName, id) {
+            if (!confirm('Вы уверены, что хотите удалить эту запись?')) return;
+            
+            const endpoint = tableEndpoints[tableName];
+            if (!endpoint) {
+                console.error('Unknown table:', tableName);
+                return;
+            }
+
+            fetch(endpoint + '/' + id, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    loadTableData(tableName);
+                    alert('Запись успешно удалена');
+                } else {
+                    alert('Ошибка при удалении записи');
                 }
             })
             .catch(error => {
-                document.getElementById('filesList').innerHTML = '<p class="text-danger text-center">Ошибка загрузки списка файлов</p>';
+                console.error('Error deleting:', error);
+                alert('Ошибка при удалении записи');
             });
         }
 
@@ -614,7 +1843,6 @@
         function showEditStatusModal(enrollmentId, currentStatusId) {
             document.getElementById('editEnrollmentId').value = enrollmentId;
             
-            // Populate status select dropdown
             const statusSelect = document.getElementById('statusSelect');
             statusSelect.innerHTML = '';
             
@@ -670,13 +1898,11 @@
             const resultDiv = document.getElementById('certificateCheckResult');
             resultDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Запуск проверки сертификатов...</div>';
 
-            // Пробуем получить токен из localStorage, если нет - используем сессию
             const token = localStorage.getItem('token');
             const headers = {
                 'Content-Type': 'application/json'
             };
-            
-            // Если есть токен, добавляем его в заголовки
+
             if (token) {
                 headers['Authorization'] = 'Bearer ' + token;
             }
@@ -705,7 +1931,6 @@
             });
         }
 
-        // Load respective data when tabs are shown
         document.getElementById('users-tab').addEventListener('shown.bs.tab', function (e) {
             loadUsers();
         });
@@ -718,13 +1943,664 @@
             loadEnrollments();
         });
 
-        document.getElementById('files-tab').addEventListener('shown.bs.tab', function (e) {
-            loadFiles();
+        document.getElementById('lessons-tab').addEventListener('shown.bs.tab', function (e) {
+            loadTableData('lessons');
+        });
+
+        document.getElementById('tasks-tab').addEventListener('shown.bs.tab', function (e) {
+            loadTableData('tasks');
+        });
+
+        document.getElementById('certificates-tab').addEventListener('shown.bs.tab', function (e) {
+            loadTableData('certificates');
+        });
+
+        document.getElementById('checks-tab').addEventListener('shown.bs.tab', function (e) {
+            loadTableData('checks');
+        });
+
+        document.getElementById('gift-cards-tab').addEventListener('shown.bs.tab', function (e) {
+            loadTableData('gift-cards');
+        });
+
+        document.getElementById('comments-tab').addEventListener('shown.bs.tab', function (e) {
+            loadTableData('comments');
         });
 
         document.getElementById('courses-tab').addEventListener('shown.bs.tab', function (e) {
             loadCourses();
         });
+
+        document.getElementById('reports-tab').addEventListener('shown.bs.tab', function (e) {
+            loadReports();
+        });
+
+        document.getElementById('charts-tab').addEventListener('shown.bs.tab', function (e) {
+            loadCharts();
+        });
+
+        document.getElementById('audit-tab').addEventListener('shown.bs.tab', function (e) {
+            loadAuditLogs();
+        });
+
+        let statusChart = null;
+        let revenueChart = null;
+        let studentsChart = null;
+
+        let auditLogsData = [];
+
+        function loadReports() {
+            fetch('/v1/api/admin/statistics/courses', {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => response.json())
+            .then(reports => {
+                const reportsList = document.getElementById('reportsList');
+                if (reports.length === 0) {
+                    reportsList.innerHTML = '<p class="text-muted text-center">Пока нет данных для отчётов</p>';
+                } else {
+                    let html = `
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Название</th>
+                                        <th>Статус</th>
+                                        <th>Категория</th>
+                                        <th>Преподаватель</th>
+                                        <th>Студентов</th>
+                                        <th>Вместимость</th>
+                                        <th>Заполнение</th>
+                                        <th>Уроков</th>
+                                        <th>Заданий</th>
+                                        <th>Сертификатов</th>
+                                        <th>Выручка</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    reports.forEach(report => {
+                        let fillPercent = 'N/A';
+                        if (report.fillPercentage !== null && report.fillPercentage !== undefined) {
+                            fillPercent = report.fillPercentage.toFixed(1) + '%';
+                        } else if (report.capacity !== null && report.capacity !== undefined) {
+
+                            fillPercent = '0.0%';
+                        }
+                        const revenue = report.totalRevenue ? report.totalRevenue.toFixed(2) + ' руб.' : '0.00 руб.';
+                        
+                        html += `
+                            <tr>
+                                <td>${report.courseId || 'N/A'}</td>
+                                <td><strong>${report.title || 'Без названия'}</strong></td>
+                                <td><span class="badge bg-info">${report.courseStatus || 'N/A'}</span></td>
+                                <td>${report.categoryName || 'N/A'}</td>
+                                <td>${report.teacherName || 'N/A'}</td>
+                                <td>${report.enrolledStudents || 0}</td>
+                                <td>${report.capacity || '∞'}</td>
+                                <td>${fillPercent}</td>
+                                <td>${report.lessonsCount || 0}</td>
+                                <td>${report.tasksCount || 0}</td>
+                                <td>${report.certificatesIssued || 0}</td>
+                                <td><strong class="text-success">${revenue}</strong></td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    reportsList.innerHTML = html;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading reports:', error);
+                document.getElementById('reportsList').innerHTML = '<p class="text-danger text-center">Ошибка загрузки отчётов</p>';
+            });
+        }
+
+        function updateCharts() {
+            loadCharts();
+        }
+
+        function loadCharts() {
+
+            const dateFrom = document.getElementById('dateFrom')?.value || '';
+            const dateTo = document.getElementById('dateTo')?.value || '';
+
+            let url = '/v1/api/admin/statistics/dashboard';
+            if (dateFrom || dateTo) {
+                url += '?';
+                if (dateFrom) url += `dateFrom=${dateFrom}`;
+                if (dateFrom && dateTo) url += '&';
+                if (dateTo) url += `dateTo=${dateTo}`;
+            }
+
+            fetch(url, {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => response.json())
+            .then(stats => {
+
+                const dashboardStats = document.getElementById('dashboardStats');
+                dashboardStats.innerHTML = `
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <h3>${stats.totalCourses || 0}</h3>
+                                    <p class="mb-0">Всего курсов</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h3>${stats.totalStudents || 0}</h3>
+                                    <p class="mb-0">Всего студентов</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="card bg-warning text-dark">
+                                <div class="card-body">
+                                    <h3>${stats.totalCertificates || 0}</h3>
+                                    <p class="mb-0">Сертификатов выдано</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <h3>${stats.totalRevenue ? stats.totalRevenue.toFixed(2) : '0.00'} руб.</h3>
+                                    <p class="mb-0">Общая выручка</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                if (statusChart) statusChart.destroy();
+                const statusCtx = document.getElementById('statusChart').getContext('2d');
+                const statusCounts = stats.statusCounts || {};
+                statusChart = new Chart(statusCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(statusCounts),
+                        datasets: [{
+                            data: Object.values(statusCounts),
+                            backgroundColor: [
+                                '#FF6384',
+                                '#36A2EB',
+                                '#FFCE56',
+                                '#4BC0C0',
+                                '#9966FF',
+                                '#FF9F40'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+
+                if (revenueChart) revenueChart.destroy();
+                const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+                const topCourses = stats.topCourses || [];
+                revenueChart = new Chart(revenueCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: topCourses.map(c => c.title || 'Без названия').slice(0, 5),
+                        datasets: [{
+                            label: 'Выручка (руб.)',
+                            data: topCourses.map(c => c.totalRevenue ? parseFloat(c.totalRevenue) : 0).slice(0, 5),
+                            backgroundColor: '#36A2EB'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                if (studentsChart) studentsChart.destroy();
+                const studentsCtx = document.getElementById('studentsChart').getContext('2d');
+
+                const dateFrom = document.getElementById('dateFrom')?.value || '';
+                const dateTo = document.getElementById('dateTo')?.value || '';
+                
+                let coursesUrl = '/v1/api/admin/statistics/courses';
+
+
+                
+                fetch(coursesUrl, {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    }
+                })
+                .then(response => response.json())
+                .then(reports => {
+                    const topByStudents = reports
+                        .sort((a, b) => (b.enrolledStudents || 0) - (a.enrolledStudents || 0))
+                        .slice(0, 5);
+                    
+                    studentsChart = new Chart(studentsCtx, {
+                        type: 'line',
+                        data: {
+                            labels: topByStudents.map(c => c.title || 'Без названия'),
+                            datasets: [{
+                                label: 'Количество студентов',
+                                data: topByStudents.map(c => c.enrolledStudents || 0),
+                                borderColor: '#4BC0C0',
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: true
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading students chart data:', error);
+                });
+            })
+                .catch(error => {
+                    console.error('Error loading charts:', error);
+                    document.getElementById('dashboardStats').innerHTML = '<p class="text-danger text-center">Ошибка загрузки статистики</p>';
+            });
+        }
+
+        async function exportChartsToPDF() {
+            try {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
+                const margin = 10;
+                let yPosition = margin;
+
+                pdf.setFontSize(18);
+                pdf.text('Analytics and Charts Report', pageWidth / 2, yPosition, { align: 'center' });
+                yPosition += 10;
+
+                const dateFrom = document.getElementById('dateFrom')?.value || 'not specified';
+                const dateTo = document.getElementById('dateTo')?.value || 'not specified';
+                pdf.setFontSize(12);
+                pdf.text(`Period: from ${dateFrom} to ${dateTo}`, margin, yPosition);
+                yPosition += 10;
+                const reportDate = new Date().toISOString().split('T')[0];
+                pdf.text(`Report generated: ${reportDate}`, margin, yPosition);
+                yPosition += 15;
+
+                const charts = [
+                    { id: 'statusChart', title: 'Course Status Statistics' },
+                    { id: 'revenueChart', title: 'Top 5 Courses by Revenue' },
+                    { id: 'studentsChart', title: 'Student Distribution by Courses' }
+                ];
+
+                for (let i = 0; i < charts.length; i++) {
+                    const chartElement = document.getElementById(charts[i].id);
+                    if (chartElement) {
+
+                        if (yPosition > pageHeight - 80) {
+                            pdf.addPage();
+                            yPosition = margin;
+                        }
+
+                        pdf.setFontSize(14);
+                        pdf.text(charts[i].title, margin, yPosition);
+                        yPosition += 5;
+
+                        const canvas = await html2canvas(chartElement, {
+                            backgroundColor: '#ffffff',
+                            scale: 2
+                        });
+
+                        const imgData = canvas.toDataURL('image/png');
+                        const imgWidth = pageWidth - 2 * margin;
+                        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                        if (yPosition + imgHeight > pageHeight - margin) {
+                            pdf.addPage();
+                            yPosition = margin;
+                        }
+
+                        pdf.addImage(imgData, 'PNG', margin, yPosition, imgWidth, imgHeight);
+                        yPosition += imgHeight + 10;
+                    }
+                }
+
+                const statsElement = document.getElementById('dashboardStats');
+                if (statsElement) {
+                    if (yPosition > pageHeight - 100) {
+                        pdf.addPage();
+                        yPosition = margin;
+                    }
+
+                    pdf.setFontSize(14);
+                    pdf.text('General Statistics', margin, yPosition);
+                    yPosition += 10;
+
+                    const statsCanvas = await html2canvas(statsElement, {
+                        backgroundColor: '#ffffff',
+                        scale: 2
+                    });
+
+                    const statsImgData = statsCanvas.toDataURL('image/png');
+                    const statsImgWidth = pageWidth - 2 * margin;
+                    const statsImgHeight = (statsCanvas.height * statsImgWidth) / statsCanvas.width;
+
+                    if (yPosition + statsImgHeight > pageHeight - margin) {
+                        pdf.addPage();
+                        yPosition = margin;
+                    }
+
+                    pdf.addImage(statsImgData, 'PNG', margin, yPosition, statsImgWidth, statsImgHeight);
+                }
+
+                const fileName = `analytics_report_${new Date().toISOString().split('T')[0]}.pdf`;
+                pdf.save(fileName);
+            } catch (error) {
+                console.error('Error exporting to PDF:', error);
+                alert('Error exporting to PDF: ' + error.message);
+            }
+        }
+
+        function loadAuditLogs() {
+            const limit = document.getElementById('auditLimit') ? document.getElementById('auditLimit').value : 100;
+            
+            fetch(`/v1/api/admin/audit/logs?limit=${limit}`, {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => response.json())
+            .then(logs => {
+
+                auditLogsData = logs;
+                
+                const auditLogsList = document.getElementById('auditLogsList');
+                if (logs.length === 0) {
+                    auditLogsList.innerHTML = '<p class="text-muted text-center">Пока нет записей в журнале аудита</p>';
+                } else {
+                    let html = `
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Дата/Время</th>
+                                        <th>Таблица</th>
+                                        <th>ID записи</th>
+                                        <th>Действие</th>
+                                        <th>Пользователь</th>
+                                        <th>Детали</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    logs.forEach((log, index) => {
+                        const actionBadge = {
+                            'INSERT': 'bg-success',
+                            'UPDATE': 'bg-warning',
+                            'DELETE': 'bg-danger'
+                        }[log.action] || 'bg-secondary';
+                        
+                        const date = log.changedAt ? new Date(log.changedAt).toLocaleString('ru-RU') : 'N/A';
+                        
+                        html += `
+                            <tr>
+                                <td><small>${date}</small></td>
+                                <td><code>${log.tableName || 'N/A'}</code></td>
+                                <td>${log.recordId || 'N/A'}</td>
+                                <td><span class="badge ${actionBadge}">${log.action || 'N/A'}</span></td>
+                                <td>${log.userName || 'Система'}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-info" 
+                                            data-log-index="${index}"
+                                            onclick="showAuditDetailsFromButton(this)">
+                                        <i class="fas fa-eye"></i> Показать
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    auditLogsList.innerHTML = html;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading audit logs:', error);
+                document.getElementById('auditLogsList').innerHTML = '<p class="text-danger text-center">Ошибка загрузки логов аудита</p>';
+            });
+        }
+
+        function showAuditDetailsFromButton(button) {
+            const logIndex = parseInt(button.getAttribute('data-log-index'));
+            if (logIndex >= 0 && logIndex < auditLogsData.length) {
+                const log = auditLogsData[logIndex];
+                showAuditDetails(log.auditId, log.oldValues || '', log.newValues || '');
+            }
+        }
+
+        function showAuditDetails(auditId, oldValues, newValues) {
+            let details = '<div class="row"><div class="col-md-6"><h6>Старые значения:</h6><pre class="bg-light p-2" style="max-height: 400px; overflow-y: auto;">';
+            try {
+                if (oldValues && oldValues.trim()) {
+                    const parsed = JSON.parse(oldValues);
+                    details += escapeHtml(JSON.stringify(parsed, null, 2));
+                } else {
+                    details += escapeHtml(oldValues || 'Нет данных');
+                }
+            } catch (e) {
+                details += escapeHtml(oldValues || 'Нет данных');
+            }
+            details += '</pre></div><div class="col-md-6"><h6>Новые значения:</h6><pre class="bg-light p-2" style="max-height: 400px; overflow-y: auto;">';
+            try {
+                if (newValues && newValues.trim()) {
+                    const parsed = JSON.parse(newValues);
+                    details += escapeHtml(JSON.stringify(parsed, null, 2));
+                } else {
+                    details += escapeHtml(newValues || 'Нет данных');
+                }
+            } catch (e) {
+                details += escapeHtml(newValues || 'Нет данных');
+            }
+            details += '</pre></div></div>';
+
+            const existingModal = document.getElementById('auditDetailsModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'auditDetailsModal';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Детали изменения #${auditId}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            ${details}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            const bsModal = new bootstrap.Modal(modal);
+            bsModal.show();
+            modal.addEventListener('hidden.bs.modal', () => modal.remove());
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function exportToCsv(type) {
+            const endpoints = {
+                'users': '/v1/api/admin/export/users/csv',
+                'courses': '/v1/api/admin/export/courses/csv',
+                'enrollments': '/v1/api/admin/export/enrollments/csv',
+                'statistics': '/v1/api/admin/export/statistics/csv'
+            };
+
+            const endpoint = endpoints[type];
+            if (!endpoint) {
+                alert('Неизвестный тип экспорта');
+                return;
+            }
+
+            fetch(endpoint, {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Ошибка экспорта');
+                return response.blob();
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = blob.name || `${type}_${new Date().getTime()}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            })
+            .catch(error => {
+                console.error('Error exporting CSV:', error);
+                alert('Ошибка при экспорте: ' + error.message);
+            });
+        }
+
+        function importFromCsv(type, file) {
+            if (!file) return;
+
+            const endpoints = {
+                'users': '/v1/api/admin/import/users/csv',
+                'courses': '/v1/api/admin/import/courses/csv'
+            };
+
+            const endpoint = endpoints[type];
+            if (!endpoint) {
+                alert('Неизвестный тип импорта');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const resultDiv = document.getElementById('importResult');
+            resultDiv.innerHTML = '<div class="alert alert-info">Импорт данных...</div>';
+
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(result => {
+                let html = '<div class="alert ';
+                if (result.errors && result.errors.length > 0) {
+                    html += 'alert-warning';
+                } else {
+                    html += 'alert-success';
+                }
+                html += '">';
+                html += `<h6>Результат импорта:</h6>`;
+                html += `<p>Обработано записей: ${result.totalProcessed || 0}</p>`;
+                if (result.successes && result.successes.length > 0) {
+                    html += `<p class="text-success">Успешно: ${result.successes.length}</p>`;
+                    if (result.successes.length <= 10) {
+                        html += '<ul class="small">';
+                        result.successes.forEach(msg => {
+                            html += `<li>${escapeHtml(msg)}</li>`;
+                        });
+                        html += '</ul>';
+                    }
+                }
+                if (result.skipped && result.skipped.length > 0) {
+                    html += `<p class="text-warning">Пропущено: ${result.skipped.length}</p>`;
+                    if (result.skipped.length <= 10) {
+                        html += '<ul class="small">';
+                        result.skipped.forEach(msg => {
+                            html += `<li>${escapeHtml(msg)}</li>`;
+                        });
+                        html += '</ul>';
+                    }
+                }
+                if (result.errors && result.errors.length > 0) {
+                    html += `<p class="text-danger">Ошибок: ${result.errors.length}</p>`;
+                    html += '<ul class="small">';
+                    result.errors.forEach(msg => {
+                        html += `<li class="text-danger">${escapeHtml(msg)}</li>`;
+                    });
+                    html += '</ul>';
+                }
+                html += '</div>';
+                resultDiv.innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Error importing CSV:', error);
+                resultDiv.innerHTML = '<div class="alert alert-danger">Ошибка при импорте: ' + escapeHtml(error.message) + '</div>';
+            });
+        }
     </script>
 </body>
 </html>

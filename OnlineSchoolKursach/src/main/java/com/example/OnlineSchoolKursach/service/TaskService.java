@@ -42,17 +42,15 @@ public class TaskService {
     }
 
     public TaskModel createTask(TaskModel task) {
-        // Set default status if not provided
         if (task.getTaskStatus() == null) {
             List<TaskStatusModel> statuses = taskStatusRepository.findAll();
             if (!statuses.isEmpty()) {
-                task.setTaskStatus(statuses.get(0)); // Default to first status
+                task.setTaskStatus(statuses.get(0));
             }
         }
-        
-        // Set default deadline if not provided
+
         if (task.getDeadline() == null) {
-            task.setDeadline(LocalDate.now().plusDays(7)); // Default to 7 days from now
+            task.setDeadline(LocalDate.now().plusDays(7));
         }
         
         return taskRepository.save(task);
@@ -81,10 +79,8 @@ public class TaskService {
             existingTask.setDescription(updatedTask.getDescription());
             existingTask.setDeadline(updatedTask.getDeadline());
             existingTask.setTaskStatus(updatedTask.getTaskStatus());
-            
-            // Handle file update
+
             if (newFile != null && !newFile.isEmpty()) {
-                // Delete old file if exists
                 if (existingTask.getAttachedFile() != null && !existingTask.getAttachedFile().isEmpty()) {
                     try {
                         minioFileService.deleteFile(existingTask.getAttachedFile());
@@ -92,7 +88,7 @@ public class TaskService {
                         System.err.println("Error deleting old task file: " + e.getMessage());
                     }
                 }
-                // Upload new file
+
                 try {
                     String filePath = minioFileService.uploadFile(newFile, "task");
                     existingTask.setAttachedFile(filePath);
@@ -100,8 +96,7 @@ public class TaskService {
                     throw new RuntimeException("Ошибка при загрузке файла: " + e.getMessage());
                 }
             } else if (updatedTask.getAttachedFile() != null && !updatedTask.getAttachedFile().isEmpty()) {
-                // Keep existing file path if new file not provided
-            existingTask.setAttachedFile(updatedTask.getAttachedFile());
+                existingTask.setAttachedFile(updatedTask.getAttachedFile());
             }
             
             return taskRepository.save(existingTask);
@@ -113,8 +108,6 @@ public class TaskService {
         Optional<TaskModel> taskOpt = taskRepository.findById(taskId);
         if (taskOpt.isPresent()) {
             TaskModel task = taskOpt.get();
-            
-            // Delete attached file from MinIO if exists
             if (task.getAttachedFile() != null && !task.getAttachedFile().isEmpty()) {
                 try {
                     minioFileService.deleteFile(task.getAttachedFile());
@@ -129,7 +122,6 @@ public class TaskService {
         return false;
     }
 
-    // Массовое закрытие задач после дедлайна
     public int closePassedTasks(List<TaskModel> tasks) {
         int count = 0;
         for (TaskModel task : tasks) {

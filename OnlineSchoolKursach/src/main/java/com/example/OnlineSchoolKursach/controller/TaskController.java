@@ -86,7 +86,7 @@ public class TaskController {
             Authentication authentication) {
         try {
             UserModel user = authService.getUserByEmail(authentication.getName());
-            // Check if user is teacher of the course
+
             if (!task.getLesson().getCourse().getTeacher().getUserId().equals(user.getUserId())) {
                 return ResponseEntity.badRequest().build();
             }
@@ -116,7 +116,7 @@ public class TaskController {
             Authentication authentication) {
         try {
             UserModel user = authService.getUserByEmail(authentication.getName());
-            // Check if user is teacher of the course
+
             TaskModel existingTask = taskService.getTaskById(taskId);
             if (existingTask == null || 
                 !existingTask.getLesson().getCourse().getTeacher().getUserId().equals(user.getUserId())) {
@@ -148,7 +148,7 @@ public class TaskController {
             Authentication authentication) {
         try {
             UserModel user = authService.getUserByEmail(authentication.getName());
-            // Check if user is teacher of the course
+
             TaskModel existingTask = taskService.getTaskById(taskId);
             if (existingTask == null || 
                 !existingTask.getLesson().getCourse().getTeacher().getUserId().equals(user.getUserId())) {

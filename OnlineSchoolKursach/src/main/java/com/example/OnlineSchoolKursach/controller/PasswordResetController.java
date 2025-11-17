@@ -31,7 +31,6 @@ public class PasswordResetController {
             response.put("message", "На указанный email было отправлено письмо с инструкциями по восстановлению пароля.");
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            // Если это ошибка о несуществующем пользователе, вернем конкретное сообщение
             if (e.getMessage() != null && e.getMessage().contains("не найден")) {
                 response.put("error", e.getMessage());
             } else {
@@ -68,17 +67,14 @@ public class PasswordResetController {
         Map<String, String> response = new HashMap<>();
         
         String email = null;
-        
-        // Попробуем получить email из Spring Security контекста
+
         if (userDetails != null && userDetails.getUsername() != null) {
             email = userDetails.getUsername();
         } else if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            // Если нет в контексте, попробуем извлечь из JWT токена
             try {
                 String jwt = authHeader.substring(7);
                 email = jwtUtil.extractUsername(jwt);
             } catch (Exception e) {
-                // Игнорируем ошибку, попробуем другой способ
             }
         }
         

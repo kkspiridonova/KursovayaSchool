@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактирование урока - SupSchool</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/custom-theme.css}">
+    <script src="/js/user-settings.js"></script>
+    <script src="/js/teacher-hotkeys.js"></script>
+    <style>
+        .course-header {
+            position: relative;
+            height: 300px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .course-title {
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            margin: 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body data-context="teacher-lesson"
+      th:data-course-id="${course.courseId}"
+      th:data-lesson-id="${lesson.lessonId}">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-info">
+        <div class="container">
+            <a class="navbar-brand text-white" href="/">SupSchool</a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3 text-white" th:if="${#authentication != null}">
+                    Добро пожаловать, <span th:text="${#authentication.name}"></span>!
+                </span>
+                <a class="nav-link text-white" th:href="@{'/teacher/course/' + ${course.courseId} + '/lesson/' + ${lesson.lessonId}}">Назад к уроку</a>
+                <a class="nav-link text-white" th:href="@{'/teacher/course/' + ${course.courseId}}">Назад к курсу</a>
+                <a class="nav-link text-white" href="/teacher">Мои курсы</a>
+                <a class="nav-link text-white" href="/logout">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="course-header">
+        <h1 class="course-title" th:text="'Редактирование урока: ' + ${lesson.title}">Редактирование урока</h1>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>Редактирование урока</h3>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${error}" class="alert alert-danger">
+                            <span th:text="${error}">Ошибка</span>
+                        </div>
+                        
+                        <form th:action="@{'/teacher/course/' + ${course.courseId} + '/lesson/' + ${lesson.lessonId} + '/edit'}" 
+                              method="post" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Название урока *</label>
+                                <input type="text" class="form-control" id="title" name="title" th:value="${lesson.title}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="content" class="form-label">Содержание урока *</label>
+                                <textarea class="form-control" id="content" name="content" rows="10" required th:text="${lesson.content}"></textarea>
+                            </div>
+                            
+                            <div class="mb-3" th:if="${lesson.attachedFile != null && !lesson.attachedFile.isEmpty()}">
+                                <label class="form-label">Текущий файл</label>
+                                <div>
+                                    <a th:href="@{'/v1/api/files/download?path=' + ${#strings.replace(#strings.replace(lesson.attachedFile, '/', '%2F'), ' ', '%20')}}" 
+                                       class="btn btn-outline-primary btn-sm" target="_blank">
+                                        <i class="fas fa-download"></i> Скачать текущий файл
+                                    </a>
+                                </div>
+                                <div class="form-text">Оставьте поле ниже пустым, чтобы сохранить текущий файл</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="attachedFile" class="form-label">Новый файл (опционально)</label>
+                                <input type="file" class="form-control" id="attachedFile" name="attachedFile" accept="*/*">
+                                <div class="form-text">Выберите новый файл, чтобы заменить текущий</div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a th:href="@{'/teacher/course/' + ${course.courseId} + '/lesson/' + ${lesson.lessonId}}" class="btn btn-secondary me-md-2">
+                                    Отмена
+                                </a>
+                                <button type="submit" class="btn btn-primary" data-action="save">
+                                    Сохранить изменения
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

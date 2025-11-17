@@ -98,11 +98,9 @@ public class FileController {
             if (file.isEmpty()) {
                 return ResponseEntity.badRequest().body("Файл не может быть пустым");
             }
-            
-            // Upload file to MinIO in solutions/ folder
+
             String filePath = minioFileService.uploadFile(file, "solution");
-            
-            // Return file path for use in solution
+
             java.util.Map<String, String> response = new java.util.HashMap<>();
             response.put("filePath", filePath);
             response.put("originalName", file.getOriginalFilename());
@@ -211,13 +209,11 @@ public class FileController {
                 return ResponseEntity.notFound().build();
             }
 
-            // Decode URL-encoded path
             String imagePath = java.net.URLDecoder.decode(path, "UTF-8");
 
             InputStream inputStream = fileService.getFileInputStream(imagePath);
             Resource resource = new InputStreamResource(inputStream);
-            
-            // Determine content type
+
             String contentType = "image/jpeg";
             if (imagePath.toLowerCase().endsWith(".png")) {
                 contentType = "image/png";
@@ -251,19 +247,16 @@ public class FileController {
                 return ResponseEntity.notFound().build();
             }
 
-            // Decode URL-encoded path
             String filePath = java.net.URLDecoder.decode(path, java.nio.charset.StandardCharsets.UTF_8);
 
             InputStream inputStream = fileService.getFileInputStream(filePath);
             Resource resource = new InputStreamResource(inputStream);
-            
-            // Extract filename from path
+
             String filename = filePath.substring(filePath.lastIndexOf("/") + 1);
             if (filename.isEmpty()) {
                 filename = "file";
             }
-            
-            // Determine content type based on file extension
+
             String contentType = "application/octet-stream";
             String lowerPath = filePath.toLowerCase();
             if (lowerPath.endsWith(".pdf")) {

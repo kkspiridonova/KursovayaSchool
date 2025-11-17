@@ -50,6 +50,8 @@ public class SecurityConfig {
                         .requestMatchers("/teacher").hasAuthority("ROLE_Преподаватель")
                         .requestMatchers("/student").hasAuthority("ROLE_Студент")
                         .requestMatchers("/dashboard").authenticated()
+
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                         
                         .requestMatchers("/v1/api/auth/**").permitAll()
                         .requestMatchers("/v1/api/test").permitAll()

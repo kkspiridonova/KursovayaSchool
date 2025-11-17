@@ -13,10 +13,14 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Service
 public class MinioFileService {
@@ -92,7 +96,6 @@ public class MinioFileService {
             fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
         }
 
-        // Use specific folder based on type
         String folder;
         switch (folderType) {
             case "lesson":
@@ -145,6 +148,59 @@ public class MinioFileService {
         }
     }
 
+    public InputStream downloadFileWithFallback(String objectName) {
+        if (objectName == null || objectName.isBlank()) {
+            throw new IllegalArgumentException("Object name is empty");
+        }
+        try {
+            return downloadFile(objectName);
+        } catch (RuntimeException ex) {
+            logger.warn("MinIO download failed for '{}': {}. Trying fallback sources...",
+                    objectName, ex.getMessage());
+            InputStream localStream = tryLoadFromLocalSources(objectName);
+            if (localStream != null) {
+                return localStream;
+            }
+            InputStream urlStream = tryLoadFromUrl(objectName);
+            if (urlStream != null) {
+                return urlStream;
+            }
+            throw ex;
+        }
+    }
+
+    private InputStream tryLoadFromLocalSources(String objectName) {
+        Path[] candidates = new Path[] {
+                Paths.get(objectName),
+                Paths.get("uploads").resolve(objectName),
+                Paths.get("certificates").resolve(Paths.get(objectName).getFileName().toString()),
+                Paths.get("storage").resolve(objectName)
+        };
+        for (Path candidate : candidates) {
+            try {
+                if (candidate != null && Files.exists(candidate)) {
+                    logger.info("Loaded certificate from local path: {}", candidate.toAbsolutePath());
+                    return Files.newInputStream(candidate);
+                }
+            } catch (IOException e) {
+                logger.error("Error reading local file {}: {}", candidate, e.getMessage());
+            }
+        }
+        return null;
+    }
+
+    private InputStream tryLoadFromUrl(String objectName) {
+        try {
+            if (objectName.startsWith("http://") || objectName.startsWith("https://")) {
+                logger.info("Loading certificate from URL: {}", objectName);
+                return new URL(objectName).openStream();
+            }
+        } catch (IOException e) {
+            logger.error("Error loading file from URL {}: {}", objectName, e.getMessage());
+        }
+        return null;
+    }
+
     public String getFileUrl(String objectName) {
         try {
             return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
@@ -184,9 +240,6 @@ public class MinioFileService {
         }
     }
 
-    /**
-     * Загружает файл из байтов напрямую в MinIO
-     */
     public void uploadBytes(byte[] fileBytes, String objectName, String contentType) throws IOException {
         initializeBucket();
 

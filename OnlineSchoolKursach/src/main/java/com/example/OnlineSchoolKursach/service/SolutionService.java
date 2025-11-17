@@ -47,8 +47,7 @@ public class SolutionService {
         logger.info("Creating solution for task: {}, user: {}", 
             solution.getTask() != null ? solution.getTask().getTaskId() : "null",
             solution.getUser() != null ? solution.getUser().getUserId() : "null");
-        
-        // Load task from database to get full information including deadline
+
         TaskModel task = null;
         if (solution.getTask() != null && solution.getTask().getTaskId() != null) {
             Optional<TaskModel> taskOpt = taskRepository.findById(solution.getTask().getTaskId());
@@ -64,14 +63,12 @@ public class SolutionService {
             logger.error("Task is null or taskId is null");
             throw new RuntimeException("Задание не указано");
         }
-        
-        // Disallow submission if task is closed (Прошел)
+
         if (task.getTaskStatus() != null && "Прошел".equals(task.getTaskStatus().getStatusName())) {
             logger.warn("Task is closed, cannot submit solution");
             throw new RuntimeException("Задание закрыто для сдачи");
         }
 
-        // Set submit date to current date when solution is created
         LocalDate submitDate = LocalDate.now();
         if (solution.getSubmitDate() == null) {
             solution.setSubmitDate(submitDate);
@@ -79,30 +76,24 @@ public class SolutionService {
             submitDate = solution.getSubmitDate();
         }
         logger.info("Submit date: {}", submitDate);
-        
-        // Determine status based on deadline and submission time
-        // If solution has answer (text or file), set status based on deadline
+
         boolean hasAnswer = (solution.getAnswerText() != null && !solution.getAnswerText().isEmpty()) ||
                             (solution.getAnswerFile() != null && !solution.getAnswerFile().isEmpty());
         logger.info("Has answer: {}, answerText: {}, answerFile: {}", 
             hasAnswer, 
             solution.getAnswerText() != null ? "present" : "null",
             solution.getAnswerFile() != null ? "present" : "null");
-        
-        // Always set status - never leave it null
+
         String statusName;
         if (hasAnswer && task.getDeadline() != null) {
-            // Check if submitted after deadline
             if (submitDate.isAfter(task.getDeadline()) || submitDate.isEqual(task.getDeadline())) {
                 statusName = "Сдано с опозданием";
             } else {
                 statusName = "Сдано";
             }
         } else if (hasAnswer && task.getDeadline() == null) {
-            // If has answer but no deadline, set to "Сдано"
             statusName = "Сдано";
         } else {
-            // If no answer yet, set status to "Назначено"
             statusName = "Назначено";
         }
         
@@ -122,8 +113,7 @@ public class SolutionService {
             SolutionModel existingSolution = existingSolutionOpt.get();
             existingSolution.setAnswerText(updatedSolution.getAnswerText());
             existingSolution.setAnswerFile(updatedSolution.getAnswerFile());
-            // При апдейте ответа определяем статус:
-            // если установлен файл/текст и есть дедлайн у задания — вычисляем вовремя/с опозданием
+
             TaskModel task = existingSolution.getTask();
             if ((updatedSolution.getAnswerText() != null && !updatedSolution.getAnswerText().isEmpty()) ||
                 (updatedSolution.getAnswerFile() != null && !updatedSolution.getAnswerFile().isEmpty())) {
@@ -134,7 +124,7 @@ public class SolutionService {
                     setSolutionStatusByName(existingSolution, "Сдано");
                 }
             }
-            // Оценка может устанавливаться отдельно, статус при этом не меняем
+
             existingSolution.setGrade(updatedSolution.getGrade());
             return solutionRepository.save(existingSolution);
         }
@@ -153,7 +143,6 @@ public class SolutionService {
                 .filter(s -> statusName.equals(s.getStatusName()))
                 .findFirst()
                 .orElseThrow(() -> {
-                    // Log available statuses for debugging
                     String availableStatuses = statuses.stream()
                             .map(SolutionStatusModel::getStatusName)
                             .reduce((a, b) -> a + ", " + b)
@@ -177,20 +166,17 @@ public class SolutionService {
         return solutionRepository.findFirstByTaskTaskIdAndUserUserId(taskId, userId);
     }
 
-    // Обновление просроченных решений на "Просрочено"
-    // Помечает как "Просрочено" только решения со статусом "Назначено", у которых дедлайн прошел
+
     public int markOverdueSolutions(List<SolutionModel> solutions) {
         int updated = 0;
         LocalDate today = LocalDate.now();
         for (SolutionModel solution : solutions) {
             TaskModel task = solution.getTask();
             if (task != null && task.getDeadline() != null) {
-                // Check if solution has status "Назначено" and deadline has passed
                 String currentStatus = solution.getSolutionStatus() != null ? solution.getSolutionStatus().getStatusName() : null;
                 boolean isAssigned = "Назначено".equals(currentStatus);
                 boolean deadlinePassed = today.isAfter(task.getDeadline()) || today.isEqual(task.getDeadline());
-                
-                // Also check if solution has no answer (text or file)
+
                 boolean hasNoAnswer = (solution.getAnswerText() == null || solution.getAnswerText().isEmpty())
                         && (solution.getAnswerFile() == null || solution.getAnswerFile().isEmpty());
                 

@@ -34,11 +34,10 @@ public class LessonService {
     }
 
     public LessonModel createLesson(LessonModel lesson) {
-        // Set default status if not provided
         if (lesson.getLessonStatus() == null) {
             List<LessonStatusModel> statuses = lessonStatusRepository.findAll();
             if (!statuses.isEmpty()) {
-                lesson.setLessonStatus(statuses.get(0)); // Default to first status
+                lesson.setLessonStatus(statuses.get(0));
             }
         }
         return lessonRepository.save(lesson);
@@ -51,19 +50,16 @@ public class LessonService {
             existingLesson.setTitle(updatedLesson.getTitle());
             existingLesson.setContent(updatedLesson.getContent());
             existingLesson.setLessonStatus(updatedLesson.getLessonStatus());
-            
-            // Handle file update
+
             if (newFile != null && !newFile.isEmpty()) {
-                // Delete old file if exists
                 if (existingLesson.getAttachedFile() != null && !existingLesson.getAttachedFile().isEmpty()) {
                     try {
                         minioFileService.deleteFile(existingLesson.getAttachedFile());
                     } catch (Exception e) {
-                        // Log error but continue
                         System.err.println("Error deleting old lesson file: " + e.getMessage());
                     }
                 }
-                // Upload new file
+
                 try {
                     String filePath = minioFileService.uploadFile(newFile, "lesson");
                     existingLesson.setAttachedFile(filePath);
@@ -71,7 +67,6 @@ public class LessonService {
                     throw new RuntimeException("Ошибка при загрузке файла: " + e.getMessage());
                 }
             } else if (updatedLesson.getAttachedFile() != null && !updatedLesson.getAttachedFile().isEmpty()) {
-                // Keep existing file path if new file not provided
                 existingLesson.setAttachedFile(updatedLesson.getAttachedFile());
             }
             
@@ -84,8 +79,6 @@ public class LessonService {
         Optional<LessonModel> lessonOpt = lessonRepository.findById(lessonId);
         if (lessonOpt.isPresent()) {
             LessonModel lesson = lessonOpt.get();
-            
-            // Delete attached file from MinIO if exists
             if (lesson.getAttachedFile() != null && !lesson.getAttachedFile().isEmpty()) {
                 try {
                     minioFileService.deleteFile(lesson.getAttachedFile());

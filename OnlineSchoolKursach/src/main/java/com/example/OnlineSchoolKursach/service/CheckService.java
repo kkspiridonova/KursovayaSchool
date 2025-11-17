@@ -23,7 +23,6 @@ public class CheckService {
     private PaymentStatusRepository paymentStatusRepository;
 
     public CheckModel createCheck(UserModel user, CourseModel course, BigDecimal amount) {
-        // Find or create payment status "Оплачено"
         PaymentStatusModel paidStatus = findOrCreatePaymentStatus("Оплачено");
         
         CheckModel check = new CheckModel();
@@ -47,8 +46,6 @@ public class CheckService {
                 return status;
             }
         }
-        
-        // If not found, create it
         PaymentStatusModel newStatus = new PaymentStatusModel();
         newStatus.setStatusName(statusName);
         return paymentStatusRepository.save(newStatus);

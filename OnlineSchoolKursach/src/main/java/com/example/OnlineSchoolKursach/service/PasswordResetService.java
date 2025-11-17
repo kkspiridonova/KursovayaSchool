@@ -45,15 +45,12 @@ public class PasswordResetService {
         }
 
         UserModel user = userOptional.get();
-        
-        // Delete any existing tokens for this user
+
         tokenRepository.deleteByUserUserId(user.getUserId());
-        
-        // Create new token
+
         PasswordResetToken token = new PasswordResetToken(user);
         tokenRepository.save(token);
-        
-        // Send email (don't throw exception if email fails - log it instead)
+
         boolean emailSent = sendPasswordResetEmail(user.getEmail(), token.getToken());
         
         if (emailSent) {
@@ -74,26 +71,22 @@ public class PasswordResetService {
         }
 
         PasswordResetToken resetToken = tokenOptional.get();
-        
-        // Check if token is expired
+
         if (resetToken.isExpired()) {
             logger.warn("Password reset token expired for user: {}", resetToken.getUser().getEmail());
             tokenRepository.delete(resetToken);
             return false;
         }
 
-        // Check if token is already used
         if (resetToken.getUsed()) {
             logger.warn("Password reset token already used for user: {}", resetToken.getUser().getEmail());
             return false;
         }
 
-        // Update password
         UserModel user = resetToken.getUser();
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
 
-        // Mark token as used
         resetToken.setUsed(true);
         tokenRepository.save(resetToken);
 
@@ -108,17 +101,17 @@ public class PasswordResetService {
             
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(email);
-            message.setSubject("Восстановление пароля - Онлайн Школа");
+            message.setSubject("Восстановление пароля - SupSchool");
             
             String resetUrl = "http://localhost:8080/reset-password?token=" + token;
             String emailBody = "Здравствуйте!\n\n" +
-                    "Вы запросили восстановление пароля для вашего аккаунта в Онлайн Школе.\n\n" +
+                    "Вы запросили восстановление пароля для вашего аккаунта в SupSchool.\n\n" +
                     "Для восстановления пароля перейдите по следующей ссылке:\n" +
                     resetUrl + "\n\n" +
                     "Ссылка действительна в течение 24 часов.\n\n" +
                     "Если вы не запрашивали восстановление пароля, проигнорируйте это письмо.\n\n" +
                     "С уважением,\n" +
-                    "Команда Онлайн Школы";
+                    "Команда SupSchool";
             
             message.setText(emailBody);
             logger.debug("Sending email message...");
@@ -138,8 +131,7 @@ public class PasswordResetService {
             if (e.getCause() != null) {
                 logger.error("Причина: {}", e.getCause().getMessage());
             }
-            
-            // Для разработки: выводим ссылку в консоль
+
             String resetUrl = "http://localhost:8080/reset-password?token=" + token;
             logger.warn("=== РЕЖИМ РАЗРАБОТКИ: Email не отправлен, но токен создан ===");
             logger.warn("Ссылка для восстановления пароля: {}", resetUrl);
@@ -150,8 +142,7 @@ public class PasswordResetService {
         } catch (Exception e) {
             logger.error("Failed to send password reset email to: {}. Error: {}", email, e.getMessage());
             logger.debug("Full email error stack trace:", e);
-            
-            // Для разработки: выводим ссылку в консоль, если email не отправился
+
             String resetUrl = "http://localhost:8080/reset-password?token=" + token;
             logger.warn("=== РЕЖИМ РАЗРАБОТКИ: Email не отправлен, но токен создан ===");
             logger.warn("Ссылка для восстановления пароля: {}", resetUrl);

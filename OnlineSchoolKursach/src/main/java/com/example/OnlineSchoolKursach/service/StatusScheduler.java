@@ -33,20 +33,16 @@ public class StatusScheduler {
     @Autowired
     private CourseService courseService;
 
-    // Каждый час: обновить просроченные решения и закрыть задачи с прошедшим дедлайном
     @Scheduled(cron = "0 0 * * * *")
     public void updateStatusesHourly() {
         try {
-            // Получаем только ID решений, чтобы избежать дубликатов от JOIN'ов
             List<Long> solutionIds = solutionRepository.findAllDistinctIds();
             List<SolutionModel> solutions = new java.util.ArrayList<>();
-            
-            // Загружаем каждое решение отдельно, чтобы избежать проблем с дубликатами
+
             for (Long solutionId : solutionIds) {
                 try {
                     solutionRepository.findById(solutionId).ifPresent(solutions::add);
                 } catch (Exception e) {
-                    // Пропускаем проблемные записи
                     System.err.println("Error loading solution " + solutionId + ": " + e.getMessage());
                 }
             }
@@ -56,13 +52,11 @@ public class StatusScheduler {
             List<TaskModel> tasks = taskRepository.findAll();
             taskService.closePassedTasks(tasks);
         } catch (Exception e) {
-            // Log error but don't crash the scheduler
             System.err.println("Error in updateStatusesHourly: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    // Каждые 6 часов: проверить статусы курсов по датам/вместимости
     @Scheduled(cron = "0 0 */6 * * *")
     public void updateCourseStatuses() {
         try {
@@ -71,14 +65,8 @@ public class StatusScheduler {
                 courseService.updateCourseStatusByDatesAndCapacity(c);
             }
         } catch (Exception e) {
-            // Log error but don't crash the scheduler
             System.err.println("Error in updateCourseStatuses: " + e.getMessage());
             e.printStackTrace();
         }
     }
 }
-
-
-
-
-

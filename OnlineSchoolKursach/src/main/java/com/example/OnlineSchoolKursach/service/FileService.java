@@ -57,11 +57,10 @@ public class FileService {
     }
 
     public String getFileUrl(String objectName) {
-        // Return API endpoint URL instead of presigned URL
         if (objectName == null || objectName.isEmpty()) {
             return null;
         }
-        // Encode the path for URL
+
         try {
             String encodedPath = java.net.URLEncoder.encode(objectName, "UTF-8").replace("+", "%20");
             return "/v1/api/files/image?path=" + encodedPath;

@@ -2,10 +2,10 @@ package com.example.OnlineSchoolKursach.config;
 
 import com.example.OnlineSchoolKursach.model.CategoryModel;
 import com.example.OnlineSchoolKursach.model.EnrollmentStatusModel;
-import com.example.OnlineSchoolKursach.model.TaskStatusModel; // Added import
+import com.example.OnlineSchoolKursach.model.TaskStatusModel;
 import com.example.OnlineSchoolKursach.repository.CategoryRepository;
 import com.example.OnlineSchoolKursach.repository.EnrollmentStatusRepository;
-import com.example.OnlineSchoolKursach.repository.TaskStatusRepository; // Added import
+import com.example.OnlineSchoolKursach.repository.TaskStatusRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -20,7 +20,7 @@ public class DataInitializer implements CommandLineRunner {
     private EnrollmentStatusRepository enrollmentStatusRepository;
     
     @Autowired
-    private TaskStatusRepository taskStatusRepository; // Added field
+    private TaskStatusRepository taskStatusRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -57,8 +57,7 @@ public class DataInitializer implements CommandLineRunner {
             cancelled.setStatusName("Отменена");
             enrollmentStatusRepository.save(cancelled);
         }
-        
-        // Added task statuses initialization
+
         if (taskStatusRepository.count() == 0) {
             TaskStatusModel pending = new TaskStatusModel();
             pending.setStatusName("Новое");

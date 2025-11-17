@@ -3,8 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${'Курс: ' + course.title + ' - Онлайн Школа'}">Детали курса - Онлайн Школа</title>
+    <title th:text="${'Курс: ' + course.title + ' - SupSchool'}">Детали курса - SupSchool</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/custom-theme.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/user-settings.js"></script>
+    <script src="/js/teacher-hotkeys.js"></script>
     <style>
         .course-header {
             position: relative;
@@ -62,21 +67,24 @@
         }
     </style>
 </head>
-<body>
+<body data-context="student-course">
     <nav class="navbar navbar-expand-lg navbar-dark bg-info">
         <div class="container">
-            <a class="navbar-brand" href="/">Онлайн Школа</a>
-            <div class="navbar-nav ms-auto">
+            <a class="navbar-brand text-white" href="/">SupSchool</a>
+            <div class="navbar-nav ms-auto d-flex align-items-center">
                 <span class="navbar-text me-3" th:if="${#authentication != null}">
                     Добро пожаловать, <span th:text="${#authentication.name}"></span>!
                 </span>
+                <button id="themeToggle" class="btn btn-sm btn-outline-light me-2" title="Переключить тему">
+                    🌙
+                </button>
                 <a class="nav-link" href="/student">Назад к курсам</a>
                 <a class="nav-link" href="/logout">Выйти</a>
             </div>
         </div>
     </nav>
 
-    <!-- ======= ГЛАВНЫЙ БЛОК С КАРТИНКОЙ ======= -->
+    
     <div class="course-header">
         <img th:if="${course.imageUrl}" th:src="${course.imageUrl}" th:alt="${course.title}">
         <div th:unless="${course.imageUrl}" style="width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
@@ -88,7 +96,7 @@
     </div>
 
     <div class="container">
-        <!-- Tabs Navigation -->
+        
         <ul class="nav nav-tabs" id="courseTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab" aria-controls="description" aria-selected="true">Описание</button>
@@ -101,18 +109,18 @@
             </li>
         </ul>
 
-        <!-- Error Message -->
+        
         <div th:if="${param.error != null}" class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
             <span th:text="${param.error[0]}">Ошибка</span>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
 
-        <!-- Tab Content -->
+        
         <div class="tab-content" id="courseTabsContent">
-            <!-- Description Tab -->
+            
             <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
                 <div class="row mt-4">
-                    <!-- Course Content -->
+                    
                     <div class="col-md-8">
                         <div class="card mb-4">
                             <div class="card-header">
@@ -138,7 +146,7 @@
                         </div>
                     </div>
 
-                    <!-- Sidebar -->
+                    
                     <div class="col-md-4">
                         <div class="card mb-4 course-meta">
                             <div class="card-header">
@@ -210,7 +218,7 @@
                 </div>
             </div>
 
-            <!-- Lessons Tab -->
+            
             <div class="tab-pane fade" id="lessons" role="tabpanel" aria-labelledby="lessons-tab" th:if="${isEnrolled}">
                 <div class="row mt-4">
                     <div class="col-12">
@@ -228,7 +236,7 @@
                 </div>
             </div>
 
-            <!-- Assignments Tab -->
+            
             <div class="tab-pane fade" id="assignments" role="tabpanel" aria-labelledby="assignments-tab" th:if="${isEnrolled}">
                 <div class="row mt-4">
                     <div class="col-12">
@@ -249,7 +257,7 @@
         </div>
     </div>
 
-    <!-- Enrollment Confirmation Modal -->
+    
     <div class="modal fade" id="enrollmentModal" tabindex="-1" aria-labelledby="enrollmentModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -303,7 +311,7 @@
         </div>
     </div>
 
-    <!-- Bank Card Payment Modal -->
+    
     <div class="modal fade" id="bankCardModal" tabindex="-1" aria-labelledby="bankCardModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -341,7 +349,7 @@
         </div>
     </div>
 
-    <!-- Gift Card Purchase Confirmation Modal -->
+    
     <div class="modal fade" id="giftCardPurchaseModal" tabindex="-1" aria-labelledby="giftCardPurchaseModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -380,7 +388,7 @@
         </div>
     </div>
 
-    <!-- Gift Card Bank Card Payment Modal -->
+    
     <div class="modal fade" id="giftCardBankCardModal" tabindex="-1" aria-labelledby="giftCardBankCardModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -418,7 +426,7 @@
         </div>
     </div>
 
-    <!-- Gift Card Purchase Success Modal -->
+    
     <div class="modal fade" id="giftCardSuccessModal" tabindex="-1" aria-labelledby="giftCardSuccessModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -438,7 +446,7 @@
         </div>
     </div>
 
-    <!-- Payment Success Modal -->
+    
     <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -460,7 +468,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
     <script th:inline="javascript">
-        // Format card number input
+
         document.getElementById('cardNumber').addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
             let formattedValue = '';
@@ -475,7 +483,6 @@
             e.target.value = formattedValue;
         });
 
-        // Format expiry date input
         document.getElementById('expiryDate').addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
             if (value.length > 2) {
@@ -483,11 +490,9 @@
             }
             e.target.value = value;
         });
-        
-        // Check enrollment status from Thymeleaf
+
         const isEnrolled = /*[[${isEnrolled}]]*/ false;
-        
-        // Load lessons when lessons tab is shown (only if enrolled)
+
         const lessonsTab = document.getElementById('lessons-tab');
         if (lessonsTab) {
             if (isEnrolled) {
@@ -496,8 +501,7 @@
                 });
             }
         }
-        
-        // Load assignments when assignments tab is shown (only if enrolled)
+
         const assignmentsTab = document.getElementById('assignments-tab');
         if (assignmentsTab) {
             if (isEnrolled) {
@@ -508,7 +512,7 @@
         }
 
         function loadLessons() {
-            // Check if enrolled before loading
+
             if (!isEnrolled) return;
             
             const courseId = /*[[${course.courseId}]]*/ '1';
@@ -555,12 +559,11 @@
         }
         
         function loadAssignments() {
-            // Check if enrolled before loading
+
             if (!isEnrolled) return;
             
             const courseId = /*[[${course.courseId}]]*/ '1';
-            
-            // First get lessons, then get tasks for each lesson
+
             fetch(`/v1/api/lessons/course/${courseId}`, {
                 headers: {
                     'Authorization': 'Bearer ' + localStorage.getItem('token')
@@ -577,8 +580,7 @@
                     document.getElementById('assignmentsList').innerHTML = '<p class="text-muted text-center">Пока нет уроков в этом курсе</p>';
                     return;
                 }
-                
-                // Get tasks for each lesson
+
                 let tasksPromises = lessons.map(lesson => {
                     return fetch(`/v1/api/tasks/lesson/${lesson.lessonId}`, {
                         headers: {
@@ -594,7 +596,7 @@
                 
                 Promise.all(tasksPromises)
                     .then(tasksArrays => {
-                        // Flatten the array of tasks
+
                         let allTasks = [].concat(...tasksArrays);
                         
                         const assignmentsList = document.getElementById('assignmentsList');
@@ -636,7 +638,6 @@
             enrollmentModal.show();
         }
 
-        // Show/hide gift card code input based on payment method
         document.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {
             radio.addEventListener('change', function() {
                 const giftCardCodeInput = document.getElementById('giftCardCodeInput');
@@ -652,7 +653,7 @@
             const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
 
             if (paymentMethod === 'bankCard') {
-                // Hide enrollment modal and show bank card modal
+
                 const enrollmentModal = bootstrap.Modal.getInstance(document.getElementById('enrollmentModal'));
                 enrollmentModal.hide();
 
@@ -661,7 +662,7 @@
                     bankCardModal.show();
                 }, 300);
             } else if (paymentMethod === 'giftCard') {
-                // Handle gift card payment
+
                 const giftCardCode = document.getElementById('giftCardCode').value.trim();
                 if (!giftCardCode) {
                     alert('Пожалуйста, введите код подарочной карты');
@@ -674,7 +675,6 @@
         function useGiftCardAndEnroll(giftCardCode) {
             const courseId = /*[[${course.courseId}]]*/ '1';
 
-            // First use the gift card
             fetch('/v1/api/gift-cards/use', {
                 method: 'POST',
                 headers: {
@@ -694,11 +694,10 @@
                 }
             })
             .then(giftCard => {
-                // Close enrollment modal
+
                 const enrollmentModal = bootstrap.Modal.getInstance(document.getElementById('enrollmentModal'));
                 enrollmentModal.hide();
-                
-                // Now enroll in course
+
                 enrollInCourse();
             })
             .catch(error => {
@@ -708,7 +707,7 @@
         }
 
         function submitBankCardPayment() {
-            // Validate form fields
+
             const cardNumber = document.getElementById('cardNumber').value.trim();
             const expiryDate = document.getElementById('expiryDate').value.trim();
             const cvv = document.getElementById('cvv').value.trim();
@@ -719,7 +718,6 @@
                 return;
             }
 
-            // Simulate payment processing
             const bankCardModal = bootstrap.Modal.getInstance(document.getElementById('bankCardModal'));
             bankCardModal.hide();
 
@@ -740,11 +738,11 @@
             })
             .then(response => {
                 if (response.ok) {
-                    // Show success modal
+
                     const successModal = new bootstrap.Modal(document.getElementById('successModal'));
                     successModal.show();
                 } else {
-                    // Try to get error message from response
+
                     response.text().then(text => {
                         try {
                             const errorData = JSON.parse(text);
@@ -753,7 +751,7 @@
                             alert(text || 'Ошибка при записи на курс');
                         }
                     }).catch(() => {
-                        alert('Ошибка при записи на курс');
+                    alert('Ошибка при записи на курс');
                     });
                 }
             })
@@ -775,7 +773,7 @@
             const paymentMethod = document.querySelector('input[name="giftCardPaymentMethod"]:checked').value;
 
             if (paymentMethod === 'bankCard') {
-                // Hide gift card purchase modal and show bank card modal
+
                 const giftCardPurchaseModal = bootstrap.Modal.getInstance(document.getElementById('giftCardPurchaseModal'));
                 giftCardPurchaseModal.hide();
 
@@ -787,7 +785,7 @@
         }
 
         function submitGiftCardBankCardPayment() {
-            // Validate form fields
+
             const cardNumber = document.getElementById('giftCardCardNumber').value.trim();
             const expiryDate = document.getElementById('giftCardExpiryDate').value.trim();
             const cvv = document.getElementById('giftCardCvv').value.trim();
@@ -798,7 +796,6 @@
                 return;
             }
 
-            // Simulate payment processing
             const giftCardBankCardModal = bootstrap.Modal.getInstance(document.getElementById('giftCardBankCardModal'));
             giftCardBankCardModal.hide();
 
@@ -825,7 +822,7 @@
                 }
             })
             .then(giftCard => {
-                // Show success modal
+
                 const giftCardDetails = document.getElementById('giftCardDetails');
                 giftCardDetails.innerHTML = `
                     <strong>Код карты:</strong> ${giftCard.cardNumber}<br>

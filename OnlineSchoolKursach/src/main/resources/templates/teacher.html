@@ -3,8 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Панель преподавателя - Онлайн Школа</title>
+    <title>Панель преподавателя - SupSchool</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/custom-theme.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/user-settings.js"></script>
+    <script src="/js/teacher-hotkeys.js"></script>
     <style>
         .teacher-card {
             transition: transform 0.2s;
@@ -58,21 +63,24 @@
         }
     </style>
 </head>
-<body class="bg-light">
+<body class="bg-light" data-context="teacher-dashboard">
     <nav class="navbar navbar-expand-lg navbar-dark bg-info">
         <div class="container">
-            <a class="navbar-brand" href="/">Онлайн Школа - Панель преподавателя</a>
-            <div class="navbar-nav ms-auto">
-                <span class="navbar-text me-3" th:if="${#authentication != null}">
+            <a class="navbar-brand text-white" href="/">SupSchool - Панель преподавателя</a>
+            <div class="navbar-nav ms-auto d-flex align-items-center">
+                <span class="navbar-text me-3 text-white" th:if="${#authentication != null}">
                     Добро пожаловать, <span th:text="${#authentication.name}"></span>!
                 </span>
-                <a class="nav-link" href="/logout">Выйти</a>
+                <button id="themeToggle" class="btn btn-sm btn-outline-light me-2" onclick="toggleTheme()" title="Переключить тему">
+                    🌙
+                </button>
+                <a class="nav-link text-white" href="/logout">Выйти</a>
             </div>
         </div>
     </nav>
 
     <div class="container mt-4">
-        <!-- Tabs Navigation -->
+        
         <ul class="nav nav-tabs" id="teacherTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="my-courses-tab" data-bs-toggle="tab" data-bs-target="#my-courses" type="button" role="tab" aria-controls="my-courses" aria-selected="true">Мои курсы</button>
@@ -88,9 +96,9 @@
             </li>
         </ul>
 
-        <!-- Tab Content -->
+        
         <div class="tab-content" id="teacherTabsContent">
-            <!-- My Courses Tab -->
+            
             <div class="tab-pane fade show active" id="my-courses" role="tabpanel" aria-labelledby="my-courses-tab">
                 <div class="row mt-4">
                     <div class="col-12">
@@ -102,11 +110,19 @@
                 <div class="row mt-3">
                     <div class="col-12">
                         <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5>Ваши курсы</h5>
-                                <button class="btn btn-primary btn-sm" onclick="showAddCourseModal()">
-                                    <i class="fas fa-plus"></i> Добавить курс
-                                </button>
+                            <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
+                                <h5 class="mb-0">Ваши курсы</h5>
+                                <div class="d-flex flex-wrap gap-2 align-items-center">
+                                    <input type="text"
+                                           id="teacherCourseSearch"
+                                           class="form-control form-control-sm"
+                                           style="min-width: 220px;"
+                                           placeholder="Поиск курса..."
+                                           data-action="search">
+                                    <button class="btn btn-primary btn-sm" onclick="showAddCourseModal()" data-action="create-course">
+                                        <i class="fas fa-plus"></i> Добавить курс
+                                    </button>
+                                </div>
                             </div>
                             <div class="card-body">
                                 <div id="myCoursesList">
@@ -118,7 +134,7 @@
                 </div>
             </div>
 
-            <!-- Archive Tab -->
+            
             <div class="tab-pane fade" id="archive" role="tabpanel" aria-labelledby="archive-tab">
                 <div class="row mt-4">
                     <div class="col-12">
@@ -146,7 +162,7 @@
                 </div>
             </div>
 
-            <!-- Calendar Tab -->
+            
             <div class="tab-pane fade" id="calendar" role="tabpanel" aria-labelledby="calendar-tab">
                 <div class="row mt-4">
                     <div class="col-12">
@@ -185,7 +201,7 @@
                 </div>
             </div>
 
-            <!-- Profile Tab -->
+            
             <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
                 <div class="row mt-4">
                     <div class="col-12">
@@ -194,55 +210,18 @@
                     </div>
                 </div>
 
-                <!-- Profile Sub-tabs -->
-                <ul class="nav nav-tabs mt-3" id="teacherProfileSubTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="teacher-personal-info-tab" data-bs-toggle="tab" data-bs-target="#teacher-personal-info" type="button" role="tab" aria-controls="teacher-personal-info" aria-selected="true">Личная информация</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="teacher-receipts-tab" data-bs-toggle="tab" data-bs-target="#teacher-receipts" type="button" role="tab" aria-controls="teacher-receipts" aria-selected="false">Чеки</button>
-                    </li>
-                </ul>
-
-                <!-- Profile Sub-tab Content -->
-                <div class="tab-content" id="teacherProfileSubTabsContent">
-                    <!-- Personal Info Sub-tab -->
-                    <div class="tab-pane fade show active" id="teacher-personal-info" role="tabpanel" aria-labelledby="teacher-personal-info-tab">
-                        <div class="row mt-3">
-                            <div class="col-md-8 mx-auto">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5>Личная информация</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div id="profileInfo">
-                                            <p class="text-muted text-center">Загрузка информации о профиле...</p>
-                                        </div>
-                                        <div class="mt-3 text-center">
-                                            <a href="/profile/edit" class="btn btn-primary">Редактировать профиль</a>
-                                        </div>
-                                    </div>
-                                </div>
+                <div class="row mt-3">
+                    <div class="col-md-8 mx-auto">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Личная информация</h5>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Receipts Sub-tab -->
-                    <div class="tab-pane fade" id="teacher-receipts" role="tabpanel" aria-labelledby="teacher-receipts-tab">
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <div class="card">
-                                    <div class="card-header d-flex justify-content-between align-items-center">
-                                        <h5>Чеки за мои курсы</h5>
-                                        <button class="btn btn-outline-primary btn-sm" onclick="loadMyReceipts()">
-                                            <i class="fas fa-sync-alt"></i> Обновить
-                                        </button>
-                                    </div>
-                                    <div class="card-body">
-                                        <div id="receiptsList">
-                                            <p class="text-muted text-center">Загрузка списка чеков...</p>
-                                        </div>
-                                    </div>
+                            <div class="card-body">
+                                <div id="profileInfo">
+                                    <p class="text-muted text-center">Загрузка информации о профиле...</p>
+                                </div>
+                                <div class="mt-3 text-center">
+                                    <a href="/profile/edit" class="btn btn-primary">Редактировать профиль</a>
                                 </div>
                             </div>
                         </div>
@@ -252,7 +231,7 @@
         </div>
     </div>
 
-    <!-- Add Course Modal -->
+    
     <div class="modal fade" id="courseModal" tabindex="-1" aria-labelledby="courseModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -309,7 +288,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                    <button type="button" class="btn btn-primary" onclick="saveCourse()">Сохранить</button>
+                    <button type="button" class="btn btn-primary" onclick="saveCourse()" data-action="save">Сохранить</button>
                 </div>
             </div>
         </div>
@@ -318,6 +297,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
     <script>
+        let teacherCoursesCache = [];
+
         function authHeaders() {
             const headers = {};
             const token = localStorage.getItem('token');
@@ -325,11 +306,52 @@
             return headers;
         }
         document.addEventListener('DOMContentLoaded', function() {
-            // Load data for the active tab (my courses by default)
+            setupTeacherSearch();
+
             loadMyCourses();
-            loadCategories();
-            loadCourseStatuses();
+
+            Promise.all([
+                loadCategories(),
+                loadCourseStatuses()
+            ]).then(() => {
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const copyParam = urlParams.get('copy');
+                const courseIdParam = urlParams.get('courseId');
+                
+                if (copyParam === 'true' && courseIdParam) {
+
+                    fetch(`/v1/api/courses/${courseIdParam}`, {
+                        headers: authHeaders()
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Ошибка при получении данных курса');
+                        }
+                        return response.json();
+                    })
+                    .then(course => {
+
+                        copyCourseToModal(course);
+
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    })
+                    .catch(error => {
+                        console.error('Error copying course:', error);
+                        alert('Ошибка при копировании курса: ' + error.message);
+                    });
+                }
+            });
         });
+
+        function setupTeacherSearch() {
+            const searchInput = document.getElementById('teacherCourseSearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', () => {
+                    applyTeacherCourseSearch();
+                });
+            }
+        }
 
         function loadMyCourses() {
             fetch('/v1/api/courses/teacher/all', {
@@ -337,61 +359,81 @@
             })
             .then(response => response.json())
             .then(allCourses => {
-                // Filter out archived courses
+
                 const teacherCourses = allCourses.filter(course => 
                     course.courseStatus && course.courseStatus.statusName !== 'Архивный'
                 );
                 
-                const coursesList = document.getElementById('myCoursesList');
-                if (teacherCourses.length === 0) {
-                    coursesList.innerHTML = '<p class="text-muted text-center">У вас пока нет курсов</p>';
-                } else {
-                    let html = '<div class="row">';
-                    teacherCourses.forEach(course => {
-                        // Add category display
-                        const categoryBadge = course.category ? 
-                            `<span class="badge bg-info me-2">${course.category.categoryName}</span>` : '';
-                        
-                        html += `
-                            <div class="col-md-6 col-lg-4 mb-4">
-                                <div class="card course-card h-100">
-                                    <div class="card-body d-flex flex-column">
-                                        ${course.imageUrl ? 
-                                            `<img src="${course.imageUrl}" class="card-img-top mb-2" style="width: 100%; height: 150px; object-fit: cover;" alt="${course.title}">` : 
-                                            `<div class="bg-light mb-2" style="width: 100%; height: 150px; display: flex; align-items: center; justify-content: center;">
-                                                <i class="fas fa-image fa-3x text-muted"></i>
-                                            </div>`}
-                                        <h5 class="card-title">
-                                            ${categoryBadge}
-                                            ${course.title}
-                                        </h5>
-                                        <p class="card-text flex-grow-1">${course.description || 'Без описания'}</p>
-                                        <div class="mt-auto">
-                                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <span class="badge bg-primary">${course.price ? course.price + ' руб.' : 'Бесплатно'}</span>
-                                                <span class="badge bg-success">${course.courseStatus ? course.courseStatus.statusName : 'Не указан'}</span>
-                                            </div>
-                                            <div class="d-grid gap-2">
-                                                <a href="/teacher/course/${course.courseId}" class="btn btn-outline-primary">
-                                                    <i class="fas fa-info-circle"></i> Подробнее
-                                                </a>
-                                                <button class="btn btn-warning" onclick="editCourse(${course.courseId})">
-                                                    <i class="fas fa-edit"></i> Редактировать
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    html += '</div>';
-                    coursesList.innerHTML = html;
-                }
+                teacherCoursesCache = teacherCourses;
+                applyTeacherCourseSearch();
             })
             .catch(error => {
                 document.getElementById('myCoursesList').innerHTML = '<p class="text-danger text-center">Ошибка загрузки списка курсов</p>';
             });
+        }
+
+        function applyTeacherCourseSearch() {
+            const searchInput = document.getElementById('teacherCourseSearch');
+            const term = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            if (!teacherCoursesCache || teacherCoursesCache.length === 0) {
+                renderTeacherCourses([]);
+                return;
+            }
+            const filtered = term ? teacherCoursesCache.filter(course => 
+                (course.title || '').toLowerCase().includes(term)
+            ) : teacherCoursesCache.slice();
+            renderTeacherCourses(filtered);
+        }
+
+        function renderTeacherCourses(courses) {
+            const coursesList = document.getElementById('myCoursesList');
+            if (!courses || courses.length === 0) {
+                const message = (teacherCoursesCache && teacherCoursesCache.length === 0)
+                    ? 'У вас пока нет курсов'
+                    : 'Курсы не найдены';
+                coursesList.innerHTML = `<p class="text-muted text-center">${message}</p>`;
+                return;
+            }
+            let html = '<div class="row">';
+            courses.forEach(course => {
+                const categoryBadge = course.category ? 
+                    `<span class="badge bg-info me-2">${course.category.categoryName}</span>` : '';
+                
+                html += `
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card course-card h-100">
+                            <div class="card-body d-flex flex-column">
+                                ${course.imageUrl ? 
+                                    `<img src="${course.imageUrl}" class="card-img-top mb-2" style="width: 100%; height: 150px; object-fit: cover;" alt="${course.title}">` : 
+                                    `<div class="bg-light mb-2" style="width: 100%; height: 150px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-image fa-3x text-muted"></i>
+                                    </div>`}
+                                <h5 class="card-title">
+                                    ${categoryBadge}
+                                    ${course.title}
+                                </h5>
+                                <p class="card-text flex-grow-1">${course.description || 'Без описания'}</p>
+                                <div class="mt-auto">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge bg-primary">${course.price ? course.price + ' руб.' : 'Бесплатно'}</span>
+                                        <span class="badge bg-success">${course.courseStatus ? course.courseStatus.statusName : 'Не указан'}</span>
+                                    </div>
+                                    <div class="d-grid gap-2">
+                                        <a href="/teacher/course/${course.courseId}" class="btn btn-outline-primary">
+                                            <i class="fas fa-info-circle"></i> Подробнее
+                                        </a>
+                                        <button class="btn btn-warning" onclick="editCourse(${course.courseId})">
+                                            <i class="fas fa-edit"></i> Редактировать
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            coursesList.innerHTML = html;
         }
 
         function loadArchivedCourses() {
@@ -400,7 +442,7 @@
             })
             .then(response => response.json())
             .then(allCourses => {
-                // Filter only archived courses
+
                 const archivedCourses = allCourses.filter(course => 
                     course.courseStatus && course.courseStatus.statusName === 'Архивный'
                 );
@@ -411,7 +453,7 @@
                 } else {
                     let html = '<div class="row">';
                     archivedCourses.forEach(course => {
-                        // Add category display
+
                         const categoryBadge = course.category ? 
                             `<span class="badge bg-info me-2">${course.category.categoryName}</span>` : '';
                         
@@ -456,12 +498,16 @@
         }
 
         function loadCategories() {
-            fetch('/v1/api/categories', {
+            return fetch('/v1/api/categories', {
                 headers: authHeaders()
             })
             .then(response => response.json())
             .then(categories => {
                 const categorySelect = document.getElementById('courseCategory');
+
+                while (categorySelect.options.length > 1) {
+                    categorySelect.remove(1);
+                }
                 categories.forEach(category => {
                     const option = document.createElement('option');
                     option.value = category.categoryId;
@@ -475,19 +521,23 @@
         }
 
         function loadCourseStatuses() {
-            fetch('/v1/api/course-statuses', {
+            return fetch('/v1/api/course-statuses', {
                 headers: authHeaders()
             })
             .then(response => response.json())
             .then(statuses => {
                 const statusSelect = document.getElementById('courseStatus');
+
+                while (statusSelect.options.length > 1) {
+                    statusSelect.remove(1);
+                }
                 statuses.forEach(status => {
                     const option = document.createElement('option');
                     option.value = status.courseStatusId;
                     option.textContent = status.statusName;
                     statusSelect.appendChild(option);
                 });
-                // try select default 'Идет набор' if exists
+
                 const recruitOption = Array.from(statusSelect.options).find(o => o.textContent === 'Идет набор');
                 if (recruitOption) {
                     statusSelect.value = recruitOption.value;
@@ -499,13 +549,13 @@
         }
 
         function loadMyReceipts() {
-            // First get all courses taught by the teacher
+
             fetch('/v1/api/courses', {
                 headers: authHeaders()
             })
             .then(response => response.json())
             .then(allCourses => {
-                // Filter courses by current teacher
+
                 return fetch('/v1/api/auth/me', {
                     headers: authHeaders()
                 })
@@ -514,18 +564,16 @@
                     const teacherCourses = allCourses.filter(course => 
                         course.teacher && course.teacher.userId === user.userId
                     );
-                    
-                    // Get check IDs for these courses
+
                     const courseIds = teacherCourses.map(course => course.courseId);
-                    
-                    // For simplicity, we'll just show all checks for now
-                    // In a real implementation, you might want to filter by course IDs
+
+
                     return fetch('/v1/api/courses/my/checks', {
                         headers: authHeaders()
                     })
                     .then(response => response.json())
                     .then(checks => {
-                        // Filter checks to only show those for courses taught by this teacher
+
                         const teacherChecks = checks.filter(check => 
                             check.course && courseIds.includes(check.course.courseId)
                         );
@@ -632,33 +680,28 @@
             });
         }
 
-        // Load profile when profile tab is shown
         document.getElementById('profile-tab').addEventListener('shown.bs.tab', function (e) {
             loadProfile();
         });
 
-        // Load my courses when my courses tab is shown
         document.getElementById('my-courses-tab').addEventListener('shown.bs.tab', function (e) {
             loadMyCourses();
         });
-        
-        // Load calendar when calendar tab is shown
+
         document.getElementById('calendar-tab').addEventListener('shown.bs.tab', function (e) {
             loadCalendar();
         });
-        
-        // Load archived courses when archive tab is shown
+
         document.getElementById('archive-tab').addEventListener('shown.bs.tab', function (e) {
             loadArchivedCourses();
         });
-        
-        // Load receipts when receipts sub-tab is shown
+
         document.getElementById('teacher-receipts-tab').addEventListener('shown.bs.tab', function (e) {
             loadMyReceipts();
         });
 
         function showAddCourseModal() {
-            // Reset form
+
             document.getElementById('courseForm').reset();
             document.getElementById('courseId').value = '';
             document.getElementById('courseModalLabel').textContent = 'Добавить курс';
@@ -667,8 +710,41 @@
             courseModal.show();
         }
 
+        function copyCourseToModal(course) {
+            if (!course) {
+                console.error('Course data is null');
+                return;
+            }
+
+            document.getElementById('courseId').value = '';
+            document.getElementById('courseModalLabel').textContent = 'Создать копию курса';
+
+            document.getElementById('courseTitle').value = (course.title || '') + ' (копия)';
+            document.getElementById('courseDescription').value = course.description || '';
+            document.getElementById('coursePrice').value = course.price || 0;
+
+            if (course.category && course.category.categoryId) {
+                document.getElementById('courseCategory').value = course.category.categoryId;
+            }
+
+            document.getElementById('courseStatus').value = '';
+
+            if (course.capacity) {
+                document.getElementById('courseCapacity').value = course.capacity;
+            }
+
+            document.getElementById('courseStartDate').value = '';
+            document.getElementById('courseEndDate').value = '';
+
+
+
+            const courseModal = new bootstrap.Modal(document.getElementById('courseModal'));
+            courseModal.show();
+        }
+        
+
         function editCourse(courseId) {
-            // Redirect to edit course page
+
             window.location.href = `/teacher/edit-course/${courseId}`;
         }
 
@@ -677,7 +753,7 @@
             const imageFile = document.getElementById('courseImage').files[0];
             
             if (imageFile && !courseId) {
-                // Uploading a new course with an image
+
                 uploadImage(imageFile)
                     .then(imageUrl => {
                         createCourseWithImage(imageUrl);
@@ -686,9 +762,9 @@
                         alert('Ошибка загрузки изображения: ' + error.message);
                     });
             } else if (courseId) {
-                // Updating an existing course
+
                 if (imageFile) {
-                    // Update with new image
+
                     uploadImage(imageFile)
                         .then(imageUrl => {
                             updateCourseWithImage(courseId, imageUrl);
@@ -697,11 +773,11 @@
                             alert('Ошибка загрузки изображения: ' + error.message);
                         });
                 } else {
-                    // Update without changing image
+
                     updateCourseWithImage(courseId, null);
                 }
             } else {
-                // Creating a new course without an image
+
                 createCourseWithImage(null);
             }
         }
@@ -742,8 +818,7 @@
                 startDate: document.getElementById('courseStartDate').value || null,
                 endDate: document.getElementById('courseEndDate').value || null
             };
-            
-            // Add image URL if provided
+
             if (imageUrl) {
                 courseData.imageUrl = imageUrl;
             }
@@ -784,8 +859,7 @@
                 startDate: document.getElementById('courseStartDate').value || null,
                 endDate: document.getElementById('courseEndDate').value || null
             };
-            
-            // Add image URL if provided
+
             if (imageUrl) {
                 courseData.imageUrl = imageUrl;
             }

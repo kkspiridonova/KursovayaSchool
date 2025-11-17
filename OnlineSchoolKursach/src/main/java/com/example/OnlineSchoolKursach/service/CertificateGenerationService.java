@@ -39,39 +39,28 @@ public class CertificateGenerationService {
     @Autowired
     private CertificateStatusRepository certificateStatusRepository;
 
-    /**
-     * Генерирует сертификат для студента за курс
-     */
     @Transactional
     public CertificateModel generateCertificate(UserModel user, CourseModel course) {
         try {
-            // Генерируем уникальный номер сертификата
             String certificateNumber = generateCertificateNumber(course.getCourseId(), user.getUserId());
 
-            // Формируем ФИО студента
             String studentName = buildStudentName(user);
 
-            // Генерируем HTML шаблон
             String htmlContent = generateHtmlTemplate(studentName, course.getTitle(), 
                     LocalDate.now(), certificateNumber);
 
-            // Конвертируем HTML в PDF
             byte[] pdfBytes = convertHtmlToPdf(htmlContent);
 
-            // Сохраняем PDF в MinIO
             String filePath = savePdfToMinio(pdfBytes, certificateNumber);
 
-            // Создаем запись в БД
             CertificateModel certificate = new CertificateModel(user, course, certificateNumber);
             certificate.setFilePath(filePath);
             certificate.setIssueDate(LocalDate.now());
-            
-            // Устанавливаем статус "Выдан" по умолчанию
+
             CertificateStatusModel status = certificateStatusRepository.findAll().stream()
                     .filter(s -> "Выдан".equals(s.getStatusName()))
                     .findFirst()
                     .orElseGet(() -> {
-                        // Если статуса нет, создаем его
                         CertificateStatusModel newStatus = new CertificateStatusModel("Выдан");
                         return certificateStatusRepository.save(newStatus);
                     });
@@ -133,14 +122,10 @@ public class CertificateGenerationService {
 
     private String savePdfToMinio(byte[] pdfBytes, String certificateNumber) throws IOException {
         try {
-            // Создаем временный файл в памяти
             ByteArrayInputStream inputStream = new ByteArrayInputStream(pdfBytes);
-            
-            // Используем MinioFileService для загрузки
-            // Но нужно адаптировать под байты, а не MultipartFile
+
             String objectName = "certificates/" + certificateNumber + ".pdf";
-            
-            // Прямая загрузка в MinIO
+
             minioFileService.uploadBytes(pdfBytes, objectName, "application/pdf");
             
             return objectName;

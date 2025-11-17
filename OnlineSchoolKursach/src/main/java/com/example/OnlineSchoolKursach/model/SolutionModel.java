@@ -1,5 +1,6 @@
 package com.example.OnlineSchoolKursach.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -49,6 +50,7 @@ public class SolutionModel {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "grade_id")
+    @JsonIgnoreProperties({"solution"})
     @Schema(description = "Оценка за решение")
     private GradeModel grade;
 

@@ -233,7 +233,7 @@ public class CourseController {
             EnrollmentModel enrollment = courseService.enrollUserInCourse(user, courseId);
             return ResponseEntity.ok(enrollment);
         } catch (Exception e) {
-            // Return error message in response body
+
             java.util.Map<String, String> errorResponse = new java.util.HashMap<>();
             errorResponse.put("message", e.getMessage() != null ? e.getMessage() : "Ошибка при записи на курс");
             return ResponseEntity.badRequest().body(errorResponse);

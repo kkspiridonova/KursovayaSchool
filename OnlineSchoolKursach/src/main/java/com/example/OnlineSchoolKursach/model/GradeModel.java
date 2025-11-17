@@ -1,5 +1,6 @@
 package com.example.OnlineSchoolKursach.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
@@ -31,6 +32,7 @@ public class GradeModel {
     private String feedback;
 
     @OneToOne(mappedBy = "grade", fetch = FetchType.EAGER)
+    @JsonIgnoreProperties({"grade", "task", "user", "solutionStatus"})
     @Schema(description = "Решение, которое получило эту оценку")
     private SolutionModel solution;
 

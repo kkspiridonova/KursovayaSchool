@@ -49,7 +49,7 @@ public class SolutionController {
             Authentication authentication) {
         try {
             UserModel user = authService.getUserByEmail(authentication.getName());
-            // Check if user is teacher of the course or admin
+
             SolutionModel sampleSolution = solutionService.getSolutionById(taskId);
             if (sampleSolution != null) {
                 if (!sampleSolution.getTask().getLesson().getCourse().getTeacher().getUserId().equals(user.getUserId()) &&
@@ -103,7 +103,6 @@ public class SolutionController {
             SolutionModel solution = solutionService.getSolutionById(solutionId);
             
             if (solution != null) {
-                // Check if user is owner of solution or teacher of the course or admin
                 if (!solution.getUser().getUserId().equals(user.getUserId()) &&
                     !solution.getTask().getLesson().getCourse().getTeacher().getUserId().equals(user.getUserId()) &&
                     !"ADMIN".equals(user.getRole().getRoleName())) {
@@ -142,13 +141,11 @@ public class SolutionController {
             UserModel user = authService.getUserByEmail(authentication.getName());
             logger.info("User loaded: {}", user.getUserId());
             solution.setUser(user);
-            
-            // Check if solution already exists for this user and task
+
             if (solution.getTask() != null && solution.getTask().getTaskId() != null) {
                 SolutionModel existingSolution = solutionService.getSolutionByTaskAndUser(
                     solution.getTask().getTaskId(), user.getUserId());
                 if (existingSolution != null) {
-                    // Always merge into existing solution to avoid duplicate errors
                     logger.info("Existing solution found. Merging incoming data into solutionId={}", existingSolution.getSolutionId());
                     if (solution.getAnswerText() != null) {
                         existingSolution.setAnswerText(solution.getAnswerText());
@@ -166,7 +163,6 @@ public class SolutionController {
             logger.info("Solution created successfully with ID: {}", createdSolution.getSolutionId());
             return ResponseEntity.ok(createdSolution);
         } catch (RuntimeException e) {
-            // Return error message for business logic errors
             logger.error("RuntimeException in createSolution: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
@@ -198,13 +194,11 @@ public class SolutionController {
             if (existingSolution == null) {
                 return ResponseEntity.notFound().build();
             }
-            
-            // Check if user is owner of solution
+
             if (!existingSolution.getUser().getUserId().equals(user.getUserId())) {
                 return ResponseEntity.badRequest().build();
             }
-            
-            // Only allow updating answer text and file
+
             existingSolution.setAnswerText(solution.getAnswerText());
             existingSolution.setAnswerFile(solution.getAnswerFile());
             
@@ -238,8 +232,7 @@ public class SolutionController {
             if (existingSolution == null) {
                 return ResponseEntity.notFound().build();
             }
-            
-            // Check if user is owner of solution
+
             if (!existingSolution.getUser().getUserId().equals(user.getUserId())) {
                 return ResponseEntity.badRequest().build();
             }

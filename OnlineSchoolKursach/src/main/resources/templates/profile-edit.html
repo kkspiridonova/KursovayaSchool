@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Редактирование профиля - Онлайн Школа</title>
+    <title>Редактирование профиля - SupSchool</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/custom-theme.css}">
     <style>
         .profile-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 2rem 0;
             margin-bottom: 2rem;
@@ -17,13 +17,13 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-info">
         <div class="container">
-            <a class="navbar-brand" href="/">Онлайн Школа</a>
+            <a class="navbar-brand text-white" href="/">SupSchool</a>
             <div class="navbar-nav ms-auto">
-                <span class="navbar-text me-3" th:if="${#authentication != null}">
+                <span class="navbar-text me-3 text-white" th:if="${#authentication != null}">
                     Добро пожаловать, <span th:text="${#authentication.name}"></span>!
                 </span>
-                <a class="nav-link" href="/student">Назад к панели</a>
-                <a class="nav-link" href="/logout">Выйти</a>
+                <a class="nav-link text-white" href="/student">Назад к панели</a>
+                <a class="nav-link text-white" href="/logout">Выйти</a>
             </div>
         </div>
     </nav>
@@ -102,17 +102,17 @@
             const imageFile = document.getElementById('profileImage').files[0];
             
             if (imageFile) {
-                // First upload the image
+
                 uploadImage(imageFile)
                     .then(imageUrl => {
-                        // Then update the profile with the image URL
+
                         saveProfileData(imageUrl);
                     })
                     .catch(error => {
                         alert('Ошибка загрузки изображения: ' + error.message);
                     });
             } else {
-                // No image to upload, just update the profile
+
                 saveProfileData(null);
             }
         }
@@ -132,7 +132,7 @@
                 if (response.ok) {
                     return response.json();
                 } else {
-                    // Check if it's an authentication error
+
                     if (response.status === 401) {
                         alert('Сессия истекла. Пожалуйста, войдите снова.');
                         window.location.href = '/login';
@@ -154,7 +154,6 @@
                 email: document.getElementById('email').value
             };
             
-            // Add image URL if provided
             if (imageUrl) {
                 profileData.imageUrl = imageUrl;
             }
@@ -170,7 +169,7 @@
             .then(response => {
                 if (response.ok) {
                     alert('Профиль успешно обновлен!');
-                    // Redirect back to the appropriate dashboard based on user role
+
                     fetch('/v1/api/auth/me', {
                         headers: {
                             'Authorization': 'Bearer ' + localStorage.getItem('token')
@@ -180,7 +179,7 @@
                         if (response.ok) {
                             return response.json();
                         } else {
-                            // Check if it's an authentication error
+
                             if (response.status === 401) {
                                 alert('Сессия истекла. Пожалуйста, войдите снова.');
                                 window.location.href = '/login';
@@ -197,11 +196,11 @@
                         }
                     })
                     .catch(error => {
-                        // If we can't get user info, redirect to home
+
                         window.location.href = '/';
                     });
                 } else {
-                    // Check if it's an authentication error
+
                     if (response.status === 401) {
                         alert('Сессия истекла. Пожалуйста, войдите снова.');
                         window.location.href = '/login';

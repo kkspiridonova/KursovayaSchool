@@ -2,10 +2,22 @@ spring:
   config:
     name: OnlineSchoolKursach
   datasource:
-    url: jdbc:postgresql://localhost:5432/OnlineSchoolWeb
+    url: jdbc:postgresql://localhost:5432/OnlineSchoolWeb?connectTimeout=60&socketTimeout=60&tcpKeepAlive=true&ApplicationName=OnlineSchoolKursach
     username: postgres
     password: 1
     driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 60000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      minimum-idle: 2
+      maximum-pool-size: 10
+      pool-name: HikariPool-1
+      connection-test-query: SELECT 1
+      leak-detection-threshold: 60000
+      validation-timeout: 5000
+      keepalive-time: 30000
+      initialization-fail-timeout: 1
   jpa:
     hibernate:
       ddl-auto: update
@@ -14,6 +26,14 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        connection:
+          provider_disables_autocommit: false
+        jdbc:
+          time_zone: UTC
+          batch_size: 20
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        order_inserts: true
+        order_updates: true
   servlet:
     multipart:
       max-file-size: 10MB
@@ -25,16 +45,9 @@ spring:
     throw-exception-if-no-handler-found: true
   web:
     resources:
-      add-mappings: false
+      add-mappings: true
+      static-locations: classpath:/static/
   mail:
-    # Настройки Gmail SMTP
-    # Для работы с Gmail необходимо:
-    # 1. Включить двухфакторную аутентификацию в настройках Google аккаунта
-    # 2. Создать пароль приложения: https://myaccount.google.com/apppasswords
-    # 3. Использовать пароль приложения (16 символов без пробелов) в MAIL_PASSWORD
-    # 4. Установить переменные окружения:
-    #    MAIL_USERNAME=your-email@gmail.com
-    #    MAIL_PASSWORD=your-app-password
     host: smtp.gmail.com
     port: 587
     username: ${MAIL_USERNAME:k6117039@gmail.com}
@@ -46,8 +59,8 @@ spring:
           starttls:
             enable: true
             required: true
-          debug: true  # Включить детальное логирование SMTP для отладки
-        debug: true  # Дополнительное логирование для Jakarta Mail
+          debug: true
+        debug: true
 
 server:
   port: 8080
@@ -60,10 +73,10 @@ logging:
   level:
     com.example.OnlineSchoolKursach: DEBUG
     org.springframework.security: DEBUG
-    org.springframework.mail: DEBUG  # Детальное логирование отправки email
-    jakarta.mail: DEBUG  # Логирование SMTP протокола
-    org.eclipse.angus.mail: DEBUG  # Логирование SMTP транспорта
-    com.sun.mail: DEBUG  # Альтернативное логирование (если используется)
+    org.springframework.mail: DEBUG
+    jakarta.mail: DEBUG
+    org.eclipse.angus.mail: DEBUG
+    com.sun.mail: DEBUG
 
 file:
   storage-type: minio

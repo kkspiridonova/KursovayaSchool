@@ -46,9 +46,6 @@ public class CertificateScheduler {
     @Autowired
     private SolutionRepository solutionRepository;
 
-    /**
-     * Получает список студентов, которые имеют решения по заданиям курса
-     */
     private List<UserModel> getStudentsFromSolutions(CourseModel course) {
         try {
             List<LessonModel> lessons = lessonRepository.findByCourseCourseId(course.getCourseId());
@@ -59,8 +56,6 @@ public class CertificateScheduler {
                 List<TaskModel> tasks = taskRepository.findByLessonLessonId(lesson.getLessonId());
                 for (TaskModel task : tasks) {
                     try {
-                        // Используем метод с DISTINCT для избежания дубликатов
-                        // Но все равно может быть проблема, поэтому оборачиваем в try-catch
                         List<SolutionModel> solutions = solutionRepository.findByTaskTaskIdWithGrade(task.getTaskId());
                         for (SolutionModel solution : solutions) {
                             if (solution.getUser() != null) {
@@ -74,7 +69,6 @@ public class CertificateScheduler {
                     } catch (Exception e) {
                         logger.warn("Error getting solutions for task {}: {}. Skipping this task.", 
                                 task.getTaskId(), e.getMessage());
-                        // Продолжаем обработку других задач
                     }
                 }
             }
@@ -88,10 +82,6 @@ public class CertificateScheduler {
         }
     }
 
-    /**
-     * Ежедневно в 1:00 проверяет завершенные курсы и выдает сертификаты
-     * Также может быть вызван вручную через API
-     */
     @Scheduled(cron = "0 0 1 * * *")
     public void checkAndIssueCertificates() {
         logger.info("=== НАЧАЛО ПРОВЕРКИ СЕРТИФИКАТОВ ===");
@@ -100,8 +90,7 @@ public class CertificateScheduler {
             
             LocalDate today = LocalDate.now();
             logger.info("Current date: {}", today);
-            
-            // Получаем все курсы, которые закончились (endDate <= today)
+
             List<CourseModel> allCourses = courseRepository.findAll();
             logger.info("Total courses in database: {}", allCourses.size());
             
@@ -121,17 +110,13 @@ public class CertificateScheduler {
 
             for (CourseModel course : finishedCourses) {
                 try {
-                    // Получаем всех студентов, зачисленных на курс
                     List<EnrollmentModel> enrollments = enrollmentRepository.findByCourseCourseId(course.getCourseId());
-                    
-                    // Получаем студентов из enrollments
+
                     List<UserModel> students = enrollments.stream()
                             .map(EnrollmentModel::getUser)
                             .distinct()
                             .toList();
-                    
-                    // Если enrollments пусты (удалены после окончания курса),
-                    // получаем студентов через решения заданий курса
+
                     if (students.isEmpty()) {
                         students = getStudentsFromSolutions(course);
                     }
@@ -141,7 +126,6 @@ public class CertificateScheduler {
 
                     for (UserModel student : students) {
                         try {
-                            // Проверяем, не выдан ли уже сертификат
                             if (certificateRepository.findByUserUserIdAndCourseCourseId(
                                     student.getUserId(), course.getCourseId()).isPresent()) {
                                 logger.debug("Certificate already exists for user {} course {}", 
@@ -149,18 +133,17 @@ public class CertificateScheduler {
                                 continue;
                             }
 
-                            // Проверяем условия для выдачи сертификата
                             if (eligibilityService.isEligibleForCertificate(student, course)) {
                                 logger.info("User {} is eligible for certificate for course {}", 
                                         student.getEmail(), course.getTitle());
 
-                                // Генерируем сертификат
                                 CertificateModel certificate = generationService.generateCertificate(student, course);
 
-                                // Отправляем на email
+                                certificate = certificateRepository.save(certificate);
+
                                 boolean emailSent = emailService.sendCertificateByEmail(certificate);
                                 if (emailSent) {
-                                    certificateRepository.save(certificate); // Обновляем статус отправки
+                                    certificateRepository.save(certificate);
                                     logger.info("Certificate issued and sent to {} for course {}", 
                                             student.getEmail(), course.getTitle());
                                 } else {

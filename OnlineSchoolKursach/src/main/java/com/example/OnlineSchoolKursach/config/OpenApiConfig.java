@@ -19,7 +19,7 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("Online School API")
                         .version("1.0.0")
-                        .description("API для онлайн школы с системой ролей")
+                        .description("API для SupSchool с системой ролей")
                         .contact(new Contact()
                                 .name("API Support")
                                 .email("support@onlineschool.com"))
