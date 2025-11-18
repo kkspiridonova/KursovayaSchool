@@ -18,9 +18,10 @@ spring:
       validation-timeout: 5000
       keepalive-time: 30000
       initialization-fail-timeout: 1
+      register-mbeans: true
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     database: postgresql
     show-sql: true
     properties:
@@ -34,6 +35,8 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         order_inserts: true
         order_updates: true
+        # Отключаем автоматическое закрытие соединений во время DDL операций
+        temp.use_jdbc_metadata_defaults: false
   servlet:
     multipart:
       max-file-size: 10MB

@@ -1,22 +1,110 @@
 @echo off
-set DB_NAME=OnlineSchoolWeb
+chcp 65001 >nul
+echo ========================================
+echo Creating database backup
+echo ========================================
+
+set DB_NAME=OnlineSchoolWeb2
 set DB_USER=postgres
 set DB_PASSWORD=1
 set DB_HOST=localhost
 set DB_PORT=5432
 
-if not exist "backups" mkdir "backups"
+echo Checking database connection...
+echo Database: %DB_NAME%
+echo User: %DB_USER%
+echo Host: %DB_HOST%:%DB_PORT%
+
+REM Search for pg_dump in standard PostgreSQL installation paths
+set PG_DUMP_PATH=
+where pg_dump >nul 2>&1
+if %ERRORLEVEL% EQU 0 (
+    set PG_DUMP_PATH=pg_dump
+    goto :found_pg_dump
+)
+
+REM Search in standard PostgreSQL installation paths
+for /d %%P in ("C:\Program Files\PostgreSQL\*") do (
+    if exist "%%P\bin\pg_dump.exe" (
+        set PG_DUMP_PATH=%%P\bin\pg_dump.exe
+        goto :found_pg_dump
+    )
+)
+
+REM Search in Program Files (x86)
+for /d %%P in ("C:\Program Files (x86)\PostgreSQL\*") do (
+    if exist "%%P\bin\pg_dump.exe" (
+        set PG_DUMP_PATH=%%P\bin\pg_dump.exe
+        goto :found_pg_dump
+    )
+)
+
+REM If not found
+echo ERROR: pg_dump not found!
+echo.
+echo Try one of the following:
+echo 1. Add PostgreSQL to PATH (recommended)
+echo    - Open "Environment Variables" in Windows
+echo    - Add PostgreSQL bin folder path to PATH
+echo    - Example: C:\Program Files\PostgreSQL\15\bin
+echo.
+echo 2. Or specify full path to pg_dump in the script
+echo.
+pause
+exit /b 1
+
+:found_pg_dump
+echo Found pg_dump: %PG_DUMP_PATH%
+
+REM Create backups folder
+if not exist "backups" (
+    echo Creating backups folder...
+    mkdir "backups"
+)
+
+REM Generate filename with date and time
 for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value') do set datetime=%%I
 set DATETIME=%datetime:~0,8%_%datetime:~8,6%
 set BACKUP_FILE=backups\backup_%DB_NAME%_%DATETIME%.sql
 
+echo.
+echo Creating backup...
+echo File: %BACKUP_FILE%
+echo.
+
+REM Execute pg_dump
 set PGPASSWORD=%DB_PASSWORD%
-pg_dump -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -d %DB_NAME% -F p -f "%BACKUP_FILE%"
+"%PG_DUMP_PATH%" -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -d %DB_NAME% -F p -f "%BACKUP_FILE%" 2>&1
+set DUMP_ERROR=%ERRORLEVEL%
 set PGPASSWORD=
 
-if %ERRORLEVEL% EQU 0 (
-    echo Бэкап создан: %BACKUP_FILE%
+echo.
+
+if %DUMP_ERROR% EQU 0 (
+    if exist "%BACKUP_FILE%" (
+        echo ========================================
+        echo SUCCESS! Backup created: %BACKUP_FILE%
+        echo ========================================
+        dir "%BACKUP_FILE%"
+    ) else (
+        echo ERROR: File was not created, although command completed successfully
+    )
 ) else (
-    echo Ошибка создания бэкапа!
-    exit /b %ERRORLEVEL%
+    echo ========================================
+    echo ERROR creating backup!
+    echo ========================================
+    echo.
+    echo Possible reasons:
+    echo 1. Database "%DB_NAME%" does not exist
+    echo 2. Wrong password or username
+    echo 3. PostgreSQL is not running
+    echo 4. Connection problems with server
+    echo.
+    echo Try to check connection manually:
+    echo psql -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -d %DB_NAME%
+    echo.
+    pause
+    exit /b %DUMP_ERROR%
 )
+
+pause
