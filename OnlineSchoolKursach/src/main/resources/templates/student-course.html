@@ -196,11 +196,14 @@
                                 <h5>Действия</h5>
                             </div>
                             <div class="card-body">
-                                <button class="btn btn-primary w-100 mb-2" th:if="${!isEnrolled}" onclick="showEnrollmentConfirmation()">
+                                <button class="btn btn-primary w-100 mb-2" th:if="${isAuthenticated && !isEnrolled}" onclick="showEnrollmentConfirmation()">
                                     <i class="fas fa-user-plus"></i> Записаться на курс
                                 </button>
+                                <div th:if="${!isAuthenticated}" class="alert alert-info mb-2">
+                                    <i class="fas fa-info-circle"></i> Для записи на курс необходимо <a href="/login">войти</a> или <a href="/register">зарегистрироваться</a>
+                                </div>
                                 <button class="btn btn-success w-100 mb-2" 
-                                        th:if="${course.price != null && course.price > 0 && 
+                                        th:if="${isAuthenticated && course.price != null && course.price > 0 && 
                                                 (course.courseStatus == null || course.courseStatus.statusName != 'Заполнен') && 
                                                 (course.startDate == null || course.startDate.isAfter(T(java.time.LocalDate).now()))}" 
                                         onclick="showGiftCardPurchaseConfirmation()">
@@ -209,8 +212,8 @@
                                 <div th:if="${isEnrolled}" class="alert alert-success">
                                     <i class="fas fa-check-circle"></i> Вы уже записаны на этот курс
                                 </div>
-                                <a href="/student" class="btn btn-outline-secondary w-100">
-                                    <i class="fas fa-arrow-left"></i> Назад к списку курсов
+                                <a th:href="${isAuthenticated ? '/student' : '/'}" class="btn btn-outline-secondary w-100">
+                                    <i class="fas fa-arrow-left"></i> <span th:text="${isAuthenticated ? 'Назад к списку курсов' : 'На главную'}">Назад</span>
                                 </a>
                             </div>
                         </div>

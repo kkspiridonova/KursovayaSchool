@@ -1,0 +1,81 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Controllers">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2600" pageHeight="1400" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Row 1: Authentication & User Controllers -->
+        <mxCell id="AuthController" value="AuthController&#xa;&#xa;Fields:&#xa;- authService: AuthService&#xa;&#xa;Methods:&#xa;+ login(LoginRequest): ResponseEntity&lt;LoginResponse&gt;&#xa;+ register(UserModel): ResponseEntity&lt;UserModel&gt;&#xa;+ me(UserDetails): ResponseEntity&lt;UserModel&gt;&#xa;+ updateProfile(UserModel, UserDetails): ResponseEntity&lt;UserModel&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="40" width="380" height="220" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="PasswordResetController" value="PasswordResetController&#xa;&#xa;Fields:&#xa;- passwordResetService: PasswordResetService&#xa;- jwtUtil: JwtUtil&#xa;&#xa;Methods:&#xa;+ requestPasswordReset(String): ResponseEntity&lt;Map&gt;&#xa;+ resetPasswordPage(String, Model): String&#xa;+ requestPasswordResetForCurrentUser(UserDetails, String): ResponseEntity&lt;Map&gt;&#xa;+ resetPassword(String, String): ResponseEntity&lt;Map&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="40" width="450" height="220" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="UserSettingsController" value="UserSettingsController&#xa;&#xa;Fields:&#xa;- userSettingsService: UserSettingsService&#xa;- authService: AuthService&#xa;&#xa;Methods:&#xa;+ getSettings(Authentication): ResponseEntity&lt;Map&gt;&#xa;+ saveSettings(Map, Authentication): ResponseEntity&lt;Map&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="970" y="40" width="400" height="180" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="TestController" value="TestController&#xa;&#xa;Fields:&#xa;- authService: AuthService&#xa;&#xa;Methods:&#xa;+ test(Authentication): ResponseEntity&lt;String&gt;&#xa;+ adminTest(Authentication): ResponseEntity&lt;String&gt;&#xa;+ teacherTest(Authentication): ResponseEntity&lt;String&gt;&#xa;+ studentTest(Authentication): ResponseEntity&lt;String&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1410" y="40" width="360" height="200" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 2: Course & Category Controllers -->
+        <mxCell id="CourseController" value="CourseController&#xa;&#xa;Fields:&#xa;- courseService: CourseService&#xa;- authService: AuthService&#xa;- checkService: CheckService&#xa;&#xa;Methods:&#xa;+ getAllCourses(): ResponseEntity&lt;List&lt;CourseModel&gt;&gt;&#xa;+ getMyCourses(Authentication): ResponseEntity&lt;List&lt;CourseModel&gt;&gt;&#xa;+ getAllCoursesByTeacher(Authentication): ResponseEntity&lt;List&lt;CourseModel&gt;&gt;&#xa;+ getMyEnrollments(Authentication): ResponseEntity&lt;List&lt;EnrollmentModel&gt;&gt;&#xa;+ getCoursesByCategory(Long): ResponseEntity&lt;List&lt;CourseModel&gt;&gt;&#xa;+ getCourseById(Long): ResponseEntity&lt;CourseModel&gt;&#xa;+ getMyChecks(Authentication): ResponseEntity&lt;List&lt;CheckModel&gt;&gt;&#xa;+ createCourse(CourseModel, Authentication): ResponseEntity&lt;CourseModel&gt;&#xa;+ updateCourse(Long, CourseModel, Authentication): ResponseEntity&lt;CourseModel&gt;&#xa;+ enrollInCourse(Long, Authentication): ResponseEntity&lt;EnrollmentModel&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="300" width="480" height="300" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="CategoryController" value="CategoryController&#xa;&#xa;Fields:&#xa;- categoryService: CategoryService&#xa;&#xa;Methods:&#xa;+ getAllCategories(): ResponseEntity&lt;List&lt;CategoryModel&gt;&gt;&#xa;+ getCategoryById(Long): ResponseEntity&lt;CategoryModel&gt;&#xa;+ createCategory(CategoryModel): ResponseEntity&lt;CategoryModel&gt;&#xa;+ updateCategory(Long, CategoryModel): ResponseEntity&lt;CategoryModel&gt;&#xa;+ deleteCategory(Long): ResponseEntity&lt;Void&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="580" y="300" width="420" height="200" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="CourseStatusController" value="CourseStatusController&#xa;&#xa;Fields:&#xa;- courseStatusService: CourseStatusService&#xa;&#xa;Methods:&#xa;+ getAllCourseStatuses(): ResponseEntity&lt;List&lt;CourseStatusModel&gt;&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="300" width="420" height="140" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 3: Lesson & Task Controllers -->
+        <mxCell id="LessonController" value="LessonController&#xa;&#xa;Fields:&#xa;- lessonService: LessonService&#xa;- authService: AuthService&#xa;&#xa;Methods:&#xa;+ getLessonsByCourseId(Long): ResponseEntity&lt;List&lt;LessonModel&gt;&gt;&#xa;+ getLessonById(Long): ResponseEntity&lt;LessonModel&gt;&#xa;+ createLesson(LessonModel, Authentication): ResponseEntity&lt;LessonModel&gt;&#xa;+ updateLesson(Long, LessonModel, Authentication): ResponseEntity&lt;LessonModel&gt;&#xa;+ deleteLesson(Long, Authentication): ResponseEntity&lt;Void&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="640" width="460" height="220" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="TaskController" value="TaskController&#xa;&#xa;Fields:&#xa;- taskService: TaskService&#xa;- authService: AuthService&#xa;&#xa;Methods:&#xa;+ getTasksByLessonId(Long): ResponseEntity&lt;List&lt;TaskModel&gt;&gt;&#xa;+ getTaskById(Long): ResponseEntity&lt;TaskModel&gt;&#xa;+ createTask(TaskModel, Authentication): ResponseEntity&lt;TaskModel&gt;&#xa;+ updateTask(Long, TaskModel, Authentication): ResponseEntity&lt;TaskModel&gt;&#xa;+ deleteTask(Long, Authentication): ResponseEntity&lt;Void&gt;&#xa;+ getMyTasksForCalendar(Authentication, String): ResponseEntity&lt;List&lt;TaskModel&gt;&gt;&#xa;+ getTeacherTasksForCalendar(Authentication, String): ResponseEntity&lt;List&lt;TaskModel&gt;&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="640" width="490" height="240" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="SolutionController" value="SolutionController&#xa;&#xa;Fields:&#xa;- solutionService: SolutionService&#xa;- authService: AuthService&#xa;&#xa;Methods:&#xa;+ getSolutionsByTaskId(Long, Authentication): ResponseEntity&lt;List&lt;SolutionModel&gt;&gt;&#xa;+ getMySolutions(Authentication): ResponseEntity&lt;List&lt;SolutionModel&gt;&gt;&#xa;+ getSolutionById(Long, Authentication): ResponseEntity&lt;SolutionModel&gt;&#xa;+ createSolution(SolutionModel, Authentication): ResponseEntity&#xa;+ updateSolution(Long, SolutionModel, Authentication): ResponseEntity&lt;SolutionModel&gt;&#xa;+ deleteSolution(Long, Authentication): ResponseEntity&lt;Void&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1090" y="640" width="500" height="240" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 4: Grade & Comment Controllers -->
+        <mxCell id="GradeController" value="GradeController&#xa;&#xa;Fields:&#xa;- gradeService: GradeService&#xa;- authService: AuthService&#xa;- solutionService: SolutionService&#xa;&#xa;Methods:&#xa;+ getGradeById(Long): ResponseEntity&lt;GradeModel&gt;&#xa;+ createGrade(GradeModel, Authentication): ResponseEntity&#xa;+ updateGrade(Long, GradeModel, Authentication): ResponseEntity&#xa;+ deleteGrade(Long, Authentication): ResponseEntity&lt;Void&gt;&#xa;- toDto(GradeModel, Long): Map&lt;String, Object&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="920" width="420" height="220" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="CommentController" value="CommentController&#xa;&#xa;Fields:&#xa;- commentRepository: CommentRepository&#xa;- taskRepository: TaskRepository&#xa;- lessonRepository: LessonRepository&#xa;- enrollmentRepository: EnrollmentRepository&#xa;- courseRepository: CourseRepository&#xa;- authService: AuthService&#xa;&#xa;Methods:&#xa;+ getTaskComments(Long, Authentication): ResponseEntity&lt;List&lt;CommentModel&gt;&gt;&#xa;+ createTaskComment(Long, Map, Authentication): ResponseEntity&lt;CommentModel&gt;&#xa;+ deleteComment(Long, Authentication): ResponseEntity&lt;Void&gt;&#xa;- hasAccessToTask(UserModel, TaskModel): boolean" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="520" y="920" width="480" height="280" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 5: File & Certificate Controllers -->
+        <mxCell id="FileController" value="FileController&#xa;&#xa;Fields:&#xa;- fileService: FileService&#xa;- authService: AuthService&#xa;- minioFileService: MinioFileService&#xa;&#xa;Methods:&#xa;+ uploadFile(MultipartFile, String, Authentication): ResponseEntity&#xa;+ uploadSolutionFile(MultipartFile, Authentication): ResponseEntity&#xa;+ downloadFile(Long): ResponseEntity&lt;Resource&gt;&#xa;+ getAllFiles(): ResponseEntity&lt;List&lt;FileDto&gt;&gt;&#xa;+ getMyFiles(Authentication): ResponseEntity&lt;List&lt;FileDto&gt;&gt;&#xa;+ deleteFile(Long, Authentication): ResponseEntity&#xa;+ getImage(String): ResponseEntity&lt;Resource&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="920" width="440" height="240" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="CertificateController" value="CertificateController&#xa;&#xa;Fields:&#xa;- certificateRepository: CertificateRepository&#xa;- authService: AuthService&#xa;- minioFileService: MinioFileService&#xa;&#xa;Methods:&#xa;+ studentCertificatesPage(Model, Authentication): String&#xa;+ downloadCertificate(Long, Authentication): ResponseEntity&lt;InputStreamResource&gt;&#xa;- resolveCertificatePath(CertificateModel): String" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1520" y="920" width="480" height="200" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 6: Gift Card & Error Controllers -->
+        <mxCell id="GiftCardController" value="GiftCardController&#xa;&#xa;Fields:&#xa;- giftCardService: GiftCardService&#xa;- authService: AuthService&#xa;&#xa;Methods:&#xa;+ getAvailableGiftCards(): ResponseEntity&lt;List&lt;GiftCardModel&gt;&gt;&#xa;+ getMyGiftCards(Authentication): ResponseEntity&lt;List&lt;GiftCardModel&gt;&gt;&#xa;+ purchaseGiftCard(Map, Authentication): ResponseEntity&#xa;+ purchaseGiftCardForCourse(Long, Authentication): ResponseEntity&#xa;+ useGiftCard(Map, Authentication): ResponseEntity&#xa;+ getGiftCardById(Long): ResponseEntity&lt;GiftCardModel&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1200" width="460" height="220" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="ErrorHandler" value="ErrorHandler&#xa;&#xa;Fields:&#xa;- appMetricsCollector: AppMetricsCollector&#xa;&#xa;Methods:&#xa;+ handle404(NoHandlerFoundException, Model): ModelAndView&#xa;+ handleOther(Exception, Model): ModelAndView" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="1200" width="400" height="160" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

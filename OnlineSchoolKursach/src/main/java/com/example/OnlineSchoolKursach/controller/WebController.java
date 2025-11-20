@@ -67,7 +67,19 @@ public class WebController {
     }
 
     @GetMapping("/")
-    public String home() {
+    public String home(Model model) {
+        // Получаем 5 самых популярных курсов (по количеству записей)
+        List<CourseModel> allCourses = courseService.getAllCourses();
+        List<CourseModel> popularCourses = allCourses.stream()
+                .sorted((c1, c2) -> {
+                    int count1 = c1.getEnrolledCount() != null ? c1.getEnrolledCount() : 0;
+                    int count2 = c2.getEnrolledCount() != null ? c2.getEnrolledCount() : 0;
+                    return Integer.compare(count2, count1); // Сортировка по убыванию
+                })
+                .limit(5)
+                .collect(java.util.stream.Collectors.toList());
+        
+        model.addAttribute("popularCourses", popularCourses);
         return "index";
     }
 
@@ -487,10 +499,55 @@ public class WebController {
         return "student";
     }
     
+    @GetMapping("/course/{courseId}")
+    public String publicCoursePage(@PathVariable Long courseId, Model model, Authentication authentication) {
+        try {
+            CourseModel course = courseService.getCourseById(courseId);
+            model.addAttribute("course", course);
+            
+            // Проверяем, авторизован ли пользователь
+            boolean isAuthenticated = authentication != null && authentication.isAuthenticated();
+            model.addAttribute("isAuthenticated", isAuthenticated);
+            
+            // Проверяем, записан ли на курс
+            boolean isEnrolled = false;
+            int enrolledCount = 0;
+            if (isAuthenticated) {
+                try {
+                    UserModel user = authService.getUserByEmail(authentication.getName());
+                    List<EnrollmentModel> enrollments = enrollmentRepository.findByUserUserIdAndCourseCourseId(
+                        user.getUserId(), courseId);
+                    isEnrolled = enrollments.stream().anyMatch(e -> 
+                        e.getEnrollmentStatus() != null && 
+                        ("Активен".equals(e.getEnrollmentStatus().getStatusName()) || 
+                         "Активный".equals(e.getEnrollmentStatus().getStatusName()) ||
+                         "Активна".equals(e.getEnrollmentStatus().getStatusName())));
+                } catch (Exception e) {
+                    // Если не удалось получить пользователя, просто показываем как неавторизованному
+                }
+            }
+            
+            // Подсчитываем общее количество записей
+            List<EnrollmentModel> allEnrollments = enrollmentRepository.findByCourseCourseId(courseId);
+            enrolledCount = (int) allEnrollments.stream()
+                    .filter(e -> e.getEnrollmentStatus() != null && 
+                           ("Активен".equals(e.getEnrollmentStatus().getStatusName()) || 
+                            "Активный".equals(e.getEnrollmentStatus().getStatusName()) || 
+                            "Активна".equals(e.getEnrollmentStatus().getStatusName())))
+                    .count();
+            
+            model.addAttribute("isEnrolled", isEnrolled);
+            model.addAttribute("enrolledCount", enrolledCount);
+            return "student-course";
+        } catch (Exception e) {
+            return "redirect:/";
+        }
+    }
+    
     @GetMapping("/student/course/{courseId}")
     public String studentCoursePage(@PathVariable Long courseId, Model model, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return "redirect:/login";
+            return "redirect:/course/" + courseId;
         }
         
         try {

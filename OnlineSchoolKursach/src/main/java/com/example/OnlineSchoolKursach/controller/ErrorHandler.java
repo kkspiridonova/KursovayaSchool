@@ -17,23 +17,15 @@ public class ErrorHandler {
 
     @ExceptionHandler(NoHandlerFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ModelAndView handle404(NoHandlerFoundException ex, Model model) {
+    public String handle404(NoHandlerFoundException ex, Model model) {
         appMetricsCollector.incrementError404Count();
-        ModelAndView mav = new ModelAndView();
-        mav.setViewName("error");
-        mav.setStatus(HttpStatus.NOT_FOUND);
-        mav.addObject("message", "Страница не найдена (404)");
-        return mav;
+        return "redirect:/";
     }
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ModelAndView handleOther(Exception ex, Model model) {
-        ModelAndView mav = new ModelAndView();
-        mav.setViewName("error");
-        mav.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
-        mav.addObject("message", "Ошибка приложения: " + ex.getMessage());
-        return mav;
+    public String handleOther(Exception ex, Model model) {
+        return "redirect:/";
     }
 }
 

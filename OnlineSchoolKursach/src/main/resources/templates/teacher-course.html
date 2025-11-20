@@ -99,9 +99,6 @@
                 <button class="nav-link" id="lessons-tab" data-bs-toggle="tab" data-bs-target="#lessons" type="button" role="tab" aria-controls="lessons" aria-selected="false">Уроки</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="calendar-tab" data-bs-toggle="tab" data-bs-target="#calendar" type="button" role="tab" aria-controls="calendar" aria-selected="false">Календарь</button>
-            </li>
-            <li class="nav-item" role="presentation">
                 <a class="nav-link" th:href="@{'/teacher/course/' + ${course.courseId} + '/materials'}">Материалы</a>
             </li>
         </ul>
@@ -215,25 +212,6 @@
                                 <div id="lessonsList">
                                     <p class="text-muted text-center">Загрузка списка уроков...</p>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            
-            <div class="tab-pane fade" id="calendar" role="tabpanel" aria-labelledby="calendar-tab">
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h3>Календарь курса</h3>
-                                <button class="btn btn-success" onclick="createTask()">
-                                    <i class="fas fa-plus"></i> Добавить задание
-                                </button>
-                            </div>
-                            <div class="card-body">
-                                <p class="text-muted text-center">Календарь пока не заполнен</p>
                             </div>
                         </div>
                     </div>

@@ -314,9 +314,6 @@
                     <div class="col-12">
                         <h3>Чеки</h3>
                         <p class="text-muted">Управление чеками платежей.</p>
-                        <button class="btn btn-primary btn-sm" onclick="showCreateModal('checks')">
-                            <i class="fas fa-plus"></i> Создать чек
-                        </button>
                     </div>
                 </div>
                 <div class="row mt-3">
@@ -695,7 +692,10 @@
                                 <td>${course.courseStatus ? course.courseStatus.statusName : 'Не указан'}</td>
                                 <td>${course.category ? course.category.categoryName : 'Не указана'}</td>
                                 <td>
-                                    <button class="btn btn-danger btn-sm" onclick="showDeleteConfirmation('course', ${course.courseId})">
+                                    <button class="btn btn-warning btn-sm me-1" onclick="showEditModal('courses', ${course.courseId})">
+                                        <i class="fas fa-edit"></i> Редактировать
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteItem('courses', ${course.courseId})">
                                         <i class="fas fa-trash"></i> Удалить
                                     </button>
                                 </td>
@@ -739,6 +739,7 @@
                                         <th>Email</th>
                                         <th>Роль</th>
                                         <th>Дата регистрации</th>
+                                        <th>Действия</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -753,6 +754,11 @@
                                 <td>${user.email || 'Не указан'}</td>
                                 <td>${user.role ? user.role.roleName : 'Не указана'}</td>
                                 <td>${user.registrationDate ? new Date(user.registrationDate).toLocaleDateString('ru-RU') : 'Не указана'}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm" onclick="showEditModal('users', ${user.userId})">
+                                        <i class="fas fa-edit"></i> Редактировать роль
+                                    </button>
+                                </td>
                             </tr>
                         `;
                     });
@@ -790,6 +796,7 @@
                                         <th>ID</th>
                                         <th>Название</th>
                                         <th>Описание</th>
+                                        <th>Действия</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -801,6 +808,14 @@
                                 <td>${category.categoryId || 'Не указан'}</td>
                                 <td>${category.categoryName || 'Без названия'}</td>
                                 <td>${category.description || 'Без описания'}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm me-1" onclick="showEditModal('categories', ${category.categoryId})">
+                                        <i class="fas fa-edit"></i> Редактировать
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteItem('categories', ${category.categoryId})">
+                                        <i class="fas fa-trash"></i> Удалить
+                                    </button>
+                                </td>
                             </tr>
                         `;
                     });

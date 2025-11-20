@@ -1,0 +1,120 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Services">
+    <mxGraphModel dx="1500" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2000" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Auth & Security related -->
+        <mxCell id="AuthService" value="AuthService&#xa;&#xa;Fields:&#xa;- authenticationManager&#xa;- userDetailsService&#xa;- jwtUtil&#xa;- userRepository&#xa;- passwordEncoder&#xa;- roleRepository&#xa;- fileService&#xa;&#xa;Methods:&#xa;+ login(LoginRequest): LoginResponse&#xa;+ register(UserModel): UserModel&#xa;+ getUserByEmail(String): UserModel&#xa;+ updateUserProfile(String, UserModel): UserModel" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="40" width="320" height="260" as="geometry"/>
+        </mxCell>
+        <mxCell id="UserDetailsServiceImpl" value="UserDetailsServiceImpl&#xa;&#xa;Fields:&#xa;- userRepository&#xa;&#xa;Methods:&#xa;+ loadUserByUsername(String): UserDetails" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="40" width="220" height="160" as="geometry"/>
+        </mxCell>
+        <mxCell id="PasswordResetService" value="PasswordResetService&#xa;&#xa;Fields:&#xa;- userRepository&#xa;- tokenRepository&#xa;- mailSender&#xa;- passwordEncoder&#xa;&#xa;Methods:&#xa;+ requestPasswordReset(String)&#xa;+ resetPassword(String, String): boolean&#xa;+ validateToken(String): boolean" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="320" width="300" height="220" as="geometry"/>
+        </mxCell>
+
+        <!-- Course & content services -->
+        <mxCell id="CourseService" value="CourseService&#xa;&#xa;Fields:&#xa;- courseRepository&#xa;- courseStatusRepository&#xa;- categoryRepository&#xa>- enrollmentRepository&#xa;- enrollmentStatusRepository&#xa;- fileService&#xa;- checkService&#xa;&#xa;Methods:&#xa;+ getAllCourses(): List<CourseModel>&#xa;+ getCoursesByCategory(Long)&#xa;+ getEnrolledCourses(UserModel)&#xa;+ getAllCoursesByTeacher(UserModel)&#xa;+ getUserEnrollments(UserModel)&#xa;+ getCourseById(Long)&#xa;+ createCourse(CourseModel)&#xa;+ updateCourseStatusByDatesAndCapacity(CourseModel)&#xa;+ updateCourse(Long, CourseModel, UserModel)&#xa;+ enrollUserInCourse(UserModel, Long)&#xa;+ checkAndUpdateCourseStatusIfFull(CourseModel)" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="760" y="40" width="360" height="360" as="geometry"/>
+        </mxCell>
+        <mxCell id="CategoryService" value="CategoryService&#xa;&#xa;Field: categoryRepository&#xa;&#xa;Methods:&#xa;+ getAllCategories()&#xa;+ getCategoryById(Long)&#xa;+ createCategory(CategoryModel)&#xa;+ updateCategory(CategoryModel)&#xa;+ deleteCategory(Long)" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1160" y="40" width="240" height="210" as="geometry"/>
+        </mxCell>
+        <mxCell id="CourseStatusService" value="CourseStatusService&#xa;&#xa;Field: courseStatusRepository&#xa;&#xa;Methods:&#xa;+ getAllCourseStatuses(): List&lt;CourseStatusModel&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1420" y="40" width="220" height="140" as="geometry"/>
+        </mxCell>
+        <mxCell id="LessonService" value="LessonService&#xa;&#xa;Fields:&#xa;- lessonRepository&#xa;- lessonStatusRepository&#xa;- minioFileService&#xa;&#xa;Methods:&#xa;+ getLessonsByCourseId(Long)&#xa;+ getLessonById(Long)&#xa;+ createLesson(LessonModel)&#xa;+ updateLesson(Long, LessonModel, MultipartFile)&#xa;+ deleteLesson(Long): boolean" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="760" y="420" width="280" height="260" as="geometry"/>
+        </mxCell>
+        <mxCell id="TaskService" value="TaskService&#xa;&#xa;Fields:&#xa;- taskRepository&#xa;- taskStatusRepository&#xa;- minioFileService&#xa;- enrollmentRepository&#xa;&#xa;Methods:&#xa;+ getTasksByLessonId(Long)&#xa;+ getTaskById(Long)&#xa;+ createTask(TaskModel)&#xa;+ updateTask(Long, TaskModel, MultipartFile)&#xa;+ deleteTask(Long): boolean&#xa;+ closePassedTasks(List&lt;TaskModel&gt;)&#xa;+ getStudentTasks(UserModel)&#xa;+ getStudentTasksForWeek(UserModel, LocalDate)&#xa;+ getTeacherTasks(UserModel)&#xa;+ getTeacherTasksForWeek(UserModel, LocalDate)" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="420" width="360" height="320" as="geometry"/>
+        </mxCell>
+        <mxCell id="SolutionService" value="SolutionService&#xa;&#xa;Fields:&#xa;- solutionRepository&#xa;- solutionStatusRepository&#xa;- taskRepository&#xa;&#xa;Methods:&#xa;+ getSolutionsByTaskId(Long)&#xa;+ getSolutionsByUserId(Long)&#xa;+ getSolutionById(Long)&#xa;+ createSolution(SolutionModel)&#xa;+ updateSolution(Long, SolutionModel)&#xa;+ deleteSolution(Long): boolean&#xa;+ getSolutionByTaskAndUser(Long, Long)&#xa;+ markOverdueSolutions(List&lt;SolutionModel&gt;)" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1460" y="420" width="320" height="320" as="geometry"/>
+        </mxCell>
+        <mxCell id="GradeService" value="GradeService&#xa;&#xa;Fields:&#xa;- gradeRepository&#xa;- solutionRepository&#xa>- solutionStatusRepository&#xa>- notificationService&#xa;&#xa;Methods:&#xa;+ getGradeById(Long)&#xa;+ createGrade(GradeModel)&#xa;+ updateGrade(Long, GradeModel)&#xa;+ deleteGrade(Long): boolean" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="580" width="300" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="CommentService" value="CommentService&#xa;(отсутствует отдельный файл)&#xa;— комментарии обслуживаются контроллером" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="840" width="300" height="120" as="geometry"/>
+        </mxCell>
+
+        <!-- Certificate & notification services -->
+        <mxCell id="CertificateEligibilityService" value="CertificateEligibilityService&#xa;&#xa;Fields:&#xa;- enrollmentRepository&#xa;- lessonRepository&#xa;- taskRepository&#xa;- solutionRepository&#xa;- certificateRepository&#xa;&#xa;Methods:&#xa;+ isEligibleForCertificate(UserModel, CourseModel): boolean" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="240" width="320" height="220" as="geometry"/>
+        </mxCell>
+        <mxCell id="CertificateGenerationService" value="CertificateGenerationService&#xa;&#xa;Fields:&#xa;- templateEngine&#xa;- minioFileService&#xa;- certificateRepository&#xa;- certificateStatusRepository&#xa;&#xa;Methods:&#xa;+ generateCertificate(UserModel, CourseModel): CertificateModel" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="500" width="320" height="220" as="geometry"/>
+        </mxCell>
+        <mxCell id="CertificateEmailService" value="CertificateEmailService&#xa;&#xa;Fields:&#xa;- mailSender&#xa>- minioFileService&#xa>- certificateRepository&#xa;&#xa;Methods:&#xa;+ sendCertificateByEmail(CertificateModel): boolean" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="740" width="300" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="CertificateScheduler" value="CertificateScheduler (@Component)&#xa;&#xa;Fields:&#xa;- courseRepository&#xa;- enrollmentRepository&#xa;- certificateRepository&#xa;- eligibilityService&#xa;- generationService&#xa;- emailService&#xa;- lessonRepository&#xa;- taskRepository&#xa;- solutionRepository&#xa;&#xa;Methods:&#xa;+ checkAndIssueCertificates()&#xa;+ getStudentsFromSolutions(CourseModel)" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="760" y="760" width="360" height="280" as="geometry"/>
+        </mxCell>
+        <mxCell id="NotificationService" value="NotificationService&#xa;&#xa;Fields:&#xa;- mailSender&#xa>- taskRepository&#xa>- solutionRepository&#xa>- enrollmentRepository&#xa;&#xa;Methods:&#xa;+ sendGradeNotification(GradeModel, SolutionModel)&#xa;+ sendDeadlineReminders()&#xa;+ sendDeadlineReminder(UserModel, String, String, LocalDate)" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="780" width="320" height="240" as="geometry"/>
+        </mxCell>
+
+        <!-- File & storage services -->
+        <mxCell id="FileService" value="FileService&#xa;&#xa;Fields:&#xa;- minioFileService&#xa>- fileRepository&#xa;&#xa;Methods:&#xa;+ uploadFile(MultipartFile, UserModel, String): FileModel&#xa;+ loadFileAsResource(Long): Resource&#xa;+ getFileUrl(String): String&#xa;+ getFileInputStream(String): InputStream&#xa;+ getFileInfo(Long): FileModel&#xa;+ getAllFiles(): List&lt;FileDto&gt;&#xa;+ getFilesByUser(UserModel)&#xa;+ deleteFile(Long, UserModel)" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1500" y="780" width="320" height="280" as="geometry"/>
+        </mxCell>
+        <mxCell id="MinioFileService" value="MinioFileService&#xa;&#xa;Fields:&#xa;- minioClient&#xa;- bucketName&#xa;&#xa;Methods:&#xa;+ initializeBucket()&#xa;+ uploadFile(MultipartFile, boolean): String&#xa;+ uploadFile(MultipartFile, String): String&#xa;+ uploadFile(MultipartFile): String&#xa;+ downloadFile(String): InputStream&#xa;+ downloadFileWithFallback(String): InputStream&#xa;+ getFileUrl(String): String&#xa;+ deleteFile(String)&#xa;+ getFileInfo(String)&#xa;+ uploadBytes(byte[], String, String)" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1500" y="1080" width="320" height="300" as="geometry"/>
+        </mxCell>
+
+        <!-- Finance & gift cards -->
+        <mxCell id="CheckService" value="CheckService&#xa;&#xa;Fields:&#xa;- checkRepository&#xa;- paymentStatusRepository&#xa;&#xa;Methods:&#xa;+ createCheck(UserModel, CourseModel, BigDecimal): CheckModel&#xa;+ getChecksByUser(UserModel): List&lt;CheckModel&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1000" width="300" height="200" as="geometry"/>
+        </mxCell>
+        <mxCell id="GiftCardService" value="GiftCardService&#xa;&#xa;Fields:&#xa;- giftCardRepository&#xa>- giftCardStatusRepository&#xa>- checkRepository&#xa>- paymentStatusRepository&#xa>- courseRepository&#xa>- enrollmentRepository&#xa;&#xa;Methods:&#xa;+ getAllAvailableGiftCards()&#xa;+ getUserGiftCards(UserModel)&#xa;+ purchaseGiftCard(UserModel, BigDecimal)&#xa;+ purchaseGiftCardForCourse(UserModel, Long)&#xa;+ getGiftCardById(Long)&#xa;+ useGiftCard(String, Long, UserModel)" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="380" y="1000" width="360" height="280" as="geometry"/>
+        </mxCell>
+
+        <!-- Analytics / Export -->
+        <mxCell id="ExportImportService" value="ExportImportService&#xa;&#xa;Fields:&#xa;- userRepository&#xa>- courseRepository&#xa>- enrollmentRepository&#xa>- categoryRepository&#xa>- roleRepository&#xa>- courseStatusRepository&#xa>- statisticsService&#xa;&#xa;Methods:&#xa;+ exportUsersToCsv(): byte[]&#xa;+ exportCoursesToCsv(): byte[]&#xa;+ exportEnrollmentsToCsv(): byte[]&#xa;+ exportCourseStatisticsToCsv(): byte[]&#xa;+ importUsersFromCsv(MultipartFile): ImportResult&#xa;+ importCoursesFromCsv(MultipartFile): ImportResult" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="800" y="1080" width="360" height="320" as="geometry"/>
+        </mxCell>
+        <mxCell id="StatisticsService" value="StatisticsService&#xa;&#xa;Fields:&#xa;- courseRepository&#xa>- entityManager&#xa;&#xa;Methods:&#xa;+ getCourseStatistics(Long): CourseStatisticsDto&#xa;+ getAllCoursesStatistics(): List&#xa;+ getCourseRevenue(Long): BigDecimal&#xa;+ getCourseHistory(Long): List&#xa;+ getUserHistory(Long, int): List&#xa;+ getRecentHistory(int, int): List&#xa;+ getAllRecentHistory(int): List&#xa;+ getDashboardStats(String, String): Map" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="1080" width="300" height="320" as="geometry"/>
+        </mxCell>
+
+        <!-- Settings -->
+        <mxCell id="UserSettingsService" value="UserSettingsService&#xa;&#xa;Fields:&#xa;- userSettingsRepository&#xa>- userRepository&#xa;&#xa;Methods:&#xa;+ getOrCreateSettings(Long): UserSettingsModel&#xa;+ saveSettings(Long, Map): UserSettingsModel&#xa;+ getSettingsAsMap(Long): Map" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="40" width="300" height="200" as="geometry"/>
+        </mxCell>
+
+        <!-- Scheduling -->
+        <mxCell id="StatusScheduler" value="StatusScheduler (@Component)&#xa;&#xa;Fields:&#xa;- solutionRepository&#xa>- taskRepository&#xa>- courseRepository&#xa>- solutionService&#xa>- taskService&#xa>- courseService&#xa;&#xa;Methods:&#xa;+ updateStatusesHourly()&#xa;+ updateCourseStatuses()" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1260" width="320" height="220" as="geometry"/>
+        </mxCell>
+
+        <!-- Edges between services -->
+        <mxCell id="edge1" edge="1" parent="1" source="AuthService" target="UserDetailsServiceImpl" style="endArrow=classic;strokeWidth=1.5;"/>
+        <mxCell id="edge2" edge="1" parent="1" source="AuthService" target="FileService" style="endArrow=classic;strokeWidth=1.5;"/>
+        <mxCell id="edge3" edge="1" parent="1" source="CourseService" target="FileService" style="endArrow=classic;strokeWidth=1.5;"/>
+        <mxCell id="edge4" edge="1" parent="1" source="CourseService" target="CheckService" style="endArrow=classic;strokeWidth=1.5;"/>
+        <mxCell id="edge5" edge="1" parent="1" source="CertificateScheduler" target="CertificateEligibilityService" style="endArrow=classic;strokeWidth=1.5;"/>
+        <mxCell id="edge6" edge="1" parent="1" source="CertificateScheduler" target="CertificateGenerationService" style="endArrow=classic;strokeWidth=1.5;"/>
+        <mxCell id="edge7" edge="1" parent="1" source="CertificateScheduler" target="CertificateEmailService" style="endArrow=classic;strokeWidth=1.5;"/>
+        <mxCell id="edge8" edge="1" parent="1" source="CertificateGenerationService" target="MinioFileService" style="endArrow=classic;strokeWidth=1.5;"/>
+        <mxCell id="edge9" edge="1" parent="1" source="CertificateEmailService" target="MinioFileService" style="endArrow=classic;strokeWidth=1.5;"/>
+        <mxCell id="edge10" edge="1" parent="1" source="FileService" target="MinioFileService" style="endArrow=classic;strokeWidth=1.5;"/>
+        <mxCell id="edge11" edge="1" parent="1" source="LessonService" target="MinioFileService" style="endArrow=classic;strokeWidth=1.5;"/>
+        <mxCell id="edge12" edge="1" parent="1" source="TaskService" target="MinioFileService" style="endArrow=classic;strokeWidth=1.5;"/>
+        <mxCell id="edge13" edge="1" parent="1" source="StatusScheduler" target="SolutionService" style="endArrow=classic;strokeWidth=1.5;"/>
+        <mxCell id="edge14" edge="1" parent="1" source="StatusScheduler" target="TaskService" style="endArrow=classic;strokeWidth=1.5;"/>
+        <mxCell id="edge15" edge="1" parent="1" source="StatusScheduler" target="CourseService" style="endArrow=classic;strokeWidth=1.5;"/>
+        <mxCell id="edge16" edge="1" parent="1" source="ExportImportService" target="StatisticsService" style="endArrow=classic;strokeWidth=1.5;"/>
+        <mxCell id="edge17" edge="1" parent="1" source="GiftCardService" target="CheckService" style="endArrow=classic;strokeWidth=1.5;"/>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+
+
+

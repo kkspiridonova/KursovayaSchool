@@ -52,7 +52,7 @@
 									</td>
 									<td>
 										<a class="btn btn-outline-primary btn-sm"
-										   th:href="@{'/v1/api/files/download?path=' + ${#strings.replace(#strings.replace(lesson.attachedFile, '/', '%2F'), ' ', '%20')}}"
+										   th:attr="href=${'/v1/api/files/download?path=' + #strings.replace(#strings.replace(#strings.replace(lesson.attachedFile, '/', '%2F'), ' ', '%20'), '+', '%2B')}}"
 										   target="_blank">
 											<i class="fas fa-download"></i> Скачать
 										</a>
@@ -90,7 +90,7 @@
 									<td class="text-truncate" style="max-width: 260px;" th:text="${task.attachedFile}">path/in/minio.pdf</td>
 									<td>
 										<a class="btn btn-outline-primary btn-sm"
-										   th:href="@{'/v1/api/files/download?path=' + ${#strings.replace(#strings.replace(task.attachedFile, '/', '%2F'), ' ', '%20')}}"
+										   th:attr="href=${'/v1/api/files/download?path=' + #strings.replace(#strings.replace(#strings.replace(task.attachedFile, '/', '%2F'), ' ', '%20'), '+', '%2B')}}"
 										   target="_blank">
 											<i class="fas fa-download"></i> Скачать
 										</a>

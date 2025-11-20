@@ -45,6 +45,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/login", "/register", "/reset-password").permitAll()
                         .requestMatchers("/forgot-password").permitAll()
                         .requestMatchers("/forgot-password/me").authenticated()
+                        .requestMatchers("/course/**").permitAll()
                         .requestMatchers("/admin").hasAuthority("ROLE_Администратор")
                         .requestMatchers("/teacher/**").hasAnyAuthority("ROLE_Преподаватель", "ROLE_Администратор")
                         .requestMatchers("/teacher").hasAuthority("ROLE_Преподаватель")
