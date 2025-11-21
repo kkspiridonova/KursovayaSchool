@@ -176,14 +176,6 @@
                                 </select>
                             </div>
                             
-                            <div class="mb-3">
-                                <label for="feedback" class="form-label">Комментарий</label>
-                                <textarea class="form-control" id="feedback" rows="4" 
-                                          th:text="${solution.grade != null ? solution.grade.feedback : ''}" 
-                                          th:disabled="${solution.grade != null}"
-                                          placeholder="Оставьте комментарий к оценке"></textarea>
-                            </div>
-                            
                             <button type="button" class="btn btn-primary w-100" onclick="submitGrade()"
                                     th:disabled="${solution.grade != null}">
                                 <i class="fas fa-save"></i> Сохранить оценку
@@ -200,7 +192,6 @@
     <script th:inline="javascript">
         function submitGrade() {
             const gradeValue = document.getElementById('gradeValue').value;
-            const feedback = document.getElementById('feedback').value;
             const solutionId = /*[[${solution.solutionId}]]*/ '1';
             
             if (!gradeValue || gradeValue < 0 || gradeValue > 5) {
@@ -210,7 +201,6 @@
 
             const grade = {
                 gradeValue: parseInt(gradeValue),
-                feedback: feedback,
                 solution: { solutionId: parseInt(solutionId) }
             };
 
@@ -244,10 +234,8 @@
                 }
 
                 const gradeSelect = document.getElementById('gradeValue');
-                const feedbackInput = document.getElementById('feedback');
                 const saveBtn = document.querySelector('#gradeForm button[type="button"]');
                 if (gradeSelect) gradeSelect.disabled = true;
-                if (feedbackInput) feedbackInput.disabled = true;
                 if (saveBtn) {
                     saveBtn.disabled = true;
                     saveBtn.innerHTML = '<i class="fas fa-lock"></i> Оценка сохранена';

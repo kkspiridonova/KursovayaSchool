@@ -83,9 +83,8 @@ public class GradeService {
         if (existingGradeOpt.isPresent()) {
             GradeModel existingGrade = existingGradeOpt.get();
             existingGrade.setGradeValue(updatedGrade.getGradeValue());
-            existingGrade.setFeedback(updatedGrade.getFeedback());
             GradeModel g = gradeRepository.save(existingGrade);
-            logger.info("Grade {} updated: value={}, feedback='{}'", g.getGradeId(), g.getGradeValue(), g.getFeedback());
+            logger.info("Grade {} updated: value={}", g.getGradeId(), g.getGradeValue());
 
             if (updatedGrade.getSolution() != null && updatedGrade.getSolution().getSolutionId() != null) {
                 SolutionModel solution = updatedGrade.getSolution();

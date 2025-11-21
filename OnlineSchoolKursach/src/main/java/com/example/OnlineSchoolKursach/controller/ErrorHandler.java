@@ -18,14 +18,18 @@ public class ErrorHandler {
     @ExceptionHandler(NoHandlerFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String handle404(NoHandlerFoundException ex, Model model) {
-        appMetricsCollector.incrementError404Count();
-        return "redirect:/";
+        model.addAttribute("status", HttpStatus.NOT_FOUND.value());
+        model.addAttribute("message", "Страница не найдена");
+        return "error/404";
     }
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public String handleOther(Exception ex, Model model) {
-        return "redirect:/";
+        appMetricsCollector.incrementError404Count();
+        model.addAttribute("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        model.addAttribute("message", "Что-то пошло не так");
+        return "error/500";
     }
 }
 

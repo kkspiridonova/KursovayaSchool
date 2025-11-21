@@ -1470,9 +1470,6 @@
                                     ${course.endDate ? `<div class="mb-2"><small class="text-muted">Окончание: <span class="fw-bold text-primary">${new Date(course.endDate).toLocaleDateString('ru-RU')}</span></small></div>` : ''}
                                     ${course.capacity ? `<div class="mb-2"><small class="text-muted">Студентов: ${course.enrolledCount || 0}/${course.capacity}</small></div>` : ''}
                                     <div class="d-grid gap-2">
-                                        <button class="btn btn-primary" onclick="enrollInCourse(${course.courseId})">
-                                            <i class="fas fa-user-plus"></i> Записаться на курс
-                                        </button>
                                         <a href="/student/course/${course.courseId}" class="btn btn-outline-primary">
                                             <i class="fas fa-info-circle"></i> Подробнее
                                         </a>

@@ -142,7 +142,6 @@ public class GradeController {
         java.util.Map<String, Object> dto = new java.util.HashMap<>();
         dto.put("gradeId", grade.getGradeId());
         dto.put("gradeValue", grade.getGradeValue());
-        dto.put("feedback", grade.getFeedback());
         dto.put("solutionId", solutionId);
         return dto;
     }

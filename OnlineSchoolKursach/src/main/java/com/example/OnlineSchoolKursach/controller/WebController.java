@@ -63,7 +63,13 @@ public class WebController {
 
     @InitBinder
     public void initBinder(WebDataBinder binder) {
-        binder.setDisallowedFields("attachedFile");
+        Object target = binder.getTarget();
+        if (target == null) {
+            return;
+        }
+        if (target instanceof LessonModel || target instanceof TaskModel) {
+            binder.setDisallowedFields("attachedFile");
+        }
     }
 
     @GetMapping("/")
@@ -568,6 +574,7 @@ public class WebController {
             model.addAttribute("courseId", courseId);
             model.addAttribute("isEnrolled", isEnrolled);
             model.addAttribute("enrolledCount", enrolledCount);
+            model.addAttribute("isAuthenticated", true);
         } catch (Exception e) {
             e.printStackTrace();
             return "redirect:/student";

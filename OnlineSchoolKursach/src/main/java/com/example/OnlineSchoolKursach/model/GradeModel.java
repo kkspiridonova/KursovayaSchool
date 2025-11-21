@@ -26,11 +26,6 @@ public class GradeModel {
     @Schema(description = "Значение оценки", example = "85")
     private Integer gradeValue;
 
-    @Size(max = 255)
-    @Column(name = "feedback")
-    @Schema(description = "Комментарий к оценке", example = "Хорошая работа!")
-    private String feedback;
-
     @OneToOne(mappedBy = "grade", fetch = FetchType.EAGER)
     @JsonIgnoreProperties({"grade", "task", "user", "solutionStatus"})
     @Schema(description = "Решение, которое получило эту оценку")
@@ -56,14 +51,6 @@ public class GradeModel {
 
     public void setGradeValue(Integer gradeValue) {
         this.gradeValue = gradeValue;
-    }
-
-    public String getFeedback() {
-        return feedback;
-    }
-
-    public void setFeedback(String feedback) {
-        this.feedback = feedback;
     }
 
     public SolutionModel getSolution() {

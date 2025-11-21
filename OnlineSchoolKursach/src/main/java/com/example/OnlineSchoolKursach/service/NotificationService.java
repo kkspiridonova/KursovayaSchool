@@ -63,7 +63,7 @@ public class NotificationService {
             helper.setSubject("Оценка выставлена: " + taskTitle);
 
             String emailBody = buildGradeNotificationBody(studentName, courseTitle, taskTitle, 
-                    grade.getGradeValue(), grade.getFeedback());
+                    grade.getGradeValue());
 
             helper.setText(emailBody, true);
 
@@ -192,17 +192,12 @@ public class NotificationService {
     }
 
     private String buildGradeNotificationBody(String studentName, String courseTitle, 
-                                             String taskTitle, Integer gradeValue, String feedback) {
-        String feedbackHtml = feedback != null && !feedback.isEmpty() 
-            ? "<p><strong>Комментарий преподавателя:</strong> " + feedback + "</p>" 
-            : "";
-
+                                             String taskTitle, Integer gradeValue) {
         return "<html><body style='font-family: Arial, sans-serif;'>" +
                 "<h2 style='color: #2c3e50;'>Оценка выставлена</h2>" +
                 "<p>Уважаемый(ая) <strong>" + studentName + "</strong>,</p>" +
                 "<p>Преподаватель выставил оценку за ваше решение задания <strong>\"" + taskTitle + "\"</strong> по курсу <strong>\"" + courseTitle + "\"</strong>.</p>" +
                 "<p><strong>Ваша оценка: " + gradeValue + "</strong></p>" +
-                feedbackHtml +
                 "<p>Вы можете просмотреть детали в вашем личном кабинете.</p>" +
                 "<p>С уважением,<br>Команда SupSchool</p>" +
                 "</body></html>";

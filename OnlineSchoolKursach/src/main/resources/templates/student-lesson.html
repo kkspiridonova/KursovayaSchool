@@ -164,10 +164,6 @@
                                                 <span class="badge" th:classappend="${solution.grade != null} ? ' bg-success' : ' bg-secondary'">
                                                     Оценка: <span th:text="${solution.grade != null ? solution.grade.gradeValue : '—'}">—</span>
                                                 </span>
-                                                <small class="text-muted d-block mt-1" th:if="${solution.grade != null && solution.grade.feedback != null}">
-                                                    <i class="far fa-comment"></i>
-                                                    <span th:text="${solution.grade.feedback}">Комментарий</span>
-                                                </small>
                                             </div>
                                         </div>
                                         

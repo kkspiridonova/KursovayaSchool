@@ -143,12 +143,7 @@
                             <div>
                                 <span class="badge bg-success fs-6" th:text="${solution.grade.gradeValue}">5</span>
                             </div>
-                            <div th:if="${solution.grade.feedback != null && !solution.grade.feedback.isEmpty()}" class="mt-2">
-                                <label class="form-label fw-bold">Комментарий преподавателя:</label>
-                                <div class="alert alert-info mb-0" th:text="${solution.grade.feedback}">Комментарий</div>
-                            </div>
                         </div>
-                        <div class="alert alert-info">Поля решения защищены от редактирования после отправки.</div>
                     </div>
                 </div>
                 
@@ -432,10 +427,8 @@
                     <label class="form-label">Оценка</label>
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge bg-success fs-6">${data.grade.gradeValue}</span>
-                        ${data.grade.feedback ? `<span class="text-muted">${data.grade.feedback}</span>` : ``}
                     </div>
                 </div>` : ``}
-                <div class="alert alert-info">Поля решения защищены от редактирования после отправки.</div>
             `;
         }
 

@@ -1055,7 +1055,7 @@
                 'lessonId': 'ID', 'taskId': 'ID', 'solutionId': 'ID', 'gradeId': 'ID',
                 'certificateId': 'ID', 'checkId': 'ID', 'giftCardId': 'ID', 'commentId': 'ID',
                 'title': 'Название', 'description': 'Описание', 'content': 'Содержание',
-                'submitDate': 'Дата отправки', 'gradeValue': 'Оценка', 'feedback': 'Комментарий',
+                'submitDate': 'Дата отправки', 'gradeValue': 'Оценка',
                 'issueDate': 'Дата выдачи', 'amount': 'Сумма', 'paymentDate': 'Дата платежа',
                 'code': 'Код', 'balance': 'Баланс', 'text': 'Текст', 'createdAt': 'Создан',
                 'answerText': 'Текст ответа', 'answerFile': 'Файл ответа', 'task': 'Задание',
@@ -1489,10 +1489,6 @@
                         <div class="mb-3">
                             <label class="form-label">Значение оценки (0-100) *</label>
                             <input type="number" min="0" max="100" class="form-control" name="gradeValue" value="${item?.gradeValue || ''}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Комментарий</label>
-                            <textarea class="form-control" name="feedback">${item?.feedback || ''}</textarea>
                         </div>
                     `;
                     break;

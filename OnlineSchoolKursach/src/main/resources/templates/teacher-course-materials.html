@@ -50,15 +50,15 @@
 									<td>
 										<div class="text-truncate" style="max-width: 420px;" th:text="${lesson.attachedFile}">path/in/minio.pdf</div>
 									</td>
-									<td>
-										<a class="btn btn-outline-primary btn-sm"
-										   th:attr="href=${'/v1/api/files/download?path=' + #strings.replace(#strings.replace(#strings.replace(lesson.attachedFile, '/', '%2F'), ' ', '%20'), '+', '%2B')}}"
-										   target="_blank">
+                                <td>
+                                    <a class="btn btn-outline-primary btn-sm"
+                                       th:href="@{'/v1/api/files/download?path=' + ${#uris.escapePath(lesson.attachedFile)}}"
+                                       target="_blank">
 											<i class="fas fa-download"></i> Скачать
 										</a>
 									</td>
 								</tr>
-								<tr th:if="${#lists.isEmpty(#lists.select(lessons, l -> l.attachedFile != null && !#strings.isEmpty(l.attachedFile)))}">
+								<tr th:if="${#lists.isEmpty(lessons.?[attachedFile != null && !#strings.isEmpty(attachedFile)])}">
 									<td colspan="3" class="text-muted">Материалы к урокам не прикреплены</td>
 								</tr>
 								</tbody>
@@ -88,15 +88,15 @@
 									<td class="text-truncate" style="max-width: 260px;" th:text="${task.lesson != null ? task.lesson.title : '—'}">Урок</td>
 									<td class="text-truncate" style="max-width: 260px;" th:text="${task.title}">Задание</td>
 									<td class="text-truncate" style="max-width: 260px;" th:text="${task.attachedFile}">path/in/minio.pdf</td>
-									<td>
-										<a class="btn btn-outline-primary btn-sm"
-										   th:attr="href=${'/v1/api/files/download?path=' + #strings.replace(#strings.replace(#strings.replace(task.attachedFile, '/', '%2F'), ' ', '%20'), '+', '%2B')}}"
-										   target="_blank">
+                                    <td>
+                                        <a class="btn btn-outline-primary btn-sm"
+                                           th:href="@{'/v1/api/files/download?path=' + ${#uris.escapePath(task.attachedFile)}}"
+                                           target="_blank">
 											<i class="fas fa-download"></i> Скачать
 										</a>
 									</td>
 								</tr>
-								<tr th:if="${#lists.isEmpty(#lists.select(tasks, t -> t.attachedFile != null && !#strings.isEmpty(t.attachedFile)))}">
+								<tr th:if="${#lists.isEmpty(tasks.?[attachedFile != null && !#strings.isEmpty(attachedFile)])}">
 									<td colspan="4" class="text-muted">Материалы к заданиям не прикреплены</td>
 								</tr>
 								</tbody>
