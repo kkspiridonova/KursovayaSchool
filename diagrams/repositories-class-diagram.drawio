@@ -1,0 +1,112 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Repositories">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Row 1: Main Entity Repositories -->
+        <mxCell id="UserRepository" value="UserRepository&#xa;&#xa;Methods:&#xa;+ findByEmail(String): Optional&lt;UserModel&gt;&#xa;+ existsByEmail(String): Boolean" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="40" width="300" height="140" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="CourseRepository" value="CourseRepository&#xa;&#xa;Methods:&#xa;+ findByTeacherUserId(Long): List&lt;CourseModel&gt;&#xa;+ findByCategoryCategoryId(Long): List&lt;CourseModel&gt;&#xa;+ calculateCourseRevenue(Long): BigDecimal" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="400" y="40" width="340" height="160" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="LessonRepository" value="LessonRepository&#xa;&#xa;Methods:&#xa;+ findByCourseCourseId(Long): List&lt;LessonModel&gt;&#xa;+ findByLessonStatusLessonStatusId(Long): List&lt;LessonModel&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="40" width="380" height="140" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="TaskRepository" value="TaskRepository&#xa;&#xa;Methods:&#xa;+ findByLessonLessonId(Long): List&lt;TaskModel&gt;&#xa;+ findByTaskStatusTaskStatusId(Long): List&lt;TaskModel&gt;&#xa;+ findByDeadlineBefore(LocalDate): List&lt;TaskModel&gt;&#xa;+ findByIdWithCourseAndTeacher(Long): Optional&lt;TaskModel&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="40" width="400" height="180" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="CategoryRepository" value="CategoryRepository&#xa;&#xa;Methods:&#xa;+ findByCategoryName(String): Optional&lt;CategoryModel&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1640" y="40" width="360" height="120" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 2: Solution and Enrollment Repositories -->
+        <mxCell id="SolutionRepository" value="SolutionRepository&#xa;&#xa;Methods:&#xa;+ findByTaskTaskIdWithGrade(Long): List&lt;SolutionModel&gt;&#xa;+ findByTaskTaskId(Long): List&lt;SolutionModel&gt;&#xa;+ findByUserUserId(Long): List&lt;SolutionModel&gt;&#xa;+ findBySolutionStatusSolutionStatusId(Long): List&lt;SolutionModel&gt;&#xa;+ findFirstByTaskTaskIdAndUserUserId(Long, Long): SolutionModel&#xa;+ findAllDistinctIds(): List&lt;Long&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="240" width="450" height="220" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="EnrollmentRepository" value="EnrollmentRepository&#xa;&#xa;Methods:&#xa;+ findByUserUserId(Long): List&lt;EnrollmentModel&gt;&#xa;+ findByCourseCourseId(Long): List&lt;EnrollmentModel&gt;&#xa;+ findByEnrollmentStatusEnrollmentStatusId(Long): List&lt;EnrollmentModel&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="550" y="240" width="460" height="160" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="GradeRepository" value="GradeRepository&#xa;&#xa;Methods:&#xa;+ findFirstByGradeValue(Integer): GradeModel&#xa;+ findAllByGradeValue(Integer): List&lt;GradeModel&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="240" width="360" height="140" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="CommentRepository" value="CommentRepository&#xa;&#xa;Methods:&#xa;+ findByUserUserId(Long): List&lt;CommentModel&gt;&#xa;+ findByLessonLessonId(Long): List&lt;CommentModel&gt;&#xa;+ findByTaskTaskId(Long): List&lt;CommentModel&gt;&#xa;+ findByParentCommentCommentId(Long): List&lt;CommentModel&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="240" width="400" height="180" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 3: Certificate and Payment Repositories -->
+        <mxCell id="CertificateRepository" value="CertificateRepository&#xa;&#xa;Methods:&#xa;+ findByUserUserId(Long): List&lt;CertificateModel&gt;&#xa;+ findByCourseCourseId(Long): List&lt;CertificateModel&gt;&#xa;+ findByUserUserIdAndCourseCourseId(Long, Long): Optional&lt;CertificateModel&gt;&#xa;+ findByCertificateNumber(String): Optional&lt;CertificateModel&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="500" width="480" height="180" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="GiftCardRepository" value="GiftCardRepository&#xa;&#xa;Methods:&#xa;+ findByUserUserId(Long): List&lt;GiftCardModel&gt;&#xa;+ findByGiftCardStatusGiftCardStatusId(Long): List&lt;GiftCardModel&gt;&#xa;+ findByCardNumber(String): GiftCardModel&#xa;+ findByCode(String): GiftCardModel&#xa;+ findByCodeWithDetails(String): GiftCardModel" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="580" y="500" width="440" height="200" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="CheckRepository" value="CheckRepository&#xa;&#xa;Methods:&#xa;+ findByUserUserId(Long): List&lt;CheckModel&gt;&#xa;+ findByCourseCourseId(Long): List&lt;CheckModel&gt;&#xa;+ findByPaymentStatusPaymentStatusId(Long): List&lt;CheckModel&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="500" width="420" height="160" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="FileRepository" value="FileRepository&#xa;&#xa;Methods:&#xa;+ findAllByOrderByUploadDateDesc(): List&lt;FileModel&gt;&#xa;+ findByUploadedByOrderByUploadDateDesc(UserModel): List&lt;FileModel&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1520" y="500" width="460" height="140" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 4: Authentication Repositories -->
+        <mxCell id="RoleRepository" value="RoleRepository&#xa;&#xa;Methods:&#xa;+ findByRoleName(String): Optional&lt;RoleModel&gt;&#xa;+ existsByRoleName(String): boolean" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="720" width="320" height="140" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="PasswordResetTokenRepository" value="PasswordResetTokenRepository&#xa;&#xa;Methods:&#xa;+ findByToken(String): Optional&lt;PasswordResetToken&gt;&#xa;+ deleteByUserUserId(Long): void" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="720" width="360" height="140" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="UserSettingsRepository" value="UserSettingsRepository&#xa;&#xa;Methods:&#xa;+ findByUserUserId(Long): Optional&lt;UserSettingsModel&gt;&#xa;+ deleteByUserUserId(Long): void" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="820" y="720" width="380" height="140" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 5: Status Repositories -->
+        <mxCell id="CourseStatusRepository" value="CourseStatusRepository&#xa;&#xa;(extends JpaRepository)" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="920" width="220" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="LessonStatusRepository" value="LessonStatusRepository&#xa;&#xa;(extends JpaRepository)" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="920" width="220" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="TaskStatusRepository" value="TaskStatusRepository&#xa;&#xa;(extends JpaRepository)" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="580" y="920" width="220" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="SolutionStatusRepository" value="SolutionStatusRepository&#xa;&#xa;(extends JpaRepository)" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="840" y="920" width="220" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="EnrollmentStatusRepository" value="EnrollmentStatusRepository&#xa;&#xa;(extends JpaRepository)" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="920" width="240" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="CertificateStatusRepository" value="CertificateStatusRepository&#xa;&#xa;(extends JpaRepository)" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1380" y="920" width="240" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="GiftCardStatusRepository" value="GiftCardStatusRepository&#xa;&#xa;(extends JpaRepository)" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1660" y="920" width="240" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="PaymentStatusRepository" value="PaymentStatusRepository&#xa;&#xa;(extends JpaRepository)" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1940" y="920" width="240" height="100" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

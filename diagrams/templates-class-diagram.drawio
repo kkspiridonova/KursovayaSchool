@@ -1,0 +1,116 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Templates">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2600" pageHeight="2000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Row 1: Public Templates -->
+        <mxCell id="index" value="index.html&#xa;&#xa;Elements:&#xa;- navbar: Navigation&#xa;- heroSection: Hero&#xa;- featuresSection: Features&#xa;- testimonialsSection: Testimonials&#xa;- footer: Footer&#xa;&#xa;Methods:&#xa;+ loadCourses(): void&#xa;+ toggleTheme(): void&#xa;+ showLoginModal(): void&#xa;+ redirectToRole(): void" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="40" width="320" height="260" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="login" value="login.html&#xa;&#xa;Elements:&#xa;- emailInput: String&#xa;- passwordInput: String&#xa;- submitButton: Button&#xa;- forgotPasswordLink: Link&#xa;- registerLink: Link&#xa;- errorMessage: Alert&#xa;&#xa;Methods:&#xa;+ submitLogin(): void&#xa;+ requestPasswordReset(email: String): Response&#xa;+ showError(message: String): void&#xa;+ redirectToDashboard(): void" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="40" width="340" height="260" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="register" value="register.html&#xa;&#xa;Elements:&#xa;- firstNameInput: String&#xa;- lastNameInput: String&#xa;- middleNameInput: String&#xa;- emailInput: String&#xa;- passwordInput: String&#xa;- roleSelect: Dropdown&#xa;- submitButton: Button&#xa;&#xa;Methods:&#xa;+ validateForm(): Boolean&#xa;+ submitRegistration(): Response&#xa;+ redirectToLogin(): void" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="800" y="40" width="320" height="260" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="resetPassword" value="reset-password.html&#xa;&#xa;Elements:&#xa;- tokenParam: String&#xa;- newPasswordInput: String&#xa;- confirmPasswordInput: String&#xa;- submitButton: Button&#xa;- messageDiv: Alert&#xa;&#xa;Methods:&#xa;+ validateToken(token: String): Boolean&#xa;+ validatePasswords(): Boolean&#xa;+ resetPassword(token: String, password: String): Response&#xa;+ redirectToLogin(): void" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1160" y="40" width="380" height="260" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="error" value="error.html&#xa;&#xa;Elements:&#xa;- errorMessage: String&#xa;- statusCode: Integer&#xa;- backButton: Button&#xa;&#xa;Methods:&#xa;+ displayError(message: String, code: Integer): void&#xa;+ redirectToHome(): void" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1580" y="40" width="360" height="200" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 2: Student Templates -->
+        <mxCell id="student" value="student.html&#xa;&#xa;Elements:&#xa;- tabNavigation: Tabs&#xa;- courseSearch: Input&#xa;- categoryFilter: Select&#xa;- statusFilter: Select&#xa;- priceFilter: Range&#xa;- coursesGrid: List&#xa;- paginationControls: Pagination&#xa;- themeToggle: Button&#xa;&#xa;Methods:&#xa;+ loadAllCourses(): List&lt;Course&gt;&#xa;+ loadMyCourses(): List&lt;Course&gt;&#xa;+ enrollInCourse(courseId: Long): Response&#xa;+ applyFilters(): void&#xa;+ loadCalendar(weekStart: Date): Calendar&#xa;+ toggleTheme(): void" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="340" width="360" height="320" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="studentCourse" value="student-course.html&#xa;&#xa;Elements:&#xa;- courseInfo: Object&#xa;- lessonsList: List&#xa;- progressBar: Progress&#xa;- enrollmentStatus: Badge&#xa;&#xa;Methods:&#xa;+ loadCourseDetails(courseId: Long): Course&#xa;+ loadLessons(courseId: Long): List&lt;Lesson&gt;&#xa;+ navigateToLesson(lessonId: Long): void&#xa;+ calculateProgress(): Integer" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="460" y="340" width="360" height="240" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="studentLesson" value="student-lesson.html&#xa;&#xa;Elements:&#xa;- lessonContent: HTML&#xa;- attachedFiles: List&#xa;- tasksList: List&#xa;- commentsSection: Comments&#xa;&#xa;Methods:&#xa;+ loadLessonContent(lessonId: Long): Lesson&#xa;+ downloadFile(filePath: String): void&#xa;+ loadTasks(lessonId: Long): List&lt;Task&gt;&#xa;+ loadComments(lessonId: Long): List&lt;Comment&gt;" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="860" y="340" width="360" height="260" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="studentTask" value="student-task.html&#xa;&#xa;Elements:&#xa;- taskDescription: HTML&#xa;- deadlineInfo: Date&#xa;- solutionTextArea: Textarea&#xa;- fileUpload: FileInput&#xa;- submitButton: Button&#xa;- gradeDisplay: Badge&#xa;- commentsSection: Comments&#xa;&#xa;Methods:&#xa;+ loadTask(taskId: Long): Task&#xa;+ uploadSolutionFile(file: File): String&#xa;+ submitSolution(taskId: Long, solution: Object): Response&#xa;+ loadGrade(solutionId: Long): Grade&#xa;+ postComment(text: String): Response" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="340" width="400" height="300" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="studentCertificates" value="student-certificates.html&#xa;&#xa;Elements:&#xa;- certificatesList: List&#xa;- downloadButtons: Buttons&#xa;- certificateInfo: Objects&#xa;&#xa;Methods:&#xa;+ loadCertificates(userId: Long): List&lt;Certificate&gt;&#xa;+ downloadCertificate(certificateId: Long): File" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1700" y="340" width="380" height="200" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 3: Teacher Templates -->
+        <mxCell id="teacher" value="teacher.html&#xa;&#xa;Elements:&#xa;- tabNavigation: Tabs&#xa;- courseSearch: Input&#xa;- coursesGrid: List&#xa;- createCourseButton: Button&#xa;- calendarView: Calendar&#xa;- themeToggle: Button&#xa;&#xa;Methods:&#xa;+ loadMyCourses(): List&lt;Course&gt;&#xa;+ loadArchivedCourses(): List&lt;Course&gt;&#xa;+ createCourse(course: Object): Response&#xa;+ loadCalendar(weekStart: Date): Calendar&#xa;+ toggleTheme(): void" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="700" width="360" height="280" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="teacherCourse" value="teacher-course.html&#xa;&#xa;Elements:&#xa;- courseInfo: Object&#xa;- lessonsList: List&#xa;- studentsList: List&#xa;- editCourseButton: Button&#xa;- createLessonButton: Button&#xa;&#xa;Methods:&#xa;+ loadCourseDetails(courseId: Long): Course&#xa;+ loadLessons(courseId: Long): List&lt;Lesson&gt;&#xa;+ loadEnrolledStudents(courseId: Long): List&lt;User&gt;&#xa;+ editCourse(courseId: Long): void&#xa;+ createLesson(courseId: Long): void" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="460" y="700" width="380" height="260" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="teacherLesson" value="teacher-lesson.html&#xa;&#xa;Elements:&#xa;- lessonContent: HTML&#xa;- tasksList: List&#xa;- editLessonButton: Button&#xa;- createTaskButton: Button&#xa;&#xa;Methods:&#xa;+ loadLesson(lessonId: Long): Lesson&#xa;+ loadTasks(lessonId: Long): List&lt;Task&gt;&#xa;+ editLesson(lessonId: Long): void&#xa;+ createTask(lessonId: Long): void" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="880" y="700" width="340" height="240" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="teacherTask" value="teacher-task.html&#xa;&#xa;Elements:&#xa;- taskDetails: Object&#xa;- solutionsList: List&#xa;- editTaskButton: Button&#xa;- filterControls: Filters&#xa;&#xa;Methods:&#xa;+ loadTask(taskId: Long): Task&#xa;+ loadSolutions(taskId: Long): List&lt;Solution&gt;&#xa;+ editTask(taskId: Long): void&#xa;+ viewSolution(solutionId: Long): void" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="700" width="340" height="220" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="teacherSolution" value="teacher-solution.html&#xa;&#xa;Elements:&#xa;- solutionContent: HTML&#xa;- attachedFiles: List&#xa;- gradeInput: Number&#xa;- feedbackTextarea: Textarea&#xa;- submitGradeButton: Button&#xa;&#xa;Methods:&#xa;+ loadSolution(solutionId: Long): Solution&#xa;+ downloadFile(filePath: String): void&#xa;+ submitGrade(solutionId: Long, grade: Object): Response" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1640" y="700" width="380" height="240" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 4: Edit Templates -->
+        <mxCell id="editCourse" value="edit-course.html&#xa;&#xa;Elements:&#xa;- titleInput: String&#xa;- descriptionTextarea: String&#xa;- priceInput: Number&#xa;- capacityInput: Number&#xa;- categorySelect: Dropdown&#xa;- imageUpload: FileInput&#xa;- startDatePicker: Date&#xa;- endDatePicker: Date&#xa;- saveButton: Button&#xa;&#xa;Methods:&#xa;+ loadCourse(courseId: Long): Course&#xa;+ uploadImage(file: File): String&#xa;+ saveCourse(course: Object): Response&#xa;+ validateForm(): Boolean" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1020" width="340" height="280" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="createLesson" value="create-lesson.html&#xa;&#xa;Elements:&#xa;- titleInput: String&#xa;- contentTextarea: String&#xa;- fileUpload: FileInput&#xa;- statusSelect: Dropdown&#xa;- submitButton: Button&#xa;&#xa;Methods:&#xa;+ uploadFile(file: File): String&#xa;+ createLesson(lesson: Object): Response&#xa;+ validateForm(): Boolean" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="440" y="1020" width="320" height="220" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="editLesson" value="edit-lesson.html&#xa;&#xa;Elements:&#xa;- titleInput: String&#xa;- contentTextarea: String&#xa;- fileUpload: FileInput&#xa;- statusSelect: Dropdown&#xa;- saveButton: Button&#xa;&#xa;Methods:&#xa;+ loadLesson(lessonId: Long): Lesson&#xa;+ uploadFile(file: File): String&#xa;+ updateLesson(lessonId: Long, lesson: Object): Response&#xa;+ validateForm(): Boolean" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="800" y="1020" width="360" height="240" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="createTask" value="create-task.html&#xa;&#xa;Elements:&#xa;- titleInput: String&#xa;- descriptionTextarea: String&#xa;- deadlinePicker: Date&#xa;- fileUpload: FileInput&#xa;- submitButton: Button&#xa;&#xa;Methods:&#xa;+ uploadFile(file: File): String&#xa;+ createTask(task: Object): Response&#xa;+ validateForm(): Boolean" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="1020" width="320" height="200" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="editTask" value="edit-task.html&#xa;&#xa;Elements:&#xa;- titleInput: String&#xa;- descriptionTextarea: String&#xa;- deadlinePicker: Date&#xa;- fileUpload: FileInput&#xa;- saveButton: Button&#xa;&#xa;Methods:&#xa;+ loadTask(taskId: Long): Task&#xa;+ uploadFile(file: File): String&#xa;+ updateTask(taskId: Long, task: Object): Response&#xa;+ validateForm(): Boolean" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1560" y="1020" width="360" height="240" as="geometry"/>
+        </mxCell>
+
+        <!-- Row 5: Additional Templates -->
+        <mxCell id="profileEdit" value="profile-edit.html&#xa;&#xa;Elements:&#xa;- firstNameInput: String&#xa;- lastNameInput: String&#xa;- middleNameInput: String&#xa;- emailDisplay: String&#xa;- imageUpload: FileInput&#xa;- saveButton: Button&#xa;&#xa;Methods:&#xa;+ loadProfile(email: String): User&#xa;+ uploadImage(file: File): String&#xa;+ updateProfile(user: Object): Response&#xa;+ validateForm(): Boolean" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1340" width="320" height="240" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="giftCards" value="gift-cards.html&#xa;&#xa;Elements:&#xa;- cardsList: List&#xa;- amountInput: Number&#xa;- purchaseButton: Button&#xa;- codeInput: String&#xa;- useCardButton: Button&#xa;&#xa;Methods:&#xa;+ loadMyGiftCards(): List&lt;GiftCard&gt;&#xa;+ purchaseGiftCard(amount: Number): Response&#xa;+ useGiftCard(code: String, courseId: Long): Response" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="1340" width="360" height="240" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="admin" value="admin.html&#xa;&#xa;Elements:&#xa;- tabNavigation: Tabs&#xa;- usersTable: Table&#xa;- coursesTable: Table&#xa;- statisticsCards: Cards&#xa;- exportButton: Button&#xa;- importButton: Button&#xa;&#xa;Methods:&#xa;+ loadUsers(): List&lt;User&gt;&#xa;+ loadCourses(): List&lt;Course&gt;&#xa;+ loadStatistics(): Statistics&#xa;+ exportData(type: String): File&#xa;+ importData(file: File): Response&#xa;+ deleteUser(userId: Long): Response&#xa;+ updateUserRole(userId: Long, role: String): Response" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="820" y="1340" width="380" height="300" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="teacherCourseMaterials" value="teacher-course-materials.html&#xa;&#xa;Elements:&#xa;- materialsList: List&#xa;- fileUpload: FileInput&#xa;- uploadButton: Button&#xa;- deleteButtons: Buttons&#xa;&#xa;Methods:&#xa;+ loadMaterials(courseId: Long): List&lt;File&gt;&#xa;+ uploadMaterial(file: File): Response&#xa;+ deleteMaterial(fileId: Long): Response" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1240" y="1340" width="340" height="220" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="certificateTemplate" value="certificate-template.html&#xa;&#xa;Elements:&#xa;- studentName: String&#xa;- courseTitle: String&#xa;- issueDate: Date&#xa;- certificateNumber: String&#xa;- styling: CSS&#xa;&#xa;Methods:&#xa;+ generatePDF(data: Object): PDF" style="swimlane;fontSize=12;align=left;verticalAlign=top;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1620" y="1340" width="300" height="200" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
