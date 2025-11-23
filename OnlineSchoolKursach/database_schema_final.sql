@@ -1,10 +1,3 @@
--- ============================================================================
--- СКРИПТ СОЗДАНИЯ БАЗЫ ДАННЫХ ДЛЯ ОНЛАЙН ШКОЛЫ
--- Версия: финальная (с исправлениями)
--- ============================================================================
-
--- Удаление существующих объектов (для чистой установки)
-
 DROP TABLE IF EXISTS audit_log CASCADE;
 DROP TABLE IF EXISTS comments CASCADE;
 DROP TABLE IF EXISTS password_reset_tokens CASCADE;
@@ -42,9 +35,7 @@ DROP TABLE IF EXISTS course_statuses CASCADE;
 DROP TABLE IF EXISTS categories CASCADE;
 DROP TABLE IF EXISTS roles CASCADE;
 
--- ============================================================================
 -- 1. ТАБЛИЦЫ СТАТУСОВ И СПРАВОЧНИКИ
--- ============================================================================
 
 -- Создание таблицы ролей
 CREATE TABLE roles (
@@ -117,9 +108,7 @@ CREATE TABLE certificate_statuses (
     CONSTRAINT chk_certificate_status_name_length CHECK (LENGTH(status_name) > 0)
 );
 
--- ============================================================================
 -- 2. ОСНОВНЫЕ ТАБЛИЦЫ
--- ============================================================================
 
 -- Создание таблицы пользователей
 CREATE TABLE users (
@@ -330,9 +319,7 @@ CREATE TABLE password_reset_tokens (
     CONSTRAINT fk_password_reset_tokens_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
--- ============================================================================
 -- 3. ТАБЛИЦА АУДИТА
--- ============================================================================
 
 CREATE TABLE audit_log (
     audit_id SERIAL PRIMARY KEY,
@@ -352,9 +339,7 @@ CREATE INDEX idx_audit_log_table_record ON audit_log(table_name, record_id);
 CREATE INDEX idx_audit_log_user ON audit_log(user_id);
 CREATE INDEX idx_audit_log_changed_at ON audit_log(changed_at);
 
--- ============================================================================
 -- 4. ПРЕДСТАВЛЕНИЯ (VIEW) ДЛЯ ОТЧЁТНОСТИ
--- ============================================================================
 
 -- Представление статистики по курсам
 CREATE VIEW v_course_statistics AS
@@ -459,9 +444,7 @@ LEFT JOIN checks ch ON c.course_id = ch.course_id
 WHERE u.role_id = (SELECT role_id FROM roles WHERE role_name = 'Преподаватель')
 GROUP BY u.user_id, u.first_name, u.last_name, u.email;
 
--- ============================================================================
 -- 5. ХРАНИМЫЕ ПРОЦЕДУРЫ
--- ============================================================================
 
 -- Процедура 1: Расчёт выручки по курсу
 CREATE OR REPLACE FUNCTION calculate_course_revenue(course_id_param INT)
@@ -551,9 +534,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- ============================================================================
+
 -- 6. ТРИГГЕРЫ ДЛЯ АУДИТА
--- ============================================================================
 
 -- Функция для аудита изменений в таблице users
 CREATE OR REPLACE FUNCTION audit_users_trigger_function()
@@ -649,9 +631,7 @@ CREATE TRIGGER audit_enrollments_changes
     AFTER INSERT OR UPDATE OR DELETE ON enrollments
     FOR EACH ROW EXECUTE FUNCTION audit_enrollments_trigger_function();
 
--- ============================================================================
 -- 7. ИНДЕКСЫ
--- ============================================================================
 
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_role ON users(role_id);
@@ -670,9 +650,8 @@ CREATE INDEX idx_checks_course ON checks(course_id);
 CREATE INDEX idx_password_reset_tokens_user ON password_reset_tokens(user_id);
 CREATE INDEX idx_password_reset_tokens_token ON password_reset_tokens(token);
 
--- ============================================================================
+
 -- 8. КОММЕНТАРИИ К ТАБЛИЦАМ И КОЛОНКАМ
--- ============================================================================
 
 COMMENT ON TABLE users IS 'Таблица пользователей системы (студенты, преподаватели, администраторы)';
 COMMENT ON TABLE courses IS 'Таблица курсов онлайн школы';
@@ -686,9 +665,7 @@ COMMENT ON COLUMN courses.capacity IS 'Максимальное количест
 COMMENT ON COLUMN certificates.email_sent IS 'Флаг отправки сертификата на email';
 COMMENT ON COLUMN grades.grade_value IS 'Значение оценки от 0 до 5 (пятибалльная система)';
 
--- ============================================================================
 -- 9. ТЕСТОВЫЕ ДАННЫЕ
--- ============================================================================
 
 -- Вставка ролей
 INSERT INTO roles (role_id, role_name) VALUES
@@ -1011,7 +988,4 @@ ON CONFLICT (token_id) DO UPDATE SET
 
 SELECT setval('password_reset_tokens_token_id_seq', 3, true);
 
--- ============================================================================
--- ГОТОВО!
--- ============================================================================
 
