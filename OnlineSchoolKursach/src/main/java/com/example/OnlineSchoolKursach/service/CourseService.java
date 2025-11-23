@@ -6,6 +6,8 @@ import com.example.OnlineSchoolKursach.repository.CourseRepository;
 import com.example.OnlineSchoolKursach.repository.CourseStatusRepository;
 import com.example.OnlineSchoolKursach.repository.EnrollmentRepository;
 import com.example.OnlineSchoolKursach.repository.EnrollmentStatusRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class CourseService {
+
+    private static final Logger logger = LoggerFactory.getLogger(CourseService.class);
 
     @Autowired
     private CourseRepository courseRepository;
@@ -155,6 +159,16 @@ public class CourseService {
             if (enrollment.getCourse() != null) {
                 CourseModel course = enrollment.getCourse();
                 convertFilePathToUrl(course);
+                
+                List<EnrollmentModel> allEnrollments = enrollmentRepository.findByCourseCourseId(course.getCourseId());
+                int enrolledCount = (int) allEnrollments.stream()
+                        .filter(e -> e.getEnrollmentStatus() != null && 
+                               ("Активен".equals(e.getEnrollmentStatus().getStatusName()) || 
+                                "Активный".equals(e.getEnrollmentStatus().getStatusName()) || 
+                                "Активна".equals(e.getEnrollmentStatus().getStatusName()) || 
+                                "Active".equals(e.getEnrollmentStatus().getStatusName())))
+                        .count();
+                course.setEnrolledCount(enrolledCount);
             }
         });
         return enrollments;
@@ -215,7 +229,7 @@ public class CourseService {
     public void updateCourseStatusByDatesAndCapacity(CourseModel course) {
         try {
             List<CourseStatusModel> statuses = courseStatusRepository.findAll();
-            CourseStatusModel active = statuses.stream().filter(s -> "Активный".equals(s.getStatusName())).findFirst().orElse(null);
+            CourseStatusModel active = statuses.stream().filter(s -> "Активен".equals(s.getStatusName())).findFirst().orElse(null);
             CourseStatusModel archived = statuses.stream().filter(s -> "Архивный".equals(s.getStatusName())).findFirst().orElse(null);
             CourseStatusModel filled = statuses.stream().filter(s -> "Заполнен".equals(s.getStatusName())).findFirst().orElse(null);
             CourseStatusModel enrolling = statuses.stream().filter(s -> "Идет набор".equals(s.getStatusName())).findFirst().orElse(null);
@@ -224,7 +238,9 @@ public class CourseService {
             int enrolledCount = 0;
             try {
                 List<EnrollmentModel> byCourse = enrollmentRepository.findByCourseCourseId(course.getCourseId());
-                enrolledCount = (int) byCourse.stream().filter(e -> e.getEnrollmentStatus() != null && "Активен".equals(e.getEnrollmentStatus().getStatusName())).count();
+                enrolledCount = (int) byCourse.stream()
+                        .filter(e -> e.getEnrollmentStatus() != null && "Активный".equals(e.getEnrollmentStatus().getStatusName()))
+                        .count();
             } catch (Exception ignored) {}
 
             if (course.getEndDate() != null && (today.isAfter(course.getEndDate()) || today.isEqual(course.getEndDate()))) {
@@ -316,7 +332,10 @@ public class CourseService {
         }
 
         if (course.getCapacity() != null && course.getCapacity() > 0) {
-            int current = enrollmentRepository.findByCourseCourseId(courseId).size();
+            List<EnrollmentModel> allEnrollments = enrollmentRepository.findByCourseCourseId(courseId);
+            int current = (int) allEnrollments.stream()
+                    .filter(e -> e.getEnrollmentStatus() != null && "Активный".equals(e.getEnrollmentStatus().getStatusName()))
+                    .count();
             if (current >= course.getCapacity()) {
 
                 checkAndUpdateCourseStatusIfFull(course);
@@ -346,7 +365,6 @@ public class CourseService {
         EnrollmentModel enrollment = new EnrollmentModel();
         enrollment.setUser(user);
         enrollment.setCourse(course);
-        enrollment.setDate(LocalDate.now());
         enrollment.setEnrollmentDate(LocalDate.now());
         enrollment.setEnrollmentStatus(status);
 
@@ -367,10 +385,19 @@ public class CourseService {
             return;
         }
 
-        int currentEnrollments = enrollmentRepository.findByCourseCourseId(course.getCourseId()).size();
-        
-        if (currentEnrollments >= course.getCapacity()) {
+        CourseModel freshCourse = courseRepository.findById(course.getCourseId()).orElse(null);
+        if (freshCourse == null) {
+            return;
+        }
 
+        List<EnrollmentModel> allEnrollments = enrollmentRepository.findByCourseCourseId(freshCourse.getCourseId());
+        int currentEnrollments = (int) allEnrollments.stream()
+                .filter(e -> e.getEnrollmentStatus() != null && "Активный".equals(e.getEnrollmentStatus().getStatusName()))
+                .count();
+        
+        logger.debug("Checking course {}: capacity={}, enrolled={}", freshCourse.getCourseId(), freshCourse.getCapacity(), currentEnrollments);
+        
+        if (currentEnrollments >= freshCourse.getCapacity()) {
             List<CourseStatusModel> statuses = courseStatusRepository.findAll();
             CourseStatusModel filledStatus = statuses.stream()
                     .filter(s -> "Заполнен".equals(s.getStatusName()))
@@ -378,20 +405,18 @@ public class CourseService {
                     .orElse(null);
             
             if (filledStatus != null) {
-
-                boolean courseNotStarted = course.getStartDate() != null && LocalDate.now().isBefore(course.getStartDate());
+                boolean courseNotStarted = freshCourse.getStartDate() != null && LocalDate.now().isBefore(freshCourse.getStartDate());
                 
                 if (courseNotStarted) {
-
-                    String currentStatusName = course.getCourseStatus() != null ? course.getCourseStatus().getStatusName() : null;
+                    String currentStatusName = freshCourse.getCourseStatus() != null ? freshCourse.getCourseStatus().getStatusName() : null;
                     if (!"Заполнен".equals(currentStatusName)) {
-                        course.setCourseStatus(filledStatus);
-                        courseRepository.save(course);
+                        freshCourse.setCourseStatus(filledStatus);
+                        courseRepository.save(freshCourse);
+                        logger.info("Course {} status changed to 'Заполнен' (capacity: {}, enrolled: {})", 
+                                freshCourse.getCourseId(), freshCourse.getCapacity(), currentEnrollments);
                     }
                 } else {
-
-
-                    updateCourseStatusByDatesAndCapacity(course);
+                    updateCourseStatusByDatesAndCapacity(freshCourse);
                 }
             }
         }
@@ -412,7 +437,6 @@ public class CourseService {
                     course.setImageUrl(fullUrl);
                 }
             } catch (Exception e) {
-
             }
         }
         return course;

@@ -302,7 +302,6 @@ public class AdminController {
         if (authentication != null && authentication.isAuthenticated()) {
             isAuthenticated = true;
         } else if (authHeader != null && authHeader.startsWith("Bearer ")) {
-
             isAuthenticated = true;
         }
         
@@ -313,7 +312,6 @@ public class AdminController {
         }
 
         try {
-
             certificateScheduler.checkAndIssueCertificates();
             response.put("message", "Проверка сертификатов выполнена. Проверьте логи для деталей.");
             response.put("status", "success");
@@ -573,9 +571,13 @@ public class AdminController {
     @Operation(summary = "Создать запись на курс")
     public ResponseEntity<EnrollmentModel> createEnrollment(@RequestBody EnrollmentModel enrollment, Authentication authentication) {
         try {
-            if (enrollment.getDate() == null) enrollment.setDate(java.time.LocalDate.now());
             if (enrollment.getEnrollmentDate() == null) enrollment.setEnrollmentDate(java.time.LocalDate.now());
             EnrollmentModel saved = enrollmentRepository.save(enrollment);
+            
+            if (saved.getCourse() != null) {
+                courseService.checkAndUpdateCourseStatusIfFull(saved.getCourse());
+            }
+            
             return ResponseEntity.ok(saved);
         } catch (Exception e) {
             logger.error("Error creating enrollment: {}", e.getMessage(), e);
@@ -591,6 +593,11 @@ public class AdminController {
             if (existing == null) return ResponseEntity.notFound().build();
             enrollment.setEnrollmentId(id);
             EnrollmentModel updated = enrollmentRepository.save(enrollment);
+            
+            if (updated.getCourse() != null) {
+                courseService.checkAndUpdateCourseStatusIfFull(updated.getCourse());
+            }
+            
             return ResponseEntity.ok(updated);
         } catch (Exception e) {
             logger.error("Error updating enrollment: {}", e.getMessage(), e);

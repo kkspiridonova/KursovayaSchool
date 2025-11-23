@@ -2,9 +2,9 @@ spring:
   config:
     name: OnlineSchoolKursach
   datasource:
-    url: jdbc:postgresql://localhost:5432/OnlineSchoolWeb2?connectTimeout=60&socketTimeout=60&tcpKeepAlive=true&ApplicationName=OnlineSchoolKursach
-    username: postgres
-    password: 1
+    url: jdbc:postgresql://postgres:5432/${DB_NAME:OnlineSchoolWeb2}?connectTimeout=60&socketTimeout=60&tcpKeepAlive=true&ApplicationName=OnlineSchoolKursach
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 60000
@@ -23,10 +23,10 @@ spring:
     hibernate:
       ddl-auto: none
     database: postgresql
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
         connection:
           provider_disables_autocommit: false
         jdbc:
@@ -35,7 +35,6 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         order_inserts: true
         order_updates: true
-        # Отключаем автоматическое закрытие соединений во время DDL операций
         temp.use_jdbc_metadata_defaults: false
   servlet:
     multipart:
@@ -51,8 +50,8 @@ spring:
       add-mappings: true
       static-locations: classpath:/static/
   mail:
-    host: smtp.gmail.com
-    port: 587
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
     username: ${MAIL_USERNAME:k6117039@gmail.com}
     password: ${MAIL_PASSWORD:tckbbbnshwxpwkzy}
     properties:
@@ -62,8 +61,11 @@ spring:
           starttls:
             enable: true
             required: true
-          debug: true
-        debug: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+          debug: false
+        debug: false
 
 server:
   port: 8080
@@ -72,17 +74,16 @@ server:
       enabled: false
 
 jwt:
-  secret: myVerySecretKeyThatIsLongEnoughForJWTAlgorithmSecurityRequirements123456789
-  expiration: 86400
+  secret: ${JWT_SECRET:myVerySecretKeyThatIsLongEnoughForJWTAlgorithmSecurityRequirements123456789}
+  expiration: ${JWT_EXPIRATION:86400}
 
 logging:
   level:
-    com.example.OnlineSchoolKursach: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.mail: DEBUG
-    jakarta.mail: DEBUG
-    org.eclipse.angus.mail: DEBUG
-    com.sun.mail: DEBUG
+    com.example.OnlineSchoolKursach: INFO
+    org.springframework.security: WARN
+    org.springframework.mail: WARN
+    org.hibernate: WARN
+    root: INFO
 
 file:
   storage-type: minio
@@ -90,10 +91,10 @@ file:
   max-request-size: 10MB
 
 minio:
-  endpoint: http://localhost:9000
-  access-key: minioadmin
-  secret-key: minioadmin
-  bucket-name: school-files
+  endpoint: http://${MINIO_HOST:minio}:${MINIO_PORT:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin}
+  bucket-name: ${MINIO_BUCKET_NAME:school-files}
   secure: false
 
 springdoc:
@@ -119,3 +120,4 @@ management:
     export:
       prometheus:
         enabled: true
+

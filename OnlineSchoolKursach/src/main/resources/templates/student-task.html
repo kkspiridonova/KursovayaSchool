@@ -533,6 +533,16 @@
                 return;
             }
 
+            const submitButton = event.target.querySelector('button[type="submit"]') || 
+                                document.querySelector('button[onclick*="submitComment"]');
+            const originalText = submitButton ? submitButton.innerHTML : '';
+            
+            // Показываем индикатор загрузки
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
+            }
+
             fetch(`/v1/api/comments/task/${currentTaskId}`, {
                 method: 'POST',
                 headers: {
@@ -549,13 +559,29 @@
                 }
             })
             .then(comment => {
-
-                loadComments();
+                // Очищаем поле ввода
                 document.getElementById('commentText').value = '';
+                
+                // Небольшая задержка перед обновлением, чтобы сервер успел сохранить
+                setTimeout(() => {
+                    loadComments();
+                    // Прокручиваем к списку комментариев
+                    const commentsList = document.getElementById('commentsList');
+                    if (commentsList) {
+                        commentsList.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                }, 100);
             })
             .catch(error => {
                 console.error('Error:', error);
                 alert('Ошибка при отправке комментария: ' + error.message);
+            })
+            .finally(() => {
+                // Восстанавливаем кнопку
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalText || 'Отправить';
+                }
             });
         }
 
@@ -567,6 +593,15 @@
             if (!currentTaskId) {
                 alert('Ошибка: не удалось определить ID задания');
                 return;
+            }
+
+            const replyButton = document.querySelector(`button[onclick="submitReply(${parentCommentId})"]`);
+            const originalText = replyButton ? replyButton.innerHTML : '';
+            
+            // Показываем индикатор загрузки
+            if (replyButton) {
+                replyButton.disabled = true;
+                replyButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
             }
 
             fetch(`/v1/api/comments/task/${currentTaskId}`, {
@@ -588,13 +623,27 @@
                 }
             })
             .then(comment => {
-
+                // Небольшая задержка перед обновлением
+                setTimeout(() => {
                 loadComments();
                 hideReplyForm(parentCommentId);
+                    // Прокручиваем к родительскому комментарию
+                    const parentComment = document.querySelector(`[data-comment-id="${parentCommentId}"]`);
+                    if (parentComment) {
+                        parentComment.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                }, 100);
             })
             .catch(error => {
                 console.error('Error:', error);
                 alert('Ошибка при отправке ответа: ' + error.message);
+            })
+            .finally(() => {
+                // Восстанавливаем кнопку
+                if (replyButton) {
+                    replyButton.disabled = false;
+                    replyButton.innerHTML = originalText || 'Отправить';
+                }
             });
         }
 

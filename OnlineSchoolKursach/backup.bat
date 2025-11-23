@@ -72,9 +72,11 @@ echo Creating backup...
 echo File: %BACKUP_FILE%
 echo.
 
-REM Execute pg_dump
+REM Execute pg_dump with --clean and --if-exists flags
+REM --clean: adds DROP statements before CREATE statements
+REM --if-exists: adds IF EXISTS to DROP statements (prevents errors if object doesn't exist)
 set PGPASSWORD=%DB_PASSWORD%
-"%PG_DUMP_PATH%" -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -d %DB_NAME% -F p -f "%BACKUP_FILE%" 2>&1
+"%PG_DUMP_PATH%" -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -d %DB_NAME% -F p --clean --if-exists -f "%BACKUP_FILE%" 2>&1
 set DUMP_ERROR=%ERRORLEVEL%
 set PGPASSWORD=
 

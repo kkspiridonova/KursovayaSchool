@@ -37,7 +37,7 @@ public class CertificateEligibilityService {
         boolean isEnrolled = enrollments.stream()
                 .anyMatch(e -> e.getUser().getUserId().equals(user.getUserId()) 
                         && e.getEnrollmentStatus() != null 
-                        && "Активен".equals(e.getEnrollmentStatus().getStatusName()));
+                        && "Активный".equals(e.getEnrollmentStatus().getStatusName()));
 
         if (!isEnrolled) {
             List<LessonModel> lessons = lessonRepository.findByCourseCourseId(course.getCourseId());

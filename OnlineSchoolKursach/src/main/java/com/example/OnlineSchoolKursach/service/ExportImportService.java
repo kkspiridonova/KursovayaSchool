@@ -234,11 +234,27 @@ public class ExportImportService {
                     }
 
                     if (row.length > 5 && !row[5].trim().isEmpty()) {
-                        Optional<UserModel> teacherOpt = userRepository.findByEmail(row[5].trim());
+                        String teacherEmail = row[5].trim();
+                        Optional<UserModel> teacherOpt = userRepository.findByEmail(teacherEmail);
                         if (teacherOpt.isPresent()) {
-                            course.setTeacher(teacherOpt.get());
+                            UserModel teacher = teacherOpt.get();
+                            if (teacher.getRole() != null && "Преподаватель".equals(teacher.getRole().getRoleName())) {
+                                course.setTeacher(teacher);
+                            } else {
+                                result.addError("Пользователь " + teacherEmail + " не является преподавателем");
+                                if (!isUpdate) {
+                                    continue;
+                                }
+                            }
                         } else {
-                            result.addError("Преподаватель не найден: " + row[5].trim());
+                            result.addError("Преподаватель не найден: " + teacherEmail);
+                            if (!isUpdate) {
+                                continue;
+                            }
+                        }
+                    } else {
+                        if (!isUpdate && course.getTeacher() == null) {
+                            result.addError("Для нового курса необходимо указать преподавателя (email)");
                             continue;
                         }
                     }
@@ -281,11 +297,26 @@ public class ExportImportService {
                         }
                     }
 
+                    // Финальная проверка обязательных полей
+                    if (course.getTeacher() == null) {
+                        result.addError("Курс '" + title + "' не может быть сохранен: не указан преподаватель");
+                        continue;
+                    }
+                    
+                    if (course.getCourseStatus() == null) {
+                        setDefaultCourseStatus(course);
+                    }
+
+                    try {
                     courseRepository.save(course);
                     if (isUpdate) {
                         result.addSuccess("Курс обновлен: " + title + " (ID: " + course.getCourseId() + ")");
                     } else {
                         result.addSuccess("Курс создан: " + title + " (ID: " + course.getCourseId() + ")");
+                        }
+                    } catch (Exception e) {
+                        result.addError("Ошибка сохранения курса '" + title + "': " + e.getMessage());
+                        logger.error("Error saving course '{}': {}", title, e.getMessage(), e);
                     }
                 } catch (Exception e) {
                     result.addError("Ошибка при импорте строки " + (i + 1) + ": " + e.getMessage());

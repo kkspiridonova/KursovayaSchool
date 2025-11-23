@@ -21,9 +21,9 @@ public class GradeModel {
 
     @NotNull
     @Min(value = 0, message = "Оценка не может быть меньше 0")
-    @Max(value = 100, message = "Оценка не может быть больше 100")
+    @Max(value = 5, message = "Оценка не может быть больше 5")
     @Column(name = "grade_value", nullable = false)
-    @Schema(description = "Значение оценки", example = "85")
+    @Schema(description = "Значение оценки (пятибалльная система)", example = "5")
     private Integer gradeValue;
 
     @OneToOne(mappedBy = "grade", fetch = FetchType.EAGER)

@@ -204,7 +204,7 @@ public class CommentController {
         boolean hasAccess = enrollments.stream()
                 .anyMatch(enrollment -> enrollment.getUser().getUserId().equals(user.getUserId()) &&
                         enrollment.getEnrollmentStatus() != null &&
-                        "Активен".equals(enrollment.getEnrollmentStatus().getStatusName()));
+                        "Активный".equals(enrollment.getEnrollmentStatus().getStatusName()));
         
         if (hasAccess) {
             logger.info("User {} has active enrollment in course {}, granting access", user.getEmail(), course.getCourseId());

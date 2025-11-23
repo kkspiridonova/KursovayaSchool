@@ -120,10 +120,34 @@ if /i not "%CONFIRM%"=="yes" (
 )
 
 echo.
-echo Restoring database...
+echo Step 1: Terminating active connections to database...
+set PGPASSWORD=%DB_PASSWORD%
+"%PSQL_PATH%" -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '%DB_NAME%' AND pid <> pg_backend_pid();" 2>&1
+set PGPASSWORD=
+echo Active connections terminated (if any).
+echo.
+
+echo Step 2: Dropping all objects in public schema...
+echo This ensures clean restoration without conflicts...
+set PGPASSWORD=%DB_PASSWORD%
+"%PSQL_PATH%" -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -d %DB_NAME% -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO postgres; GRANT ALL ON SCHEMA public TO public;" 2>&1
+set DROP_ERROR=%ERRORLEVEL%
+set PGPASSWORD=
+if %DROP_ERROR% NEQ 0 (
+    echo WARNING: Failed to drop schema. Continuing anyway...
+) else (
+    echo Schema dropped and recreated successfully.
+)
+echo.
+
+echo Step 3: Restoring database from backup file...
+echo This may take a while...
+echo IMPORTANT: Watch for any ERROR messages above!
 echo.
 
 set PGPASSWORD=%DB_PASSWORD%
+REM -v ON_ERROR_STOP=1 stops execution on first error
+REM Note: We removed ON_ERROR_STOP temporarily to see all errors, but you can add it back if needed
 "%PSQL_PATH%" -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -d %DB_NAME% -f "%BACKUP_FILE%" 2>&1
 set RESTORE_ERROR=%ERRORLEVEL%
 set PGPASSWORD=
@@ -131,9 +155,23 @@ set PGPASSWORD=
 echo.
 
 if %RESTORE_ERROR% EQU 0 (
+    echo.
+    echo Step 4: Verifying restoration...
+    set PGPASSWORD=%DB_PASSWORD%
+    "%PSQL_PATH%" -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -d %DB_NAME% -c "SELECT COUNT(*) as table_count FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE';" 2>&1
+    echo.
+    echo Checking data counts...
+    "%PSQL_PATH%" -h %DB_HOST% -p %DB_PORT% -U %DB_USER% -d %DB_NAME% -c "SELECT 'users' as table_name, COUNT(*) as row_count FROM users UNION ALL SELECT 'courses', COUNT(*) FROM courses UNION ALL SELECT 'enrollments', COUNT(*) FROM enrollments UNION ALL SELECT 'lessons', COUNT(*) FROM lessons UNION ALL SELECT 'tasks', COUNT(*) FROM tasks;" 2>&1
+    set PGPASSWORD=
+    echo.
     echo ========================================
     echo SUCCESS! Database restored!
     echo ========================================
+    echo.
+    echo Please verify your data manually by:
+    echo 1. Checking the application
+    echo 2. Running queries in pgAdmin
+    echo.
 ) else (
     echo ========================================
     echo ERROR restoring database!

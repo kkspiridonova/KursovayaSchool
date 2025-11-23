@@ -32,6 +32,11 @@ public class CertificateEmailService {
     @Transactional
     public boolean sendCertificateByEmail(CertificateModel certificate) {
         try {
+            if (mailSender == null) {
+                logger.error("JavaMailSender is not configured. Check email settings in application.yaml");
+                return false;
+            }
+
             String filePath = resolveFilePath(certificate);
             if (filePath == null) {
                 logger.error("Certificate file path is empty for certificate: {}", certificate.getCertificateId());
@@ -68,11 +73,21 @@ public class CertificateEmailService {
                     studentEmail, certificate.getCertificateNumber());
             return true;
 
+        } catch (org.springframework.mail.MailAuthenticationException e) {
+            logger.error("=== ОШИБКА АУТЕНТИФИКАЦИИ EMAIL ===");
+            logger.error("Не удалось аутентифицироваться в SMTP сервере");
+            logger.error("Проверьте настройки MAIL_USERNAME и MAIL_PASSWORD в .env файле");
+            logger.error("Для Gmail используйте пароль приложения: https://myaccount.google.com/apppasswords");
+            logger.error("Ошибка: {}", e.getMessage(), e);
+            return false;
         } catch (MessagingException e) {
-            logger.error("Error sending certificate email: {}", e.getMessage(), e);
+            logger.error("Ошибка отправки email: {}", e.getMessage(), e);
             return false;
         } catch (Exception e) {
-            logger.error("Error sending certificate email: {}", e.getMessage(), e);
+            logger.error("Ошибка отправки email: {}", e.getMessage(), e);
+            if (e.getCause() != null) {
+                logger.error("Причина: {}", e.getCause().getMessage());
+            }
             return false;
         }
     }

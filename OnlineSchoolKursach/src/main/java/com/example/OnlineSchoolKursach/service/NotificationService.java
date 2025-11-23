@@ -37,6 +37,12 @@ public class NotificationService {
 
     public void sendGradeNotification(GradeModel grade, SolutionModel solution) {
         try {
+            if (mailSender == null) {
+                logger.error("JavaMailSender is not configured. Check email settings in application.yaml");
+                logger.error("Убедитесь, что MAIL_USERNAME и MAIL_PASSWORD установлены в .env файле");
+                return;
+            }
+
             if (solution == null || solution.getUser() == null) {
                 logger.warn("Cannot send grade notification: solution or user is null");
                 return;
@@ -72,10 +78,19 @@ public class NotificationService {
             logger.info("Grade notification sent successfully to: {} for task: {}", 
                     studentEmail, taskTitle);
 
+        } catch (org.springframework.mail.MailAuthenticationException e) {
+            logger.error("=== ОШИБКА АУТЕНТИФИКАЦИИ EMAIL ===");
+            logger.error("Не удалось аутентифицироваться в SMTP сервере");
+            logger.error("Проверьте настройки MAIL_USERNAME и MAIL_PASSWORD в .env файле");
+            logger.error("Для Gmail используйте пароль приложения: https://myaccount.google.com/apppasswords");
+            logger.error("Ошибка: {}", e.getMessage(), e);
         } catch (MessagingException e) {
             logger.error("Error sending grade notification: {}", e.getMessage(), e);
         } catch (Exception e) {
             logger.error("Error sending grade notification: {}", e.getMessage(), e);
+            if (e.getCause() != null) {
+                logger.error("Причина: {}", e.getCause().getMessage());
+            }
         }
     }
 
@@ -150,6 +165,11 @@ public class NotificationService {
 
     private void sendDeadlineReminder(UserModel student, String courseTitle, String taskTitle, LocalDate deadline) {
         try {
+            if (mailSender == null) {
+                logger.error("JavaMailSender is not configured. Check email settings in application.yaml");
+                return;
+            }
+
             String studentEmail = student.getEmail();
             String studentName = buildStudentName(student);
 
@@ -168,10 +188,18 @@ public class NotificationService {
             logger.info("Deadline reminder sent successfully to: {} for task: {}", 
                     studentEmail, taskTitle);
 
+        } catch (org.springframework.mail.MailAuthenticationException e) {
+            logger.error("=== ОШИБКА АУТЕНТИФИКАЦИИ EMAIL ===");
+            logger.error("Не удалось аутентифицироваться в SMTP сервере");
+            logger.error("Проверьте настройки MAIL_USERNAME и MAIL_PASSWORD в .env файле");
+            logger.error("Ошибка: {}", e.getMessage(), e);
         } catch (MessagingException e) {
             logger.error("Error sending deadline reminder: {}", e.getMessage(), e);
         } catch (Exception e) {
             logger.error("Error sending deadline reminder: {}", e.getMessage(), e);
+            if (e.getCause() != null) {
+                logger.error("Причина: {}", e.getCause().getMessage());
+            }
         }
     }
 

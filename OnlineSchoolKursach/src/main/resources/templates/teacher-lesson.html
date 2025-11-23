@@ -203,8 +203,8 @@
             const lessonId = /*[[${lesson.lessonId}]]*/ '1';
             const courseStatus = /*[[${course.courseStatus != null ? course.courseStatus.statusName : 'не установлен'}]]*/ 'не установлен';
 
-            if (courseStatus !== 'Активный') {
-                alert('Уроки и задания можно создавать только когда курс в статусе "Активный".\n\nТекущий статус курса: ' + courseStatus + '\n\nКурс еще не начался. Дождитесь начала курса, чтобы создавать уроки и задания.');
+            if (courseStatus !== 'Активен') {
+                alert('Уроки и задания можно создавать только когда курс в статусе "Активен".\n\nТекущий статус курса: ' + courseStatus);
                 return;
             }
             

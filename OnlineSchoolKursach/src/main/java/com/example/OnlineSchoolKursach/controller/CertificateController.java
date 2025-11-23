@@ -38,7 +38,12 @@ public class CertificateController {
         }
 
         UserModel user = authService.getUserByEmail(authentication.getName());
-        List<CertificateModel> certificates = certificateRepository.findByUserUserId(user.getUserId());
+        List<CertificateModel> allCertificates = certificateRepository.findByUserUserId(user.getUserId());
+        
+        List<CertificateModel> certificates = allCertificates.stream()
+                .filter(cert -> cert.getCertificateStatus() != null 
+                        && !"Отменен".equals(cert.getCertificateStatus().getStatusName()))
+                .toList();
 
         model.addAttribute("certificates", certificates);
         return "student-certificates";
@@ -60,6 +65,11 @@ public class CertificateController {
 
         UserModel user = authService.getUserByEmail(authentication.getName());
         if (!certificate.getUser().getUserId().equals(user.getUserId())) {
+            return ResponseEntity.status(403).build();
+        }
+
+        if (certificate.getCertificateStatus() != null 
+                && "Отменен".equals(certificate.getCertificateStatus().getStatusName())) {
             return ResponseEntity.status(403).build();
         }
 

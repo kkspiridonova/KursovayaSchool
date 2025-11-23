@@ -96,6 +96,14 @@ public class PasswordResetService {
 
     private boolean sendPasswordResetEmail(String email, String token) {
         try {
+            if (mailSender == null) {
+                logger.error("JavaMailSender is not configured. Check email settings in application.yaml");
+                logger.warn("=== РЕЖИМ РАЗРАБОТКИ: Email не настроен, но токен создан ===");
+                logger.warn("Ссылка для восстановления пароля: http://localhost:8080/reset-password?token={}", token);
+                logger.warn("Токен: {}", token);
+                return false;
+            }
+
             logger.debug("Attempting to send password reset email to: {}", email);
             logger.debug("Using SMTP host: smtp.gmail.com, port: 587");
             
@@ -119,13 +127,14 @@ public class PasswordResetService {
             logger.info("Password reset email sent successfully to: {}", email);
             return true;
         } catch (org.springframework.mail.MailAuthenticationException e) {
-            logger.error("=== ОШИБКА АУТЕНТИФИКАЦИИ GMAIL ===");
-            logger.error("Не удалось аутентифицироваться в Gmail SMTP");
+            logger.error("=== ОШИБКА АУТЕНТИФИКАЦИИ EMAIL ===");
+            logger.error("Не удалось аутентифицироваться в SMTP сервере");
             logger.error("Возможные причины:");
             logger.error("1. Пароль приложения неправильный или устарел");
             logger.error("2. Двухфакторная аутентификация не включена");
             logger.error("3. Пароль приложения не создан или был удален");
             logger.error("4. Неправильный email адрес");
+            logger.error("5. Переменные MAIL_USERNAME и MAIL_PASSWORD не установлены в .env");
             logger.error("Решение: https://myaccount.google.com/apppasswords");
             logger.error("Ошибка: {}", e.getMessage());
             if (e.getCause() != null) {
@@ -139,8 +148,29 @@ public class PasswordResetService {
             logger.warn("================================================================");
             
             return false;
+        } catch (org.springframework.mail.MailSendException e) {
+            logger.error("=== ОШИБКА ОТПРАВКИ EMAIL ===");
+            logger.error("Не удалось отправить email");
+            logger.error("Проверьте настройки SMTP в application.yaml");
+            logger.error("Ошибка: {}", e.getMessage());
+            if (e.getCause() != null) {
+                logger.error("Причина: {}", e.getCause().getMessage());
+            }
+
+            String resetUrl = "http://localhost:8080/reset-password?token=" + token;
+            logger.warn("=== РЕЖИМ РАЗРАБОТКИ: Email не отправлен, но токен создан ===");
+            logger.warn("Ссылка для восстановления пароля: {}", resetUrl);
+            logger.warn("Токен: {}", token);
+            logger.warn("================================================================");
+            
+            return false;
         } catch (Exception e) {
+            logger.error("=== ОБЩАЯ ОШИБКА ОТПРАВКИ EMAIL ===");
             logger.error("Failed to send password reset email to: {}. Error: {}", email, e.getMessage());
+            logger.error("Тип ошибки: {}", e.getClass().getSimpleName());
+            if (e.getCause() != null) {
+                logger.error("Причина: {}", e.getCause().getMessage());
+            }
             logger.debug("Full email error stack trace:", e);
 
             String resetUrl = "http://localhost:8080/reset-password?token=" + token;

@@ -28,13 +28,8 @@ public class EnrollmentModel {
     private CourseModel course;
 
     @NotNull
-    @Column(name = "date", nullable = false)
-    @Schema(description = "Дата записи на курс", example = "2023-01-01")
-    private LocalDate date;
-
-    @NotNull
     @Column(name = "enrollment_date", nullable = false)
-    @Schema(description = "Дата создания записи", example = "2023-01-01")
+    @Schema(description = "Дата записи на курс", example = "2023-01-01")
     private LocalDate enrollmentDate;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -44,10 +39,9 @@ public class EnrollmentModel {
 
     public EnrollmentModel() {}
 
-    public EnrollmentModel(UserModel user, CourseModel course, LocalDate date, LocalDate enrollmentDate, EnrollmentStatusModel enrollmentStatus) {
+    public EnrollmentModel(UserModel user, CourseModel course, LocalDate enrollmentDate, EnrollmentStatusModel enrollmentStatus) {
         this.user = user;
         this.course = course;
-        this.date = date;
         this.enrollmentDate = enrollmentDate;
         this.enrollmentStatus = enrollmentStatus;
     }
@@ -74,14 +68,6 @@ public class EnrollmentModel {
 
     public void setCourse(CourseModel course) {
         this.course = course;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
     }
 
     public LocalDate getEnrollmentDate() {
