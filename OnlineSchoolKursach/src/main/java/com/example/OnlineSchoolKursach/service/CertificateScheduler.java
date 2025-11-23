@@ -10,8 +10,10 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Component
@@ -84,6 +86,24 @@ public class CertificateScheduler {
 
     @Scheduled(cron = "0 0 1 * * *")
     public void checkAndIssueCertificates() {
+        logger.info("=== АВТОМАТИЧЕСКАЯ ПРОВЕРКА СЕРТИФИКАТОВ (01:00) ===");
+        checkAndIssueCertificatesInternal();
+    }
+
+    @Scheduled(cron = "0 0 18 * * *")
+    public void checkAndIssueCertificatesEvening() {
+        logger.info("=== АВТОМАТИЧЕСКАЯ ПРОВЕРКА СЕРТИФИКАТОВ (18:00) ===");
+        checkAndIssueCertificatesInternal();
+    }
+
+    @Scheduled(cron = "0 0 20 * * *")
+    public void checkAndIssueCertificatesNight() {
+        logger.info("=== АВТОМАТИЧЕСКАЯ ПРОВЕРКА СЕРТИФИКАТОВ (20:00) ===");
+        checkAndIssueCertificatesInternal();
+    }
+
+    public Map<String, Object> checkAndIssueCertificatesInternal() {
+        Map<String, Object> result = new HashMap<>();
         logger.info("=== НАЧАЛО ПРОВЕРКИ СЕРТИФИКАТОВ ===");
         try {
             logger.info("Starting certificate issuance check...");
@@ -101,12 +121,18 @@ public class CertificateScheduler {
 
             logger.info("Found {} finished courses (endDate <= {})", finishedCourses.size(), today);
             
+            int certificatesIssued = 0;
+            int coursesChecked = finishedCourses.size();
+            List<String> issuedCertificates = new ArrayList<>();
+            List<String> errors = new ArrayList<>();
+            
             if (finishedCourses.isEmpty()) {
                 logger.info("No finished courses found. Exiting.");
-                return;
+                result.put("certificatesIssued", 0);
+                result.put("coursesChecked", 0);
+                result.put("message", "Нет завершенных курсов для проверки");
+                return result;
             }
-
-            int certificatesIssued = 0;
 
             for (CourseModel course : finishedCourses) {
                 try {
@@ -117,12 +143,25 @@ public class CertificateScheduler {
                             .distinct()
                             .toList();
 
-                    if (students.isEmpty()) {
-                        students = getStudentsFromSolutions(course);
+                    List<UserModel> studentsFromSolutions = getStudentsFromSolutions(course);
+                    
+                    Set<Long> studentIds = new HashSet<>();
+                    for (UserModel s : students) {
+                        if (s != null && s.getUserId() != null) {
+                            studentIds.add(s.getUserId());
+                        }
+                    }
+                    
+                    for (UserModel s : studentsFromSolutions) {
+                        if (s != null && s.getUserId() != null && !studentIds.contains(s.getUserId())) {
+                            students.add(s);
+                            studentIds.add(s.getUserId());
+                        }
                     }
 
-                    logger.info("Processing course {}: {} enrolled students", 
-                            course.getTitle(), students.size());
+                    logger.info("Processing course {}: {} total students ({} from enrollments, {} from solutions)", 
+                            course.getTitle(), students.size(), 
+                            enrollments.size(), studentsFromSolutions.size());
 
                     for (UserModel student : students) {
                         try {
@@ -133,7 +172,12 @@ public class CertificateScheduler {
                                 continue;
                             }
 
-                            if (eligibilityService.isEligibleForCertificate(student, course)) {
+                            boolean eligible = eligibilityService.isEligibleForCertificate(student, course);
+                            logger.info("Eligibility check for user {} (ID: {}) course {} (ID: {}): {}", 
+                                    student.getEmail(), student.getUserId(), course.getTitle(), course.getCourseId(), 
+                                    eligible ? "ELIGIBLE" : "NOT ELIGIBLE");
+                            
+                            if (eligible) {
                                 logger.info("User {} is eligible for certificate for course {}", 
                                         student.getEmail(), course.getTitle());
 
@@ -152,27 +196,45 @@ public class CertificateScheduler {
                                 }
 
                                 certificatesIssued++;
+                                issuedCertificates.add(String.format("%s - %s", student.getEmail(), course.getTitle()));
                             } else {
-                                logger.debug("User {} is not eligible for certificate for course {}", 
+                                logger.warn("User {} is NOT eligible for certificate for course {}. Check logs above for details.", 
                                         student.getEmail(), course.getTitle());
                             }
                         } catch (Exception e) {
+                            String errorMsg = String.format("Ошибка для студента %s, курс %s: %s", 
+                                    student.getEmail(), course.getTitle(), e.getMessage());
                             logger.error("Error processing certificate for user {} course {}: {}", 
                                     student.getEmail(), course.getTitle(), e.getMessage(), e);
+                            errors.add(errorMsg);
                         }
                     }
                 } catch (Exception e) {
+                    String errorMsg = String.format("Ошибка при обработке курса %s: %s", course.getTitle(), e.getMessage());
                     logger.error("Error processing course {}: {}", course.getTitle(), e.getMessage(), e);
+                    errors.add(errorMsg);
                 }
             }
 
             logger.info("Certificate issuance check completed. Issued {} certificates", certificatesIssued);
             logger.info("=== ЗАВЕРШЕНИЕ ПРОВЕРКИ СЕРТИФИКАТОВ ===");
+            
+            result.put("certificatesIssued", certificatesIssued);
+            result.put("coursesChecked", coursesChecked);
+            result.put("issuedCertificates", issuedCertificates);
+            result.put("errors", errors);
+            result.put("message", String.format("Проверка завершена. Выдано сертификатов: %d из %d проверенных курсов", 
+                    certificatesIssued, coursesChecked));
+            
+            return result;
         } catch (Exception e) {
             logger.error("=== ОШИБКА В ПРОВЕРКЕ СЕРТИФИКАТОВ ===");
             logger.error("Error in certificate scheduler: {}", e.getMessage(), e);
             e.printStackTrace();
             logger.error("=== КОНЕЦ ОШИБКИ ===");
+            result.put("error", "Критическая ошибка: " + e.getMessage());
+            result.put("certificatesIssued", 0);
+            return result;
         }
     }
 }

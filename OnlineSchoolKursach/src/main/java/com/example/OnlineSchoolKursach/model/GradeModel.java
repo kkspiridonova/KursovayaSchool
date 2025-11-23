@@ -26,9 +26,14 @@ public class GradeModel {
     @Schema(description = "Значение оценки (пятибалльная система)", example = "5")
     private Integer gradeValue;
 
-    @OneToOne(mappedBy = "grade", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "grade", fetch = FetchType.LAZY)
     @JsonIgnoreProperties({"grade", "task", "user", "solutionStatus"})
-    @Schema(description = "Решение, которое получило эту оценку")
+    @Schema(description = "Решения, которые получили эту оценку")
+    private java.util.List<SolutionModel> solutions;
+
+    @Transient
+    @JsonIgnoreProperties({"grade", "task", "user", "solutionStatus"})
+    @Schema(description = "Решение из запроса (для десериализации JSON)")
     private SolutionModel solution;
 
     public GradeModel() {}
@@ -51,6 +56,14 @@ public class GradeModel {
 
     public void setGradeValue(Integer gradeValue) {
         this.gradeValue = gradeValue;
+    }
+
+    public java.util.List<SolutionModel> getSolutions() {
+        return solutions;
+    }
+
+    public void setSolutions(java.util.List<SolutionModel> solutions) {
+        this.solutions = solutions;
     }
 
     public SolutionModel getSolution() {

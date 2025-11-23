@@ -122,13 +122,17 @@ public class GradeController {
                 return ResponseEntity.notFound().build();
             }
 
-            if (!existingGrade.getSolution().getTask().getLesson().getCourse().getTeacher().getUserId().equals(user.getUserId())) {
+            if (existingGrade.getSolutions() == null || existingGrade.getSolutions().isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+            SolutionModel firstSolution = existingGrade.getSolutions().get(0);
+            if (!firstSolution.getTask().getLesson().getCourse().getTeacher().getUserId().equals(user.getUserId())) {
                 return ResponseEntity.badRequest().build();
             }
             
             GradeModel updatedGrade = gradeService.updateGrade(gradeId, grade);
             if (updatedGrade != null) {
-                Long solutionId = updatedGrade.getSolution() != null ? updatedGrade.getSolution().getSolutionId() : null;
+                Long solutionId = grade.getSolution() != null ? grade.getSolution().getSolutionId() : null;
                 return ResponseEntity.ok(toDto(updatedGrade, solutionId));
             } else {
                 return ResponseEntity.notFound().build();
@@ -166,7 +170,11 @@ public class GradeController {
                 return ResponseEntity.notFound().build();
             }
 
-            if (!existingGrade.getSolution().getTask().getLesson().getCourse().getTeacher().getUserId().equals(user.getUserId())) {
+            if (existingGrade.getSolutions() == null || existingGrade.getSolutions().isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+            SolutionModel firstSolution = existingGrade.getSolutions().get(0);
+            if (!firstSolution.getTask().getLesson().getCourse().getTeacher().getUserId().equals(user.getUserId())) {
                 return ResponseEntity.badRequest().build();
             }
             

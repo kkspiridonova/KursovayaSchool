@@ -286,8 +286,11 @@
                     <div class="col-12">
                         <h3>Сертификаты</h3>
                         <p class="text-muted">Управление сертификатами.</p>
-                        <button class="btn btn-primary btn-sm" onclick="showCreateModal('certificates')">
+                        <button class="btn btn-primary btn-sm me-2" onclick="showCreateModal('certificates')">
                             <i class="fas fa-plus"></i> Создать сертификат
+                        </button>
+                        <button class="btn btn-success btn-sm" onclick="checkAndIssueCertificates()" id="checkCertificatesBtn">
+                            <i class="fas fa-certificate"></i> Проверить и выдать сертификаты
                         </button>
                     </div>
                 </div>
@@ -2610,6 +2613,95 @@
             .catch(error => {
                 console.error('Error importing CSV:', error);
                 resultDiv.innerHTML = '<div class="alert alert-danger">Ошибка при импорте: ' + escapeHtml(error.message) + '</div>';
+            });
+        }
+
+        function checkAndIssueCertificates() {
+            const btn = document.getElementById('checkCertificatesBtn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Проверка...';
+
+            fetch('/v1/api/admin/certificates/check-and-issue', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                
+                let alertClass = data.status === 'success' ? 'alert-success' : 'alert-danger';
+                let message = '<div class="alert ' + alertClass + '">';
+                message += '<h6>' + escapeHtml(data.message || 'Результат проверки') + '</h6>';
+                
+                if (data.certificatesIssued !== undefined) {
+                    message += '<p><strong>Выдано сертификатов:</strong> ' + escapeHtml(data.certificatesIssued) + '</p>';
+                }
+                
+                if (data.coursesChecked !== undefined) {
+                    message += '<p><strong>Проверено курсов:</strong> ' + escapeHtml(data.coursesChecked) + '</p>';
+                }
+                
+                if (data.issuedCertificates) {
+                    message += '<p><strong>Выданные сертификаты:</strong></p>';
+                    message += '<ul class="small">';
+                    const certificates = data.issuedCertificates.split('; ');
+                    certificates.forEach(cert => {
+                        if (cert.trim()) {
+                            message += '<li>' + escapeHtml(cert) + '</li>';
+                        }
+                    });
+                    message += '</ul>';
+                }
+                
+                if (data.errors) {
+                    message += '<p class="text-danger"><strong>Ошибки:</strong></p>';
+                    message += '<ul class="small text-danger">';
+                    const errors = data.errors.split('; ');
+                    errors.forEach(err => {
+                        if (err.trim()) {
+                            message += '<li>' + escapeHtml(err) + '</li>';
+                        }
+                    });
+                    message += '</ul>';
+                }
+                
+                message += '</div>';
+                
+                const resultDiv = document.createElement('div');
+                resultDiv.innerHTML = message;
+                resultDiv.className = 'mt-3';
+                
+                const certificatesTab = document.querySelector('#certificates .card-body');
+                if (certificatesTab) {
+                    const existingAlert = certificatesTab.querySelector('.alert');
+                    if (existingAlert) {
+                        existingAlert.remove();
+                    }
+                    certificatesTab.insertBefore(resultDiv, certificatesTab.firstChild);
+                    
+                    setTimeout(() => {
+                        resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+                } else {
+                    alert(message.replace(/<[^>]*>/g, ''));
+                }
+                
+                if (data.status === 'success') {
+                    setTimeout(() => {
+                        loadTableData('certificates');
+                    }, 2000);
+                }
+            })
+            .catch(error => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                console.error('Error checking certificates:', error);
+                alert('Ошибка при проверке сертификатов: ' + error.message);
             });
         }
     </script>

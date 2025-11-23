@@ -50,14 +50,6 @@
                                                     <strong>Дата выдачи:</strong><br>
                                                     <span th:text="${#temporals.format(certificate.issueDate, 'dd.MM.yyyy')}">11.11.2025</span>
                                                 </p>
-                                                <p class="card-text">
-                                                    <span th:if="${certificate.emailSent}" class="badge bg-success">
-                                                        <i class="fas fa-envelope"></i> Отправлен на email
-                                                    </span>
-                                                    <span th:unless="${certificate.emailSent}" class="badge bg-secondary">
-                                                        <i class="fas fa-envelope-open"></i> Не отправлен
-                                                    </span>
-                                                </p>
                                                 <a th:href="@{/student/certificate/{id}/download(id=${certificate.certificateId})}" 
                                                    class="btn btn-primary mt-2">
                                                     <i class="fas fa-download"></i> Скачать PDF

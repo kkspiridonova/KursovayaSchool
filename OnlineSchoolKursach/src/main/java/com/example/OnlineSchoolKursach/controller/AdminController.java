@@ -312,9 +312,25 @@ public class AdminController {
         }
 
         try {
-            certificateScheduler.checkAndIssueCertificates();
-            response.put("message", "Проверка сертификатов выполнена. Проверьте логи для деталей.");
+            Map<String, Object> result = certificateScheduler.checkAndIssueCertificatesInternal();
+
+            response.put("message", result.getOrDefault("message", "Проверка сертификатов выполнена").toString());
             response.put("status", "success");
+            response.put("certificatesIssued", String.valueOf(result.getOrDefault("certificatesIssued", 0)));
+            response.put("coursesChecked", String.valueOf(result.getOrDefault("coursesChecked", 0)));
+            
+            if (result.containsKey("issuedCertificates")) {
+                @SuppressWarnings("unchecked")
+                List<String> issued = (List<String>) result.get("issuedCertificates");
+                response.put("issuedCertificates", String.join("; ", issued));
+            }
+            
+            if (result.containsKey("errors") && !((List<?>) result.get("errors")).isEmpty()) {
+                @SuppressWarnings("unchecked")
+                List<String> errors = (List<String>) result.get("errors");
+                response.put("errors", String.join("; ", errors));
+            }
+            
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.error("Error checking and issuing certificates: {}", e.getMessage(), e);
